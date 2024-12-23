@@ -39,7 +39,7 @@
         "@types/splitpanes": "^2.2.6",
         "@vitejs/plugin-vue": "^5.0.4",
         "autoprefixer": "^10.4.19",
-        "electron": "^29.1.1",
+        "electron": "^33.2.1",
         "electron-builder": "^24.13.3",
         "less": "^4.2.0",
         "postcss": "^8.4.39",
