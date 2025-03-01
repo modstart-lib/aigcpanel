@@ -75,7 +75,7 @@
         "js-base64": "^3.7.7",
         "lodash-es": "^4.17.21",
         "nodejs-base64": "^2.0.0",
-        "pinia": "^2.1.7",
+        "pinia": "^3.0.1",
         "qrcode": "^1.5.4",
         "showdown": "^2.1.0",
         "splitpanes": "^3.1.5",
