@@ -98,20 +98,20 @@ jobs:
             Write-Host "::add-mask::$DIST_FILE_NAME"
             echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
 
-      - name: Upload
-        uses: modstart/github-oss-action@master
-        with:
-            title: ${{ github.event.head_commit.message }}
-            key-id: ${{ secrets.OSS_2_KEY_ID }}
-            key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
-            region: ${{ secrets.OSS_2_REGION }}
-            bucket: ${{ secrets.OSS_2_BUCKET }}
-            callback: ${{ secrets.OSS_2_CALLBACK }}
-            assets: |
-                dist-release/*.exe:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.dmg:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.AppImage:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.deb:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
+#      - name: Upload
+#        uses: modstart/github-oss-action@master
+#        with:
+#            title: ${{ github.event.head_commit.message }}
+#            key-id: ${{ secrets.OSS_2_KEY_ID }}
+#            key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
+#            region: ${{ secrets.OSS_2_REGION }}
+#            bucket: ${{ secrets.OSS_2_BUCKET }}
+#            callback: ${{ secrets.OSS_2_CALLBACK }}
+#            assets: |
+#                dist-release/*.exe:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
+#                dist-release/*.dmg:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
+#                dist-release/*.AppImage:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
+#                dist-release/*.deb:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/
 
 #      - name: Upload Artifact Windows
 #        if: runner.os == 'Windows'
