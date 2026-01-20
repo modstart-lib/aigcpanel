@@ -87,11 +87,13 @@ jobs:
 
       - name: init ( Windows )
         if: runner.os == 'Windows'
+        working-directory: code
         shell: pwsh
         run: bash ./scripts/init.sh
 
       - name: init ( Linux/osx )
         if: runner.os == 'Linux' || runner.os == 'macOS'
+        working-directory: code
         run: bash ./scripts/init.sh
 
       - name: Build Release Files
