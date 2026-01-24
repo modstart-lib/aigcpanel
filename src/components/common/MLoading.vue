@@ -20,7 +20,7 @@ const props = defineProps({
         <div v-else>
             <a-spin style="--primary-6: #999" />
             <div class="text-sm">
-                {{ $t("正在加载") }}
+                {{ $t("status.loading") }}
             </div>
         </div>
     </div>

@@ -43,11 +43,11 @@ onMounted(async () => {
     <div class="p-5">
         <div class="mb-4 flex items-center">
             <div class="flex-grow flex items-end">
-                <div class="text-3xl font-bold">{{ $t("声音合成") }}</div>
-                <div class="text-gray-400 ml-3">{{ $t("支持内置声音合成，5秒音频声音克隆") }}</div>
+                <div class="text-3xl font-bold">{{ $t("voice.synthesis") }}</div>
+                <div class="text-gray-400 ml-3">{{ $t("intro.voiceClone") }}</div>
             </div>
             <div class="flex items-center" v-if="0">
-                <a-tooltip :content="$t('清空历史')" position="right" mini>
+                <a-tooltip :content="$t('common.clearHistory')" position="right" mini>
                     <a-button class="ml-1">
                         <template #icon>
                             <icon-delete/>
@@ -67,7 +67,7 @@ onMounted(async () => {
                                 :indeterminate="isIndeterminate"
                                 @change="onCheckAll"
                             >
-                                {{ $t("全选") }}
+                                {{ $t("common.selectAll") }}
                             </a-checkbox>
                         </div>
                         <TaskBatchDeleteAction :records="checkRecords" @update="doRefresh"/>
@@ -129,7 +129,7 @@ onMounted(async () => {
                     </div>
                 </div>
             </div>
-            <m-empty v-else :text="$t('暂无声音合成任务')"/>
+            <m-empty v-else :text="$t('empty.noVoiceTask')"/>
         </div>
     </div>
 </template>

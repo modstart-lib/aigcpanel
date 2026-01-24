@@ -84,8 +84,8 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
     <div class="p-5">
         <div class="mb-4 flex items-center">
             <div class="flex-grow flex items-end">
-                <div class="text-3xl font-bold">{{ $t("语音识别") }}</div>
-                <div class="text-gray-400 ml-3">{{ $t("识别音频文件，支持识别后编辑/下载文本/字幕文件") }}</div>
+                <div class="text-3xl font-bold">{{ $t("voice.recognition") }}</div>
+                <div class="text-gray-400 ml-3">{{ $t("desc.recognitionEdit") }}</div>
             </div>
         </div>
         <div>
@@ -99,7 +99,7 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
                                 :indeterminate="isIndeterminate"
                                 @change="onCheckAll"
                             >
-                                {{ $t("全选") }}
+                                {{ $t("common.selectAll") }}
                             </a-checkbox>
                         </div>
                         <TaskBatchDeleteAction :records="checkRecords" @update="doRefresh"/>
@@ -150,14 +150,14 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
                                 <timeago :datetime="r['createdAt'] * 1000"/>
                             </div>
                             <div class="">
-                                <a-tooltip v-if="r.result && r.runtime?.text" :content="$t('复制文本')" mini>
+                                <a-tooltip v-if="r.result && r.runtime?.text" :content="$t('common.copyText')" mini>
                                     <a-button class="mr-2" @click="doCopy(r.runtime?.text)" title="复制识别结果">
                                         <template #icon>
                                             <icon-copy/>
                                         </template>
                                     </a-button>
                                 </a-tooltip>
-                                <a-tooltip v-if="r.result && r.runtime?.text" :content="$t('下载')" mini>
+                                <a-tooltip v-if="r.result && r.runtime?.text" :content="$t('common.download')" mini>
                                     <a-dropdown-button
                                         @click="
                                             DownloadUtil.downloadFile(r.runtime?.text, `${r.title || 'asr-result'}.txt`)
@@ -177,15 +177,15 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
                                                     )
                                                 "
                                             >
-                                                {{ $t("下载文本文件") }}
+                                                {{ $t("download.textFile") }}
                                             </a-doption>
                                             <a-doption @click="onDownloadResultSubtitle(r)">
-                                                {{ $t("下载字幕文件") }}
+                                                {{ $t("download.subtitleFile") }}
                                             </a-doption>
                                         </template>
                                     </a-dropdown-button>
                                 </a-tooltip>
-                                <a-tooltip v-if="r.result && r.result.records" :content="$t('编辑')" mini>
+                                <a-tooltip v-if="r.result && r.result.records" :content="$t('common.edit')" mini>
                                     <a-button
                                         class="mr-2"
                                         @click="soundAsrRecordsEditDialog?.edit(r.id as any, r.result.records)"
@@ -203,7 +203,7 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
                     </div>
                 </div>
             </div>
-            <m-empty v-else :text="$t('暂无语音识别任务')"/>
+            <m-empty v-else :text="$t('empty.noRecognitionTask')"/>
         </div>
 
         <!-- 编辑弹窗 -->

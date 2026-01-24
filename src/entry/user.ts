@@ -16,7 +16,7 @@ import PageUser from "../pages/PageUser.vue";
 
 const app = createApp(Page, {
     name: "user",
-    title: t("用户中心"),
+    title: t("nav.userCenter"),
     page: PageUser,
 });
 app.use(ArcoVue);

@@ -9,7 +9,7 @@ const props = defineProps<{
 <template>
     <div class="mb-1">
         <div class="font-bold mb-2">
-            {{ $t("语音识别配置") }}
+            {{ $t("voice.recognitionConfig") }}
         </div>
         <div>
             <SoundAsrFormViewBody :data="data" />

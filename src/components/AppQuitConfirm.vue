@@ -52,19 +52,19 @@ defineExpose({
         width="22rem"
         modal-class="pb-app-quit-confirm"
         :closable="true"
-        :title="$t('提示')"
+        :title="$t('common.tip')"
         title-align="start"
     >
         <template #footer>
-            <a-button @click="doCancel">{{ $t("取消") }}</a-button>
-            <a-button @click="doExit">{{ $t("退出") }}</a-button>
-            <a-button type="primary" @click="doHide">{{ $t("隐藏窗口") }}</a-button>
+            <a-button @click="doCancel">{{ $t("common.cancel") }}</a-button>
+            <a-button @click="doExit">{{ $t("common.exit") }}</a-button>
+            <a-button type="primary" @click="doHide">{{ $t("common.hideWindow") }}</a-button>
         </template>
         <div>
-            <div class="text-center">{{ $t("确定退出软件？") }}</div>
+            <div class="text-center">{{ $t("common.exitConfirm") }}</div>
             <div class="text-center mt-4">
                 <a-checkbox v-model="remember">
-                    <span class="text-sm text-gray-500">{{ $t("记住我的选择") }}</span>
+                    <span class="text-sm text-gray-500">{{ $t("common.rememberChoice") }}</span>
                 </a-checkbox>
             </div>
         </div>

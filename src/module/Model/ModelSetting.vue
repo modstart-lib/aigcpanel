@@ -78,7 +78,7 @@ watch(
     <div class="flex h-full">
         <div class="w-48 border-r flex flex-col flex-shrink-0">
             <div class="p-2">
-                <a-input :placeholder="$t('搜索模型平台')" v-model="keywords">
+                <a-input :placeholder="$t('model.searchPlatform')" v-model="keywords">
                     <template #suffix>
                         <icon-search/>
                     </template>
@@ -86,7 +86,7 @@ watch(
             </div>
             <div class="flex-grow p-2 overflow-x-hidden overflow-y-auto">
                 <div v-if="!providersFilter.length && modelStore.providers.length">
-                    <a-empty :description="$t('没有找到相关模型平台')"/>
+                    <a-empty :description="$t('empty.noModelPlatform')"/>
                 </div>
                 <div v-for="p in providersFilter">
                     <div
@@ -115,7 +115,7 @@ watch(
             </div>
             <div class="p-2">
                 <a-button class="w-full" @click="providerAdd?.show()">
-                    {{ $t("添加") }}
+                    {{ $t("common.add") }}
                     <template #icon>
                         <icon-plus/>
                     </template>
@@ -124,7 +124,7 @@ watch(
         </div>
         <div class="flex-grow overflow-y-auto overflow-x-hidden">
             <div class="py-20" v-if="!provider">
-                <a-empty :description="$t('请选择模型平台')"/>
+                <a-empty :description="$t('hint.selectPlatform')"/>
             </div>
             <div v-else class="p-3">
                 <div class="flex items-center border-b pb-3 mb-3">
@@ -157,7 +157,7 @@ watch(
                     </div>
                 </div>
                 <div class="mb-3" v-if="provider.id !== 'buildIn'">
-                    <div class="mb-2 font-bold">{{ $t("API密钥") }}</div>
+                    <div class="mb-2 font-bold">{{ $t("setting.apiKey") }}</div>
                     <div>
                         <a-input-password
                             :model-value="provider.data.apiKey"
@@ -166,14 +166,14 @@ watch(
                         >
                             <template #suffix>
                                 <a href="javascript:;" @click="providerTest?.show()" class="ml-2">
-                                    {{ $t("检查") }}
+                                    {{ $t("common.check") }}
                                 </a>
                             </template>
                         </a-input-password>
                     </div>
                 </div>
                 <div class="mb-3" v-if="provider.id !== 'buildIn'">
-                    <div class="mb-2 font-bold">{{ $t("API地址") }}</div>
+                    <div class="mb-2 font-bold">{{ $t("setting.apiUrl") }}</div>
                     <div>
                         <a-input
                             :model-value="provider.data.apiHost"
@@ -190,33 +190,33 @@ watch(
                 </div>
                 <div class="mb-3 flex border rounded p-3 items-center" v-if="provider.id === 'buildIn'">
                     <div class="flex-grow">
-                        {{ $t("能量") }}
+                        {{ $t("user.energy") }}
                         <span class="font-bold">{{ ((userStore.data.lmApi?.quota || 0) / 1000).toFixed(2) }}K</span>
                     </div>
                     <div class="text-gray-400">
                         <icon-check class="text-green-600" />
-                        {{ $t("内置模型无需配置可直接使用") }}
+                        {{ $t("model.builtinDesc") }}
                     </div>
                     <div>
                         <a-button class="ml-2" @click="doUser">
-                            {{ $t("充值") }}
+                            {{ $t("common.recharge") }}
                         </a-button>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <div class="mb-2 font-bold">{{ $t("模型") }}</div>
+                    <div class="mb-2 font-bold">{{ $t("model.model") }}</div>
                     <div class="mb-2 text-sm text-gray-400" v-if="provider.id !== 'buildIn'">
-                        {{ $t("查看") }}
+                        {{ $t("common.view") }}
                         <a :href="provider?.websites.docs" target="_blank" class="text-blue-600">
                             {{ provider.title }}
-                            {{ $t("文档") }}
+                            {{ $t("common.docs") }}
                         </a>
-                        {{ $t("和") }}
+                        {{ $t("common.and") }}
                         <a :href="provider?.websites.models" target="_blank" class="text-blue-600">
                             {{ provider.title }}
-                            {{ $t("模型列表") }}
+                            {{ $t("model.list") }}
                         </a>
-                        {{ $t("获取更多详情") }}
+                        {{ $t("common.moreDetails") }}
                     </div>
                     <div v-for="g in providerModelGroups" :key="provider.id + g.group" class="mb-2">
                         <a-collapse :default-active-key="[g.group]">
@@ -272,7 +272,7 @@ watch(
                             <template #icon>
                                 <icon-plus/>
                             </template>
-                            {{ $t("添加") }}
+                            {{ $t("common.add") }}
                         </a-button>
                     </div>
                 </div>

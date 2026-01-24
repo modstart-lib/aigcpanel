@@ -25,7 +25,7 @@ onMounted(async () => {
 });
 
 const doDelete = async (record: VideoTemplateRecord) => {
-    await Dialog.confirm(t("确认删除？"));
+    await Dialog.confirm(t("common.deleteConfirm"));
     await VideoTemplateService.delete(record);
     await doRefresh();
 };
@@ -44,21 +44,21 @@ const onUpdate = async () => {
     <div class="p-5">
         <div class="mb-4 flex items-center">
             <div class="flex-grow flex items-end">
-                <div class="text-3xl font-bold">{{ $t("数字人形象") }}</div>
-                <div class="text-gray-400 ml-3">{{ $t("管理多个数字人形象") }}</div>
+                <div class="text-3xl font-bold">{{ $t("avatar.avatar") }}</div>
+                <div class="text-gray-400 ml-3">{{ $t("avatar.manage") }}</div>
             </div>
             <div class="flex items-center">
                 <a-button @click="cloudDialog?.show()" class="ml-2">
                     <template #icon>
                         <icon-cloud />
                     </template>
-                    {{ $t("云端形象") }}
+                    {{ $t("model.cloudAvatar") }}
                 </a-button>
                 <a-button @click="editDialog?.add()" class="ml-2">
                     <template #icon>
                         <icon-plus />
                     </template>
-                    {{ $t("添加") }}
+                    {{ $t("common.add") }}
                 </a-button>
             </div>
         </div>

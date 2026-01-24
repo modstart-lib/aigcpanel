@@ -18,8 +18,8 @@ const props = withDefaults(defineProps<{
     placeholder: string,
     formItems: ModelAgentButtonFormItems,
 }>(), {
-    title: t('AI生成'),
-    placeholder: t('请输入你的需求'),
+    title: t('common.aiGenerated'),
+    placeholder: t('hint.inputRequirement'),
     formItems: [] as ModelAgentButtonFormItems,
 });
 
@@ -56,7 +56,7 @@ const showDialog = () => {
 
 const doGenerate = async () => {
     if (!modelGenerator.value) {
-        Dialog.tipError(t("请先选择模型"));
+        Dialog.tipError(t("hint.selectModelFirst"));
         return;
     }
     let prompt = props.promptDefault;
@@ -65,14 +65,14 @@ const doGenerate = async () => {
         for (const item of props.formItems) {
             if (!userInputForm.value[item.name]
                 || (typeof userInputForm.value[item.name] === 'string' && !userInputForm.value[item.name].trim())) {
-                Dialog.tipError(t(`请输入{title}`, {title: item.label}));
+                Dialog.tipError(t(`form.inputField`, {title: item.label}));
                 return;
             }
             replaceParam[item.name] = userInputForm.value[item.name];
         }
     } else {
         if (!userInput.value.trim()) {
-            Dialog.tipError(t("请输入内容"));
+            Dialog.tipError(t("hint.inputContent"));
             return;
         }
         replaceParam['content'] = userInput.value;
@@ -97,7 +97,7 @@ const doGenerate = async () => {
         userInput.value = '';
     } catch (e) {
         console.error(e);
-        Dialog.tipError(t("生成失败") + ":" + e);
+        Dialog.tipError(t("common.generateFailed") + ":" + e);
     } finally {
         loading.value = false;
         buttonLoading.value = false;
@@ -117,8 +117,8 @@ const doGenerate = async () => {
              title-align="start"
              :title="title">
         <template #footer>
-            <a-button @click="visible = false" :disabled="loading">{{ $t("取消") }}</a-button>
-            <a-button type="primary" @click="doGenerate" :loading="loading">{{ $t("生成") }}</a-button>
+            <a-button @click="visible = false" :disabled="loading">{{ $t("common.cancel") }}</a-button>
+            <a-button type="primary" @click="doGenerate" :loading="loading">{{ $t("common.generate") }}</a-button>
         </template>
         <div>
             <div v-if="formItems.length>0">

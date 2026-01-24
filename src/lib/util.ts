@@ -130,9 +130,9 @@ export const TimeUtil = {
         let m: any = Math.floor((seconds % 3600) / 60);
         let s: any = Math.floor(seconds % 60);
         const result: string[] = [];
-        if (h > 0) result.push(`${h}${t("小时")}`);
-        if (m > 0) result.push(`${m}${t("分钟")}`);
-        if (s > 0) result.push(`${s}${t("秒")}`);
+        if (h > 0) result.push(`${h}${t("time.hour")}`);
+        if (m > 0) result.push(`${m}${t("time.minute")}`);
+        if (s > 0) result.push(`${s}${t("time.second")}`);
         return result.join("");
     },
     replacePattern(text: string) {

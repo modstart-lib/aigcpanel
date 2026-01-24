@@ -44,11 +44,11 @@ const getValue = async (): Promise<SoundAsrParamType | undefined> => {
 
     const server = await serverStore.getByKey(data.serverKey);
     if (!server) {
-        Dialog.tipError(t("请选择语音识别模型"));
+        Dialog.tipError(t("hint.selectRecognitionModel"));
         return;
     }
     if (server.status !== EnumServerStatus.RUNNING) {
-        Dialog.tipError(t("语音识别模型未启动"));
+        Dialog.tipError(t("error.recognitionModelNotStarted"));
         return;
     }
 
@@ -58,7 +58,7 @@ const getValue = async (): Promise<SoundAsrParamType | undefined> => {
     data.param = paramForm.value ? paramForm.value.getValue() : {};
 
     if (!data.param) {
-        Dialog.tipError(t("语音识别参数不正确"));
+        Dialog.tipError(t("error.recognitionParamInvalid"));
         return;
     }
 
@@ -86,11 +86,11 @@ defineExpose({
             <div class="inline-block w-5">
                 <icon-settings />
             </div>
-            {{ $t("语音识别配置") }}
+            {{ $t("voice.recognitionConfig") }}
         </div>
         <div class="flex items-start min-h-8 max-w-lg w-full gap-1">
             <div class="pt-2">
-                <a-tooltip :content="$t('语音识别模型')" mini>
+                <a-tooltip :content="$t('voice.recognitionModel')" mini>
                     <i class="iconfont icon-server"></i>
                 </a-tooltip>
             </div>

@@ -59,7 +59,7 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" :footer="false" width="80vw">
         <template #title>
-            {{ $t("代码查看") }}
+            {{ $t("common.viewCode") }}
         </template>
         <div>
             <div class="w-full h-96">

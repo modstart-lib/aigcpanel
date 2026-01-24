@@ -48,7 +48,7 @@ const chat = async (
         let content = ret.data!.content;
         if (!content) {
             ret.code = -1;
-            ret.msg = t("返回数据为空");
+            ret.msg = t("error.responseEmpty");
             return ret;
         }
         content = content.trim();
@@ -62,7 +62,7 @@ const chat = async (
             ret.data!.json = JSON.parse(content);
         } catch (e) {
             ret.code = -1;
-            ret.msg = t("解析返回数据失败") + ':' + content;
+            ret.msg = t("error.parseFailed") + ':' + content;
         }
     }
     return ret;

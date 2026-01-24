@@ -19,20 +19,20 @@ const props = withDefaults(defineProps<{
     title: string,
     option: ModelGenerateButtonOptionType,
 }>(), {
-    title: t('AI生成'),
+    title: t('common.aiGenerated'),
     mode: 'once',
 });
 const modelGenerator = ref<InstanceType<typeof ModelGenerator> | null>(null);
 const replyGenerateLoading = ref(false);
 const doGenerateReply = async () => {
     if (!modelGenerator.value) {
-        Dialog.tipError(t("请先选择模型"));
+        Dialog.tipError(t("hint.selectModelFirst"));
         return;
     }
     replyGenerateLoading.value = true;
     let prompt = await getDataContent(props.biz, props.option.promptDefault);
     if (!prompt) {
-        Dialog.tipError(t("请先配置提示词"));
+        Dialog.tipError(t("hint.configPromptFirst"));
         replyGenerateLoading.value = false;
         return;
     }
@@ -71,7 +71,7 @@ const doGenerateReply = async () => {
         }
     } catch (e) {
         console.error(e);
-        Dialog.tipError(t("生成失败") + ":" + e);
+        Dialog.tipError(t("common.generateFailed") + ":" + e);
     } finally {
         if (props.option.onEnd) {
             await props.option.onEnd();

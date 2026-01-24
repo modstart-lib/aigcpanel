@@ -9,7 +9,7 @@
                 />
             </div>
             <div class="text-center text-sm">
-                {{ text || $t("暂无记录") }}
+                {{ text || $t("empty.noRecord") }}
             </div>
         </div>
     </div>

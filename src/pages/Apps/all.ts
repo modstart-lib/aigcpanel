@@ -22,22 +22,22 @@ import FeedbackIcon from "./../../assets/image/feedback.svg";
 export const SoundApps = [
     {
         name: "LongTextTts",
-        title: t("长文本转音频"),
-        description: t("将长文本内容转换为音频文件"),
+        title: t("task.longTextToAudio"),
+        description: t("desc.longTextToAudio"),
         icon: LongTextTtsIcon,
         component: LongTextTts,
     },
     {
         name: "SubtitleTts",
-        title: t("字幕转音频"),
-        description: t("将字幕文件转换为音频文件"),
+        title: t("task.subtitleToAudio"),
+        description: t("desc.subtitleToAudio"),
         icon: SubtitleTtsIcon,
         component: SubtitleTts,
     },
     {
         name: "SoundReplace",
-        title: t("声音替换"),
-        description: t("将视频中的人声替换为其他音色"),
+        title: t("voice.replace"),
+        description: t("desc.videoVoiceReplace"),
         icon: SoundReplaceIcon,
         component: SoundReplace,
     },
@@ -46,8 +46,8 @@ export const SoundApps = [
 export const VideoApps = [
     {
         name: "VideoGenFlow",
-        title: t("数字人一键合成"),
-        description: t("输入文本自动合成音频驱动口型合成视频"),
+        title: t("avatar.oneClickSynthesis"),
+        description: t("intro.textToVideo"),
         icon: VideoGenFlowIcon,
         component: VideoGenFlow,
     },
@@ -56,15 +56,15 @@ export const VideoApps = [
 export const ImageApps = [
     {
         name: "TextToImage",
-        title: t("文生图"),
-        description: t("根据文本描述生成图片"),
+        title: t("model.txt2img"),
+        description: t("desc.txt2img"),
         icon: TextToImageIcon,
         component: TextToImage,
     },
     {
         name: "ImageToImage",
-        title: t("图生图"),
-        description: t("根据输入图片+描述提示生成新的图片"),
+        title: t("model.img2img"),
+        description: t("desc.img2img"),
         icon: ImageToImageIcon,
         component: ImageToImage,
     }
@@ -84,8 +84,8 @@ export const AllApps = [
         url: `/image?tab=${app.name}`,
     })) as any),
     {
-        title: t("工具需求"),
-        description: t("更多工具提交需求给我们"),
+        title: t("feedback.toolRequest"),
+        description: t("msg.moreTools"),
         icon: FeedbackIcon,
         url: "https://aigcpanel.com/wish",
     },

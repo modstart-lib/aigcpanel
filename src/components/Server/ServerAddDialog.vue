@@ -99,34 +99,34 @@ const doSubmit = async () => {
     }
     const target = await $mapi.file.fullPath(`model/${modelInfo.value.name}-${modelInfo.value.version}`);
     if (await $mapi.file.exists(target)) {
-        Dialog.tipError(t("模型相同版本已存在"));
+        Dialog.tipError(t("error.modelVersionExists"));
         return;
     }
     const exists = await serverStore.getByNameVersion(modelInfo.value.name, modelInfo.value.version);
     if (exists) {
-        Dialog.tipError(t("模型相同版本已存在"));
+        Dialog.tipError(t("error.modelVersionExists"));
         return;
     }
     if ($mapi.app.platformName() !== modelInfo.value.platformName && !isDev) {
-        Dialog.tipError(t("模型平台不匹配"));
+        Dialog.tipError(t("error.modelPlatformMismatch"));
         return;
     }
     if ($mapi.app.platformArch() !== modelInfo.value.platformArch && !isDev) {
-        Dialog.tipError(t("模型架构不匹配"));
+        Dialog.tipError(t("error.modelArchMismatch"));
         return;
     }
     if (!VersionUtil.match(AppConfig.version, modelInfo.value.serverRequire)) {
-        Dialog.tipError(t("软件不满足模型版本要求"));
+        Dialog.tipError(t("error.softwareVersionMismatch"));
         return;
     }
     isImporting.value = true;
     if (modelInfo.value.type === EnumServerType.LOCAL_DIR) {
         await doSubmitLocalDir();
     } else {
-        Dialog.tipError(t("模型类型错误"));
+        Dialog.tipError(t("error.modelTypeInvalid"));
         return;
     }
-    Dialog.tipSuccess(t("模型添加成功"));
+    Dialog.tipSuccess(t("model.addSuccess"));
     visible.value = false;
     isImporting.value = false;
     emit("update");
@@ -140,7 +140,7 @@ const doSelectLocalDir = async () => {
         return;
     }
     if (!/^[a-zA-Z0-9\/:\-\\._]+$/.test(configPath)) {
-        Dialog.tipError(t("模型路径不能包含非英文、空格等特殊字符"));
+        Dialog.tipError(t("error.modelPathInvalid"));
         return;
     }
     emptyModelInfo();
@@ -173,17 +173,17 @@ const doSelectLocalDir = async () => {
         if (modelInfo.value.isSupport) {
             logStatus.value = "";
         } else {
-            logStatus.value = t("模型不支持");
+            logStatus.value = t("model.notSupported");
             if (modelInfo.value.platformName !== $mapi.app.platformName()) {
-                logStatus.value += `(${t("平台不匹配")})`;
+                logStatus.value += `(${t("error.platformMismatch")})`;
             }
             if (modelInfo.value.platformArch !== $mapi.app.platformArch()) {
-                logStatus.value += `(${t("芯片架构不匹配")})`;
+                logStatus.value += `(${t("error.archMismatch")})`;
             }
         }
     } catch (e) {
         console.log("ServerImportLocalDialog.doSelectLocalDir.error", e);
-        Dialog.tipError(t("模型目录识别失败，请选择正确的模型目录"));
+        Dialog.tipError(t("error.modelDirIdentifyFailed"));
     }
     loading.value = false;
 };
@@ -211,7 +211,7 @@ const emit = defineEmits({
         title-align="start"
     >
         <template #title>
-            {{ $t("添加本地模型") }}
+            {{ $t("model.addLocal") }}
         </template>
         <div>
             <div class="select-none" style="max-height: 70vh">
@@ -225,7 +225,7 @@ const emit = defineEmits({
                                 <template #icon>
                                     <icon-folder/>
                                 </template>
-                                {{ t("选择本地模型") }}
+                                {{ t("model.selectLocal") }}
                                 config.json
                             </a-button>
                             <a
@@ -234,19 +234,19 @@ const emit = defineEmits({
                                 class="arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-medium arco-btn-status-normal block w-full text-center py-1"
                             >
                                 <icon-cloud/>
-                                {{ t("下载模型") }}
+                                {{ t("model.download") }}
                             </a>
                         </div>
                         <div class="mt-2">
                             <div class="text-sm bg-gray-100 p-5 rounded-lg text-gray-500 leading-6">
                                 <div>
-                                    {{ $t("模型运行在本地，对电脑性能有要求") }}
+                                    {{ $t("model.runInLocalDesc") }}
                                 </div>
                                 <div>
-                                    {{ "① " + $t("访问模型市场，下载模型到本地") }}
+                                    {{ "① " + $t("model.marketTip") }}
                                 </div>
                                 <div>
-                                    {{ "② " + $t("解压模型压缩包，选择目录中的config.json文件") }}
+                                    {{ "② " + $t("model.unzipTip") }}
                                 </div>
                             </div>
                         </div>
@@ -255,7 +255,7 @@ const emit = defineEmits({
                 <div v-else>
                     <div class="border rounded-lg py-4 leading-10">
                         <div class="flex">
-                            <div class="pr-3 text-right w-20">{{ t("名称") }}</div>
+                            <div class="pr-3 text-right w-20">{{ t("common.name") }}</div>
                             <div class="flex flex-wrap items-center">
                                 <div class="mr-2 mb-1">{{ modelInfo.title }}</div>
                                 <div class="mr-2 text-sm bg-gray-100 px-2 leading-6 inline-block rounded-lg mb-1">
@@ -267,15 +267,15 @@ const emit = defineEmits({
                             </div>
                         </div>
                         <div class="flex">
-                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ t("描述") }}</div>
+                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ t("common.description") }}</div>
                             <div>{{ modelInfo.description }}</div>
                         </div>
                         <div class="flex">
-                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ $t("适配") }}</div>
+                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ $t("common.adapt") }}</div>
                             <div>{{ platformInfo }}</div>
                         </div>
                         <div class="flex">
-                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ $t("功能") }}</div>
+                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ $t("common.feature") }}</div>
                             <div>
                                 <a-tag v-for="label in functionLabels" class="mr-1">
                                     {{ label }}
@@ -283,12 +283,12 @@ const emit = defineEmits({
                             </div>
                         </div>
                         <div class="flex">
-                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ t("硬件要求") }}</div>
+                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ t("model.hardwareReq") }}</div>
                             <div>{{ modelInfo.deviceDescription }}</div>
                         </div>
                         <div class="flex">
-                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ t("版本要求") }}</div>
-                            <div>{{ modelInfo.serverRequire === "*" ? t("无") : modelInfo.serverRequire }}</div>
+                            <div class="pr-3 text-right w-20 flex-shrink-0">{{ t("model.versionReq") }}</div>
+                            <div>{{ modelInfo.serverRequire === "*" ? t("common.none") : modelInfo.serverRequire }}</div>
                         </div>
                     </div>
                     <div>
@@ -306,13 +306,13 @@ const emit = defineEmits({
                                 <template #icon>
                                     <icon-check/>
                                 </template>
-                                {{ $t("确认提交") }}
+                                {{ $t("common.submitConfirm") }}
                             </a-button>
                             <a-button class="mr-2" v-if="!isImporting" @click="emptyModelInfo" :loading="loading">
                                 <template #icon>
                                     <icon-redo/>
                                 </template>
-                                {{ $t("重新选择") }}
+                                {{ $t("common.reselect") }}
                             </a-button>
                         </div>
                         <div class="flex-grow pl-3 text-sm truncate text-red-600">

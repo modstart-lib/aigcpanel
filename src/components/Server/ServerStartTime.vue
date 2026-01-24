@@ -34,6 +34,6 @@ const startTime = computed(() => {
 
 <template>
     <div v-if="startTime" class="text-sm text-gray-400">
-        {{ $t("已启动 {time}", {time: startTime}) }}
+        {{ $t("status.startedTime", {time: startTime}) }}
     </div>
 </template>

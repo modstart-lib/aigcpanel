@@ -15,7 +15,7 @@ const doOpenLog = async () => {
 
 <template>
     <div class="flex mb-3">
-        <div class="w-20">{{ t("版本") }}</div>
+        <div class="w-20">{{ t("common.version") }}</div>
         <div class="flex-grow">
             <div>
                 {{ $t("社区版") }}
@@ -27,7 +27,7 @@ const doOpenLog = async () => {
         </div>
     </div>
     <div class="flex mb-3 items-center">
-        <div class="w-20">{{ t("官网") }}</div>
+        <div class="w-20">{{ t("common.officialSite") }}</div>
         <div class="flex-grow flex items-center">
             <a :href="AppConfig.website" target="_blank" class="text-link">
                 {{ AppConfig.website }}
@@ -39,7 +39,7 @@ const doOpenLog = async () => {
                 <template #icon>
                     <icon-file />
                 </template>
-                {{ t("日志") }}
+                {{ t("nav.log") }}
             </a-button>
         </div>
     </div>

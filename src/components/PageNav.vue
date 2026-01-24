@@ -33,7 +33,7 @@ const activeTab = computed(() => {
 });
 
 const userTip = computed(() => {
-    return user.user.id ? user.user.name : t("未登录");
+    return user.user.id ? user.user.name : t("common.notLoggedIn");
 });
 
 const doUser = async () => {
@@ -82,7 +82,7 @@ const doUser = async () => {
                 <div>
                     <icon-home class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("首页") }}</div>
+                <div class="text-sm">{{ $t("nav.home") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -93,7 +93,7 @@ const doUser = async () => {
                 <div>
                     <i class="iconfont icon-sound text-xl"></i>
                 </div>
-                <div class="text-sm">{{ $t("声音") }}</div>
+                <div class="text-sm">{{ $t("voice.voice") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -104,7 +104,7 @@ const doUser = async () => {
                 <div>
                     <i class="iconfont icon-video text-xl"></i>
                 </div>
-                <div class="text-sm">{{ $t("视频") }}</div>
+                <div class="text-sm">{{ $t("media.video") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -115,7 +115,7 @@ const doUser = async () => {
                 <div>
                     <icon-image class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("图片") }}</div>
+                <div class="text-sm">{{ $t("common.image") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -126,7 +126,7 @@ const doUser = async () => {
                 <div>
                     <icon-live-broadcast class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("直播") }}</div>
+                <div class="text-sm">{{ $t("live.live") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -138,7 +138,7 @@ const doUser = async () => {
                 <div>
                     <icon-tool class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("工具箱") }}</div>
+                <div class="text-sm">{{ $t("nav.toolbox") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -149,7 +149,7 @@ const doUser = async () => {
                 <div>
                     <i class="iconfont icon-server text-xl"></i>
                 </div>
-                <div class="text-sm">{{ $t("模型") }}</div>
+                <div class="text-sm">{{ $t("model.model") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -160,7 +160,7 @@ const doUser = async () => {
                 <div>
                     <icon-settings class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("设置") }}</div>
+                <div class="text-sm">{{ $t("common.setting") }}</div>
             </a>
         </div>
         <div></div>

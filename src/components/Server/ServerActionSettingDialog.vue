@@ -50,7 +50,7 @@ const show = async () => {
 
 const doSubmit = async () => {
     await serverStore.updateSetting(props.record.key, cloneDeep(toRaw(setting.value)));
-    Dialog.tipSuccess(t("设置成功"));
+    Dialog.tipSuccess(t("common.settingSuccess"));
     visible.value = false;
 };
 
@@ -62,10 +62,10 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" width="40rem" title-align="start">
         <template #title>
-            {{ $t("设置") }}
+            {{ $t("common.setting") }}
         </template>
         <template #footer>
-            <a-button type="primary" :disabled="readonly" @click="doSubmit">{{ $t("确定") }}</a-button>
+            <a-button type="primary" :disabled="readonly" @click="doSubmit">{{ $t("common.confirm") }}</a-button>
         </template>
         <div>
             <a-form :model="{}">

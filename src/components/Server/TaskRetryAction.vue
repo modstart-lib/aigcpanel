@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const doRetry = async () => {
     const record = props.record;
-    Dialog.loadingOn(t("正在重试"));
+    Dialog.loadingOn(t("status.retrying"));
     try {
         await sleep(500);
         await TaskService.update(record.id as any, {
@@ -23,16 +23,16 @@ const doRetry = async () => {
         }, { mergeResult: false });
         await taskStore.dispatch(record.biz, record.id as any);
         Dialog.loadingOff();
-        Dialog.tipSuccess(t("重试成功"));
+        Dialog.tipSuccess(t("common.retrySuccess"));
     } catch (e) {
         Dialog.loadingOff();
-        Dialog.tipError(t("重试失败"));
+        Dialog.tipError(t("common.retryFailed"));
     }
 };
 </script>
 
 <template>
-    <a-tooltip v-if="record.status === 'fail'" :content="$t('重试任务')" mini>
+    <a-tooltip v-if="record.status === 'fail'" :content="$t('task.retry')" mini>
         <a-button class="mr-2" @click="doRetry()">
             <template #icon>
                 <icon-refresh />

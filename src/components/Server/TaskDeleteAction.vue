@@ -16,7 +16,7 @@ const emit = defineEmits({
 
 const doDelete = async () => {
     const record = props.record;
-    Dialog.loadingOn(t("正在删除"));
+    Dialog.loadingOn(t("status.deleting"));
     await sleep(500);
     await TaskService.delete(record);
     Dialog.loadingOff();
@@ -25,7 +25,7 @@ const doDelete = async () => {
 </script>
 
 <template>
-    <a-tooltip :content="$t('删除')" mini>
+    <a-tooltip :content="$t('common.delete')" mini>
         <a-button class="mr-2" :disabled="record.status !== 'success' && record.status !== 'fail'" @click="doDelete()">
             <template #icon>
                 <icon-delete />

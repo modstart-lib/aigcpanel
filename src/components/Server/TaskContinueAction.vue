@@ -14,22 +14,22 @@ const props = defineProps<{
 
 const doContinue = async () => {
     const record = props.record;
-    Dialog.loadingOn(t("正在继续"));
+    Dialog.loadingOn(t("status.resuming"));
     try {
         await sleep(500);
         await taskStore.dispatch(record.biz, record.id as any);
         Dialog.loadingOff();
-        Dialog.tipSuccess(t("继续成功"));
+        Dialog.tipSuccess(t("common.resumeSuccess"));
     } catch (e) {
         Dialog.loadingOff();
-        Dialog.tipError(t("继续失败"));
+        Dialog.tipError(t("error.resumeFailed"));
     }
 };
 const continueContent = computed(() => {
     if (props.record.status === "fail") {
-        return t("继续尝试");
+        return t("common.retryAttempt");
     }
-    return t("继续任务");
+    return t("task.resume");
 });
 </script>
 

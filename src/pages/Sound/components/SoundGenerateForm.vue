@@ -55,18 +55,18 @@ const getValue = async (): Promise<SoundGenerateParamType | undefined> => {
     const data: any = {};
     data.type = formData.value.type;
     if (!data.type) {
-        Dialog.tipError(t("请选择合成类型"));
+        Dialog.tipError(t("hint.selectSynthesisType"));
         return;
     }
     if (data.type === "SoundTts") {
         data.ttsServerKey = formData.value.ttsServerKey;
         const server = await serverStore.getByKey(data.ttsServerKey);
         if (!server) {
-            Dialog.tipError(t("请选择声音模型"));
+            Dialog.tipError(t("hint.selectVoiceModel"));
             return;
         }
         if (server.status !== EnumServerStatus.RUNNING) {
-            Dialog.tipError(t("声音模型未启动"));
+            Dialog.tipError(t("error.voiceModelNotStarted"));
             return;
         }
         data.serverName = server.name;
@@ -74,7 +74,7 @@ const getValue = async (): Promise<SoundGenerateParamType | undefined> => {
         data.serverVersion = server.version;
         data.ttsParam = ttsParamForm.value ? ttsParamForm.value.getValue() : {};
         if (!data.ttsParam) {
-            Dialog.tipError(t("声音合成参数不正确"));
+            Dialog.tipError(t("error.voiceParamInvalid"));
             return;
         }
         if (ttsParamForm.value) {
@@ -87,11 +87,11 @@ const getValue = async (): Promise<SoundGenerateParamType | undefined> => {
         data.promptId = formData.value.promptId;
         const server = await serverStore.getByKey(data.cloneServerKey);
         if (!server) {
-            Dialog.tipError(t("请选择声音模型"));
+            Dialog.tipError(t("hint.selectVoiceModel"));
             return;
         }
         if (server.status !== EnumServerStatus.RUNNING) {
-            Dialog.tipError(t("声音模型未启动"));
+            Dialog.tipError(t("error.voiceModelNotStarted"));
             return;
         }
         data.serverName = server.name;
@@ -99,7 +99,7 @@ const getValue = async (): Promise<SoundGenerateParamType | undefined> => {
         data.serverVersion = server.version;
         data.cloneParam = cloneParamForm.value ? cloneParamForm.value.getValue() : {};
         if (!data.cloneParam) {
-            Dialog.tipError(t("声音合成参数不正确"));
+            Dialog.tipError(t("error.voiceParamInvalid"));
             return;
         }
         if (cloneParamForm.value) {
@@ -108,12 +108,12 @@ const getValue = async (): Promise<SoundGenerateParamType | undefined> => {
             }
         }
         if (!data.promptId) {
-            Dialog.tipError(t("请选择声音音色"));
+            Dialog.tipError(t("hint.selectTimbre"));
             return;
         }
         const prompt = await StorageService.get(data.promptId);
         if (!prompt) {
-            Dialog.tipError(t("声音音色不存在"));
+            Dialog.tipError(t("error.timbreNotFound"));
             return;
         }
         data.promptTitle = prompt.title;
@@ -156,11 +156,11 @@ defineExpose({
             <div class="inline-block w-5">
                 <icon-settings />
             </div>
-            {{ $t("声音合成配置") }}
+            {{ $t("voice.synthesisConfig") }}
         </div>
         <div class="flex items-start min-h-8">
             <div class="mr-1">
-                <a-tooltip :content="$t('合成类型')" mini>
+                <a-tooltip :content="$t('task.synthesisType')" mini>
                     <i class="iconfont icon-sound"></i>
                 </a-tooltip>
             </div>
@@ -168,18 +168,18 @@ defineExpose({
                 <a-radio-group v-model="formData.type">
                     <a-radio value="SoundTts">
                         <i class="iconfont icon-sound-generate"></i>
-                        {{ $t("声音合成") }}
+                        {{ $t("voice.synthesis") }}
                     </a-radio>
                     <a-radio value="SoundClone">
                         <i class="iconfont icon-sound-clone"></i>
-                        {{ $t("声音克隆") }}
+                        {{ $t("voice.clone") }}
                     </a-radio>
                 </a-radio-group>
             </div>
         </div>
         <div v-if="formData.type === 'SoundTts'" class="flex items-start min-h-8">
             <div class="mr-1 pt-2">
-                <a-tooltip :content="$t('声音合成模型')" mini>
+                <a-tooltip :content="$t('voice.synthesisModel')" mini>
                     <i class="iconfont icon-server"></i>
                 </a-tooltip>
             </div>
@@ -198,7 +198,7 @@ defineExpose({
         </div>
         <div v-if="formData.type === 'SoundClone'" class="flex items-start min-h-8 gap-1">
             <div class="mr-1 pt-2">
-                <a-tooltip :content="$t('声音克隆模型')" mini>
+                <a-tooltip :content="$t('voice.cloneModel')" mini>
                     <i class="iconfont icon-server"></i>
                 </a-tooltip>
             </div>
@@ -217,7 +217,7 @@ defineExpose({
         </div>
         <div v-if="formData.type === 'SoundClone'" class="flex items-center min-h-8 mt-2 gap-2">
             <div class="">
-                <a-tooltip :content="$t('声音音色')" mini>
+                <a-tooltip :content="$t('voice.timbre')" mini>
                     <i class="iconfont icon-sound-prompt"></i>
                 </a-tooltip>
             </div>

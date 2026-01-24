@@ -6,11 +6,11 @@ import {Dialog} from "../lib/dialog";
 const props = defineProps({
     text: {
         type: String,
-        default: t("批量输入"),
+        default: t("common.batchInput"),
     },
     confirmText: {
         type: String,
-        default: t("确定"),
+        default: t("common.confirm"),
     },
 });
 
@@ -54,12 +54,12 @@ const doInputTextSubmit = () => {
 const doSubmit = () => {
     for (const record of records.value) {
         if (!record.text.trim()) {
-            Dialog.tipError(t("所有内容不能为空"));
+            Dialog.tipError(t("error.allFieldsRequired"));
             return;
         }
     }
     if (records.value.length === 0) {
-        Dialog.tipError(t("请添加内容"));
+        Dialog.tipError(t("hint.addContent"));
         return;
     }
     emit("submit", records.value);
@@ -90,16 +90,16 @@ const emit = defineEmits({
                     <template #icon>
                         <icon-plus />
                     </template>
-                    {{ $t("添加一个") }}
+                    {{ $t("common.addOne") }}
                 </a-button>
                 <a-button @click="doShowInputText" class="mr-2">
                     <template #icon>
                         <icon-paste />
                     </template>
-                    {{ $t("批量粘贴") }}
+                    {{ $t("common.batchPaste") }}
                 </a-button>
                 <div class="font-bold">
-                    {{ $t("共 {count} 条", {count: records.length}) }}
+                    {{ $t("common.totalCount", {count: records.length}) }}
                 </div>
             </div>
             <div v-if="!records.length">
@@ -111,7 +111,7 @@ const emit = defineEmits({
                         <a-textarea
                             v-model="records[textIndex].text"
                             style="min-height: 3rem"
-                            :placeholder="$t('输入内容')"
+                            :placeholder="$t('common.inputContent')"
                             :auto-size="{minRows: 2}"
                             show-word-limit
                             :max-length="1000"
@@ -137,11 +137,11 @@ const emit = defineEmits({
         title-align="start"
     >
         <template #title>
-            {{ $t("批量粘贴，每行一个") }}
+            {{ $t("common.batchPasteHint") }}
         </template>
         <template #footer>
             <a-button type="primary" @click="doInputTextSubmit">
-                {{ $t("确定") }}
+                {{ $t("common.confirm") }}
             </a-button>
         </template>
         <div style="height: calc(100vh - 30rem)">
@@ -149,7 +149,7 @@ const emit = defineEmits({
                 v-model="inputTextContent"
                 style="min-height: calc(100vh - 30rem)"
                 :auto-size="{minRows: 2}"
-                :placeholder="$t('批量粘贴，每行一个')"
+                :placeholder="$t('common.batchPasteHint')"
             ></a-textarea>
         </div>
     </a-modal>

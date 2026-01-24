@@ -26,7 +26,7 @@ const doSubmit = async () => {
         return;
     }
     if (!formData.value.text) {
-        Dialog.tipError(t("请输入合成内容"));
+        Dialog.tipError(t("hint.inputSynthesisContent"));
         return;
     }
     const record: TaskRecord = {
@@ -53,7 +53,7 @@ const doSubmit = async () => {
     }
     const id = await TaskService.submit(record);
     formData.value.text = "";
-    Dialog.tipSuccess(t("任务已经提交成功，等待克隆完成"));
+    Dialog.tipSuccess(t("task.cloneSubmitted"));
     emit("submitted");
 };
 
@@ -87,7 +87,7 @@ const doSubmitBatch = async (records: { text: string }[]) => {
         }
         await TaskService.submit(record);
     }
-    Dialog.tipSuccess(t("任务已经提交成功，等待克隆完成"));
+    Dialog.tipSuccess(t("task.cloneSubmitted"));
     emit("submitted");
 };
 
@@ -102,7 +102,7 @@ const emit = defineEmits({
             <a-textarea
                 v-model="formData.text"
                 :auto-size="{minRows: 2}"
-                :placeholder="$t('输入语音内容开始合成')"
+                :placeholder="$t('hint.inputVoiceSynthesis')"
             ></a-textarea>
         </div>
         <div class="mb-2 flex gap-1">
@@ -114,11 +114,11 @@ const emit = defineEmits({
         <SoundGenerateForm ref="soundGenerateForm"/>
         <div class="flex gap-1">
             <a-button class="mr-2" type="primary" @click="doSubmit">
-                {{ $t("开始合成") }}
+                {{ $t("task.startSynthesis") }}
             </a-button>
             <BatchTextareaInputAction
-                :text="$t('批量文本合成')"
-                :confirm-text="$t('提交合成')"
+                :text="$t('task.batchTextSynthesis')"
+                :confirm-text="$t('task.submitSynthesis')"
                 @submit="doSubmitBatch"
             />
         </div>

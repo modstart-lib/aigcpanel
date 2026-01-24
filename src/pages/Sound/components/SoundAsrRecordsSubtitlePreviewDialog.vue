@@ -50,10 +50,10 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" width="800px" title-align="start">
         <template #title>
-            {{ $t("字幕预览") }}
+            {{ $t("media.subtitlePreview") }}
         </template>
         <template #footer>
-            <a-button @click="visible = false">{{ $t("关闭") }}</a-button>
+            <a-button @click="visible = false">{{ $t("common.close") }}</a-button>
         </template>
         <div class="-mx-4 -my-5 overflow-y-auto" style="max-height:calc( 100vh - 20rem);">
             <div class="border border-gray-200 rounded-lg shadow-md bg-white text-xs">

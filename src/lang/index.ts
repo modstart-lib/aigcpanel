@@ -1,7 +1,6 @@
 import {createI18n} from "vue-i18n";
 
 import {isDev} from "../lib/env";
-import source from "./source.json";
 import enUS from "./en-US.json";
 import zhCN from "./zh-CN.json";
 
@@ -24,14 +23,7 @@ export const messageList = [
 const buildMessages = (): any => {
     let messages = {};
     for (let m of messageList) {
-        let msgList = {};
-        for (let k in source) {
-            const v = source[k];
-            if (m.messages[v]) {
-                msgList[k] = m.messages[v];
-            }
-        }
-        messages[m.name] = msgList;
+        messages[m.name] = m.messages;
     }
     return messages;
 };
@@ -100,11 +92,6 @@ export const changeLocale = (lang: string) => {
 
 export const t = (key: string, param: object | null = null) => {
     if (isDev) {
-        getLocale().then(locale => {
-            if (!messages[locale][key]) {
-                window.$mapi.lang.writeSourceKey(key).then();
-            }
-        });
         window.$mapi.lang.writeSourceKeyUse(key).then();
     }
     // check if exists key

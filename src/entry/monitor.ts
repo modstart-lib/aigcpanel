@@ -16,7 +16,7 @@ import PageMonitor from "../pages/PageMonitor.vue";
 
 const app = createApp(Page, {
     name: "monitor",
-    title: t("加载中"),
+    title: t("common.loading"),
     page: PageMonitor,
 });
 app.use(ArcoVue);

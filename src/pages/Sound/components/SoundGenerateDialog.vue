@@ -69,7 +69,7 @@ defineExpose({
         <template #title>
             <div class="flex items-center">
                 <div class="font-bold mr-2">
-                    {{ $t("选择声音") }}
+                    {{ $t("voice.select") }}
                 </div>
                 <div class="flex items-center"></div>
             </div>
@@ -81,7 +81,7 @@ defineExpose({
                         <!--                        <div class="mr-3">-->
                         <!--                            <a-checkbox :model-value="isAllChecked" :indeterminate="isIndeterminate"-->
                         <!--                                        @change="onCheckAll">-->
-                        <!--                                {{ $t('全选') }}-->
+                        <!--                                {{ $t('common.selectAll') }}-->
                         <!--                            </a-checkbox>-->
                         <!--                        </div>-->
                         <!--                        <TaskBatchDeleteAction :records="checkRecords" @update="doRefresh"/>-->
@@ -126,14 +126,14 @@ defineExpose({
                                 class="inline-block mr-2 bg-gray-100 rounded-lg px-1 leading-6 h-6"
                             >
                                 <i class="iconfont icon-sound-generate"></i>
-                                {{ $t("声音合成") }}
+                                {{ $t("voice.synthesis") }}
                             </div>
                             <div
                                 v-else-if="r.modelConfig.type === 'SoundClone'"
                                 class="inline-block mr-2 bg-gray-100 rounded-lg px-1 leading-6 h-6"
                             >
                                 <i class="iconfont icon-sound-clone"></i>
-                                {{ $t("声音克隆") }}
+                                {{ $t("voice.clone") }}
                             </div>
                             <div class="inline-block mr-2 bg-gray-100 rounded-lg px-1 leading-6 h-6">
                                 <i class="iconfont icon-server mr-1"></i>
@@ -173,11 +173,11 @@ defineExpose({
                                 class="inline-block mr-2 bg-gray-100 rounded-lg px-2 leading-6 h-6"
                             >
                                 <i class="iconfont icon-global mr-1"></i>
-                                <span class="">{{ $t("跨语种") }}</span>
+                                <span class="">{{ $t("voice.crossLanguage") }}</span>
                             </div>
                             <ServerTaskResultParam :record="r as any" />
                         </div>
-                        <a-tooltip :content="$t('点击文字复制')" position="left" mini>
+                        <a-tooltip :content="$t('common.clickTextToCopy')" position="left" mini>
                             <div class="pt-4 cursor-pointer" @click="doCopy(r.modelConfig.text)">
                                 {{ r.modelConfig.text }}
                             </div>
@@ -194,7 +194,7 @@ defineExpose({
                                     <template #icon>
                                         <icon-check />
                                     </template>
-                                    {{ t("选择") }}
+                                    {{ t("common.select") }}
                                 </a-button>
                                 <!--                                <TaskDownloadAction :record="r"/>-->
                                 <!--                                <TaskDeleteAction :record="r" @update="doRefresh"/>-->

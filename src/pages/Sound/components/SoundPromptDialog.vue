@@ -27,7 +27,7 @@ const onChangeTitle = async (record: StorageRecord, value: string) => {
 };
 
 const doDelete = async (record: StorageRecord) => {
-    await Dialog.confirm(t("确认删除？"));
+    await Dialog.confirm(t("common.deleteConfirm"));
     await StorageService.delete(record);
     await doRefresh();
 };
@@ -56,14 +56,14 @@ onMounted(async () => {
         <template #title>
             <div class="flex items-center">
                 <div class="font-bold mr-2">
-                    {{ $t("音色管理") }}
+                    {{ $t("voice.timbreManage") }}
                 </div>
                 <div class="flex items-center">
                     <a-button @click="editDialog?.add()">
                         <template #icon>
                             <icon-plus />
                         </template>
-                        {{ $t("添加") }}
+                        {{ $t("common.add") }}
                     </a-button>
                 </div>
             </div>

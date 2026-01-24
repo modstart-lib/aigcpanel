@@ -80,19 +80,19 @@ defineExpose({
     <div v-if="shouldShow">
         <div class="border rounded-lg py-3 mt-3">
             <div class="flex mb-4">
-                <div class="w-20 flex-shrink-0 text-right pr-3">{{ $t("修复命令") }}</div>
+                <div class="w-20 flex-shrink-0 text-right pr-3">{{ $t("setting.fixCommand") }}</div>
                 <div class="">
                     <div v-if="passed.commands">
                         <div class="mr-2 mb-1">
                             <a-alert type="success">
-                                {{ $t("模型文件签名") }}
+                                {{ $t("model.signature") }}
                             </a-alert>
                         </div>
                     </div>
                     <div v-else>
                         <div class="mr-2 mb-1">
                             <a-alert>
-                                {{ $t("由于模型文件未完全签名，请运行以下命令完成签名后运行") }}
+                                {{ $t("error.modelUnsigned") }}
                             </a-alert>
                         </div>
                         <div
@@ -108,15 +108,15 @@ defineExpose({
                         </div>
                         <div class="mb-1">
                             <!--                            <a-button @click="doRun('commands')" :loading="running" class="mr-2">-->
-                            <!--                                {{ $t('一键运行') }}-->
+                            <!--                                {{ $t('task.oneClickRun') }}-->
                             <!--                            </a-button>-->
                             <a-button @click="doRunManual('commands')" class="mr-2">
-                                {{ $t("已手动完成") }}
+                                {{ $t("status.manuallyCompleted") }}
                             </a-button>
                         </div>
                         <div class="mb-1">
                             <div class="text-xs text-gray-500">
-                                {{ $t("运行过程可能需要输入密码") }}
+                                {{ $t("msg.passwordRequired") }}
                             </div>
                         </div>
                     </div>

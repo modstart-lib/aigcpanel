@@ -39,7 +39,7 @@ const visibleRecords = computed(() => {
             <template #icon>
                 <icon-down/>
             </template>
-            {{ $t("展开") }}
+            {{ $t("common.expand") }}
         </a-button>
         <a-button
             v-else
@@ -49,7 +49,7 @@ const visibleRecords = computed(() => {
             <template #icon>
                 <icon-up/>
             </template>
-            {{ $t("收起") }}
+            {{ $t("common.collapse") }}
         </a-button>
     </div>
 </template>

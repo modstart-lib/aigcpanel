@@ -35,10 +35,10 @@ const doVersionCheck = async () => {
             :loading="updaterCheckLoading"
             @click="doVersionCheck()"
         >
-            {{ $t("检测更新") }}
+            {{ $t("update.check") }}
         </a-button>
         <a-checkbox :model-value="checkAtLaunch === 'yes'" @change="onCheckAtLaunchChange as any">
-            {{ $t("自动检测更新") }}
+            {{ $t("setting.autoUpdate") }}
         </a-checkbox>
     </div>
 </template>

@@ -32,7 +32,7 @@ const dynamicComponent = computed(() => {
             >
                 <div class="text-base truncate flex items-center">
                     <i class="iconfont icon-sound-generate w-6 inline-block"></i>
-                    {{ t("声音合成") }}
+                    {{ t("voice.synthesis") }}
                 </div>
             </div>
             <div
@@ -42,7 +42,7 @@ const dynamicComponent = computed(() => {
             >
                 <div class="text-base truncate flex items-center">
                     <i class="iconfont icon-asr w-6 inline-block"></i>
-                    {{ t("语音识别") }}
+                    {{ t("voice.recognition") }}
                 </div>
             </div>
             <div

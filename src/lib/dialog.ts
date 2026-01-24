@@ -13,7 +13,7 @@ export const Dialog = {
         Message.error(msg);
     },
     confirm: (content: string, title: string | null = null): Promise<void> => {
-        title = title || t("提示");
+        title = title || t("common.tip");
         return new Promise((resolve, reject) => {
             Modal.confirm({
                 title,
@@ -22,8 +22,8 @@ export const Dialog = {
                 simple: false,
                 width: "25rem",
                 modalClass: "arco-modal-confirm",
-                okText: t("确定"),
-                cancelText: t("取消"),
+                okText: t("common.confirm"),
+                cancelText: t("common.cancel"),
                 onOk: () => {
                     resolve();
                 },
@@ -34,7 +34,7 @@ export const Dialog = {
         });
     },
     alertSuccess: (content: string, title: string | null = null): Promise<void> => {
-        title = title || t("提示");
+        title = title || t("common.tip");
         return new Promise(resolve => {
             Modal.confirm({
                 title,
@@ -48,7 +48,7 @@ export const Dialog = {
         });
     },
     alertError: (content: string, title: string | null = null): Promise<void> => {
-        title = title || t("提示");
+        title = title || t("common.tip");
         return new Promise(resolve => {
             Modal.confirm({
                 title,
@@ -62,7 +62,7 @@ export const Dialog = {
         });
     },
     loadingOn: (content: string | null = null) => {
-        content = content || t("加载中...");
+        content = content || t("common.loadingDots");
         const loading = Message.loading({
             content,
             duration: 0,

@@ -237,7 +237,7 @@ export const TaskService = {
     }),
     cancelCheck: (biz: TaskBiz, bizId: string) => {
         if (taskStore.shouldCancel(biz, bizId)) {
-            throw t('任务已取消');
+            throw t('task.cancelled');
         }
     },
     updateDelayAndFireChange: groupThrottle(async (

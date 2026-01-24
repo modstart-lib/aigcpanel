@@ -31,11 +31,11 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" title-align="start" :footer="false" width="80vw">
         <template #title>
-            {{ $t("日志查看") }}
+            {{ $t("log.view") }}
         </template>
         <div>
             <div class="mb-2 -mt-3">
-                <a-checkbox v-model="autoScroll">{{ $t("自动滚动") }}</a-checkbox>
+                <a-checkbox v-model="autoScroll">{{ $t("log.autoScroll") }}</a-checkbox>
             </div>
             <div class="" v-if="visible">
                 <div v-if="logs">

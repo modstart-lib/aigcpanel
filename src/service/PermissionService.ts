@@ -17,7 +17,7 @@ export const PermissionService = {
             throw "ServerNotFound";
         }
         if (server.type === EnumServerType.CLOUD) {
-            Dialog.loadingOn(t("正在提交"));
+            Dialog.loadingOn(t("status.submitting"));
             const user = await window.$mapi.user.get();
             if (!user.user.id) {
                 Dialog.loadingOff();

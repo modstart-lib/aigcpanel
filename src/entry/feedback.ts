@@ -16,7 +16,7 @@ import PageFeedback from "../pages/PageFeedback.vue";
 
 const app = createApp(Page, {
     name: "feedback",
-    title: t("工单反馈"),
+    title: t("nav.feedback"),
     page: PageFeedback,
 });
 app.use(ArcoVue);

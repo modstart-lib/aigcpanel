@@ -22,7 +22,7 @@ const doShow = async () => {
 const doSave = () => {
     visible.value = false;
     $mapi.storage.set("data", props.name, content.value);
-    Dialog.tipSuccess(t('保存成功'));
+    Dialog.tipSuccess(t('common.saveSuccess'));
 };
 const doRestore = () => {
     content.value = props.defaultValue;
@@ -50,10 +50,10 @@ const type = computed(() => {
         </template>
         <template #footer>
             <a-button @click="doRestore">
-                {{ $t("恢复默认") }}
+                {{ $t("common.restoreDefault") }}
             </a-button>
             <a-button type="primary" @click="doSave">
-                {{ $t("保存") }}
+                {{ $t("common.save") }}
             </a-button>
         </template>
         <div class="-mx-2 -my-3" style="height:60vh">
@@ -65,8 +65,8 @@ const type = computed(() => {
             </div>
             <div v-if="type==='keyValueList'">
                 <div v-for="(item, index) in content as any" :key="index" class="mb-2 flex items-center">
-                    <a-input v-model="item.key" :placeholder="$t('键')" class="mr-2"/>
-                    <a-input v-model="item.value" :placeholder="$t('值')" class="mr-2"/>
+                    <a-input v-model="item.key" :placeholder="$t('common.key')" class="mr-2"/>
+                    <a-input v-model="item.value" :placeholder="$t('common.value')" class="mr-2"/>
                     <a-button type="text" danger @click="(content as any).splice(index, 1)">
                         <icon-delete/>
                     </a-button>
@@ -76,7 +76,7 @@ const type = computed(() => {
                         <template #icon>
                             <icon-plus/>
                         </template>
-                        {{ $t("添加") }}
+                        {{ $t("common.add") }}
                     </a-button>
                 </div>
             </div>
@@ -85,7 +85,7 @@ const type = computed(() => {
                             :auto-size="{minRows: 15, maxRows: 15}"/>
             </div>
             <div v-if="props.param">
-                <div class="mt-2 font-bold">{{ $t("可用变量") }}:</div>
+                <div class="mt-2 font-bold">{{ $t("common.availableVars") }}:</div>
                 <div class="mt-1" v-if="Array.isArray(props.param)">
                     <div v-for="item in props.param as any" :key="item.name"
                          class="mr-4 inline-flex items-center text-xs">

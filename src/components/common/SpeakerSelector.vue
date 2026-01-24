@@ -4,11 +4,11 @@
             @click="doShow"
             class="leading-8 h-8 px-3 rounded-lg text-left cursor-pointer bg-gray-100 min-w-64 hover:bg-gray-200"
         >
-            {{ speakerTitle || $t("选择音色") }}
+            {{ speakerTitle || $t("voice.selectTimbre") }}
         </div>
         <a-modal
             v-model:visible="visible"
-            :title="$t('选择音色')"
+            :title="$t('voice.selectTimbre')"
             width="50rem"
             :footer="false"
             body-class="pb-speaker-selector-dialog-body"

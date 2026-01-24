@@ -5,11 +5,11 @@ export function mapError(msg: any) {
         msg = msg.toString();
     }
     const map = {
-        FileAlreadyExists: t("文件已存在"),
-        FileNotFound: t("文件未找到"),
-        ProcessTimeout: t("处理超时"),
-        RequestError: t("请求错误"),
-        ServerNotRunning: t("模型服务未运行"),
+        FileAlreadyExists: t("error.fileExists"),
+        FileNotFound: t("error.fileNotFound"),
+        ProcessTimeout: t("error.processTimeout"),
+        RequestError: t("error.requestError"),
+        ServerNotRunning: t("error.modelServiceNotRunning"),
     };
     for (let key in map) {
         if (msg.includes(key)) {

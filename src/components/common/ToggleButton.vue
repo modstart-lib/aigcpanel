@@ -14,7 +14,7 @@ const emits = defineEmits<{
             <icon-up v-if="!modelValue"/>
             <icon-down v-else/>
         </template>
-        {{ text || $t("说明") }}
+        {{ text || $t("common.description") }}
     </a-button>
 </template>
 

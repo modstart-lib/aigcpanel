@@ -10,7 +10,7 @@ const actionInfoDialog = ref<InstanceType<typeof ServerActionInfoDialog> | null>
 </script>
 
 <template>
-    <a-tooltip :content="$t('信息')" mini>
+    <a-tooltip :content="$t('common.info')" mini>
         <a-button class="mr-2" @click="actionInfoDialog?.show()">
             <template #icon>
                 <icon-info-circle />

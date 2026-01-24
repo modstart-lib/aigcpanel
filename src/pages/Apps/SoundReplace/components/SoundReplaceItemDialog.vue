@@ -17,11 +17,11 @@ const doLoad = async () => {
     try {
         record.value = await TaskService.get(currentId.value!);
         if (!record.value) {
-            Dialog.tipError(t("未找到记录"));
+            Dialog.tipError(t("error.recordNotFound"));
             return;
         }
     } catch (error) {
-        Dialog.tipError(t("加载记录失败 {error}", {error}));
+        Dialog.tipError(t("error.loadRecordFailed", {error}));
     } finally {
         loading.value = false;
     }
@@ -53,13 +53,13 @@ defineExpose({
         title-align="start">
         <template #title>
             <div class="font-bold">
-                {{ $t("声音替换") }}
+                {{ $t("voice.replace") }}
             </div>
         </template>
         <div class="h-[calc(100vh-10rem)] -my-6 -mx-4 p-3 overflow-y-auto">
             <div v-if="loading&&!record" class="flex justify-center items-center p-8">
                 <icon-refresh spin class="mr-2"/>
-                {{ $t("加载中...") }}
+                {{ $t("common.loadingDots") }}
             </div>
             <div v-else-if="record">
                 <SoundReplaceItem
@@ -69,7 +69,7 @@ defineExpose({
                 />
             </div>
             <div v-else class="text-center p-8 text-gray-400">
-                {{ $t("未找到记录") }}
+                {{ $t("error.recordNotFound") }}
             </div>
         </div>
     </a-modal>

@@ -21,8 +21,8 @@ const emit = defineEmits({
 });
 
 const doDelete = async () => {
-    await Dialog.confirm(t("确定删除 {count} 条记录?", {count: props.records.length}));
-    Dialog.loadingOn(t("正在删除"));
+    await Dialog.confirm(t("common.deleteRecordsConfirm", {count: props.records.length}));
+    Dialog.loadingOn(t("status.deleting"));
     await sleep(500);
     for (const r of props.records) {
         if (r.status !== "success" && r.status !== "fail") {
@@ -36,7 +36,7 @@ const doDelete = async () => {
 </script>
 
 <template>
-    <a-tooltip :content="$t('删除')" mini>
+    <a-tooltip :content="$t('common.delete')" mini>
         <a-button class="mr-2" :disabled="!canDelete" @click="doDelete()">
             <template #icon>
                 <icon-delete/>

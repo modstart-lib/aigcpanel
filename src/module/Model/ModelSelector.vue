@@ -67,7 +67,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-select ref="select" style="width:auto;" :placeholder="$t('选择模型')">
+    <a-select ref="select" style="width:auto;" :placeholder="$t('model.select')">
         <template #label>
             <div class="flex items-center" v-if="selectedProvider && selectedModel">
                 <div class="mr-1">
@@ -88,7 +88,7 @@ defineExpose({
             </div>
             <div class="flex items-center" v-else>
                 <div class="mr-1">
-                    {{ $t("选择模型") }}
+                    {{ $t("model.select") }}
                 </div>
             </div>
         </template>

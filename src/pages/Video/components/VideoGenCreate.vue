@@ -48,18 +48,18 @@ const doSubmit = async () => {
     let soundCustomFile: string | null = null;
     if (formData.value.soundType === "soundGenerate") {
         if (!formData.value.soundGenerateId) {
-            Dialog.tipError(t("请选择声音"));
+            Dialog.tipError(t("hint.selectVoice"));
             return;
         }
         soundRecord = await TaskService.get(formData.value.soundGenerateId);
         if (!soundRecord) {
-            Dialog.tipError(t("请选择声音"));
+            Dialog.tipError(t("hint.selectVoice"));
             return;
         }
     } else if (formData.value.soundType === "soundCustom") {
         soundCustomFile = formData.value.soundCustomFile;
         if (!soundCustomFile) {
-            Dialog.tipError(t("请选择声音"));
+            Dialog.tipError(t("hint.selectVoice"));
             return;
         }
     } else {
@@ -87,7 +87,7 @@ const doSubmit = async () => {
         return;
     }
     const id = await TaskService.submit(record);
-    Dialog.tipSuccess(t("任务已经提交成功，等待视频生成完成"));
+    Dialog.tipSuccess(t("task.videoGenSubmitted"));
     emit("submitted");
 };
 
@@ -128,24 +128,24 @@ defineExpose({
         <VideoGenForm ref="videoGenForm" />
         <div class="font-bold">
             <icon-settings />
-            {{ $t("声音配置") }}
+            {{ $t("voice.config") }}
         </div>
         <div class="flex items-center h-12">
             <div class="mr-1">
-                <a-tooltip :content="$t('声音')" mini>
+                <a-tooltip :content="$t('voice.voice')" mini>
                     <i class="iconfont icon-sound"></i>
-                    {{ $t("声音") }}
+                    {{ $t("voice.voice") }}
                 </a-tooltip>
             </div>
             <div class="mr-1">
                 <a-radio-group v-model="formData.soundType">
                     <a-radio value="soundGenerate">
                         <i class="iconfont icon-sound-generate"></i>
-                        {{ $t("声音合成") }}
+                        {{ $t("voice.synthesis") }}
                     </a-radio>
                     <a-radio value="soundCustom">
                         <icon-file />
-                        {{ $t("本地文件") }}
+                        {{ $t("common.localFile") }}
                     </a-radio>
                 </a-radio-group>
             </div>
@@ -157,13 +157,13 @@ defineExpose({
                     <div v-if="formData.soundCustomFile">
                         {{ fileName(formData.soundCustomFile) }}
                     </div>
-                    <div v-else>{{ $t("选择本地文件") }}</div>
+                    <div v-else>{{ $t("common.selectLocalFile") }}</div>
                 </a-button>
             </div>
         </div>
         <div class="pt-4">
             <a-button class="mr-2" type="primary" @click="doSubmit">
-                {{ $t("开始生成视频") }}
+                {{ $t("task.startVideoGen") }}
             </a-button>
             <ServerContentInfoAction :config="modelConfig as any" func="videoGen" />
         </div>

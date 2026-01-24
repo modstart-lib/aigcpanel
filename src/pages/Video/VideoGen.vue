@@ -45,11 +45,11 @@ const doRefresh = async () => {
     <div class="p-5">
         <div class="mb-4 flex items-center">
             <div class="flex-grow flex items-end">
-                <div class="text-3xl font-bold">{{ $t("数字人合成") }}</div>
-                <div class="text-gray-400 ml-3">{{ $t("支持音频驱动实现口型替换") }}</div>
+                <div class="text-3xl font-bold">{{ $t("avatar.synthesis") }}</div>
+                <div class="text-gray-400 ml-3">{{ $t("intro.lipSync") }}</div>
             </div>
             <div class="flex items-center">
-                <a-tooltip v-if="0" :content="$t('清空历史')" position="right" mini>
+                <a-tooltip v-if="0" :content="$t('common.clearHistory')" position="right" mini>
                     <a-button class="ml-1">
                         <template #icon>
                             <icon-delete/>
@@ -69,7 +69,7 @@ const doRefresh = async () => {
                                 :indeterminate="isIndeterminate"
                                 @change="onCheckAll"
                             >
-                                {{ $t("全选") }}
+                                {{ $t("common.selectAll") }}
                             </a-checkbox>
                         </div>
                         <TaskBatchDeleteAction :records="checkRecords" @update="doRefresh"/>
@@ -115,7 +115,7 @@ const doRefresh = async () => {
                                     <div class="mb-2">
                                         <a-tag class="rounded-lg">
                                             <i class="iconfont icon-sound w-5"></i>
-                                            {{ $t("声音合成") }}
+                                            {{ $t("voice.synthesis") }}
                                         </a-tag>
                                     </div>
                                     <div class="bg-gray-100 rounded-lg p-2 mb-3">
@@ -126,7 +126,7 @@ const doRefresh = async () => {
                                     <div class="mb-2">
                                         <a-tag class="rounded-lg">
                                             <icon-file/>
-                                            {{ $t("本地文件") }}
+                                            {{ $t("common.localFile") }}
                                         </a-tag>
                                     </div>
                                     <div class="flex-grow">

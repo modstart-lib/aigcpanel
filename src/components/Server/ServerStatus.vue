@@ -30,17 +30,17 @@ const statusColor = computed(() => {
 
 const statusText = computed(() => {
     const textMap = {
-        [EnumServerStatus.STOPPED]: t("已停止"),
-        [EnumServerStatus.STARTING]: t("启动中"),
-        [EnumServerStatus.RUNNING]: t("运行中"),
-        [EnumServerStatus.STOPPING]: t("停止中"),
-        [EnumServerStatus.ERROR]: t("错误"),
+        [EnumServerStatus.STOPPED]: t("status.stopped"),
+        [EnumServerStatus.STARTING]: t("service.starting"),
+        [EnumServerStatus.RUNNING]: t("status.running"),
+        [EnumServerStatus.STOPPING]: t("common.stopping"),
+        [EnumServerStatus.ERROR]: t("common.error"),
     };
     if (props.autoStart) {
         if (props.runtime.autoStartStatus === EnumServerStatus.RUNNING) {
             return textMap[props.runtime.autoStartStatus as string];
         }
-        return t("自启动");
+        return t("setting.autoStart");
     }
     return textMap[props.status as string] || "Unknown";
 });

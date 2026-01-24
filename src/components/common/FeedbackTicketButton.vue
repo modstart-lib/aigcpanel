@@ -11,6 +11,6 @@ const doShow = () => {
         <template #icon>
             <icon-customer-service />
         </template>
-        {{ $t("工单反馈") }}
+        {{ $t("nav.feedback") }}
     </a-button>
 </template>

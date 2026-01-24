@@ -24,7 +24,7 @@ interface EditingAsrRecord extends AsrRecord {
 const props = defineProps({
     saveTitle: {
         type: String,
-        default: t("保存"),
+        default: t("common.save"),
     },
     soundGenerate: {
         type: Object,
@@ -479,10 +479,10 @@ defineExpose({
         <template #title>
             <div class="flex items-center gap-4">
                 <div class="font-bold mr-2">
-                    {{ $t("编辑识别结果") }}
+                    {{ $t("task.editResult") }}
                 </div>
                 <div class="flex items-center">
-                    <span class="text-sm mr-2">{{ $t("每分钟字数") }}:</span>
+                    <span class="text-sm mr-2">{{ $t("setting.wpm") }}:</span>
                     <a-input-number
                         v-model="wordsPerMinute"
                         :min="1"
@@ -501,11 +501,11 @@ defineExpose({
                         <SoundGeneratePreviewBox :sound-generate="soundGenerate as any"/>
                     </div>
                 </DataConfigDialogButton>
-                <div class="text-sm text-gray-500">{{ $t("共{count}字", {count: totalWords}) }}</div>
+                <div class="text-sm text-gray-500">{{ $t("common.totalWords", {count: totalWords}) }}</div>
             </div>
         </template>
         <template #footer>
-            <a-button @click="doCancel">{{ $t("取消") }}</a-button>
+            <a-button @click="doCancel">{{ $t("common.cancel") }}</a-button>
             <a-button type="primary" @click="doSave">{{ props.saveTitle }}</a-button>
         </template>
         <div v-if="visible" class="flex flex-col gap-1 h-full -mx-4 -my-5" style="height:calc(100vh - 12rem);">
@@ -533,14 +533,14 @@ defineExpose({
                 <div class="flex items-center gap-1">
                     <a-input
                         v-model="findText"
-                        :placeholder="$t('查找')"
+                        :placeholder="$t('common.find')"
                         size="small"
                         style="width:100px"
                         allow-clear
                     />
                     <a-input
                         v-model="replaceText"
-                        :placeholder="$t('替换')"
+                        :placeholder="$t('common.replace')"
                         size="small"
                         style="width:100px"
                         allow-clear
@@ -552,25 +552,25 @@ defineExpose({
                     </a-button>
                     <a-button size="small" class="px-2" type="primary" @click="doMergeBlanks"
                               :disabled="!hasConsecutiveBlanks">
-                        {{ $t("合并空白") }}
+                        {{ $t("common.mergeWhitespace") }}
                     </a-button>
                     <a-button size="small" class="px-2" type="primary" @click="doSplit" :disabled="currentIndex === -1">
-                        {{ $t("分割") }}
+                        {{ $t("common.split") }}
                     </a-button>
                     <a-button size="small" class="px-2" type="primary" @click="doMerge"
                               :disabled="selectedIndexes.length < 2">
-                        {{ $t("合并") }}
+                        {{ $t("common.merge") }}
                         <span v-if="selectedIndexes.length">
                             ({{ selectedIndexes.length }})
                         </span>
                     </a-button>
                     <a-button size="small" class="px-2" type="primary"
                               @click="previewDialog?.show(editingRecords);">
-                        {{ $t("字幕") }}
+                        {{ $t("media.subtitle") }}
                     </a-button>
                     <a-button size="small" class="px-2" type="primary"
                               @click="doOptimizeTimeline">
-                        {{ $t("一键优化时间线") }}
+                        {{ $t("task.optimizeTimeline") }}
                     </a-button>
                     <ModelGenerateButton
                         biz="SoundReplaceAsrResultOptimizedPrompt"
@@ -583,7 +583,7 @@ defineExpose({
             <div class="flex-grow overflow-y-auto border rounded-lg p-2">
                 <!-- 没有数据提示 -->
                 <div v-if="editingRecords.length === 0" class="text-center text-gray-500 py-4">
-                    {{ $t("没有可编辑的数据") }}
+                    {{ $t("empty.noEditableData") }}
                 </div>
                 <!-- 表格编辑 -->
                 <div v-else class="space-y-1">

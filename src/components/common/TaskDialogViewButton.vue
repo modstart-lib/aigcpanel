@@ -18,12 +18,12 @@ const itemDialog = ref<InstanceType<typeof AppsItemDialog>>();
             <icon-tool/>
         </template>
         <template v-if="taskId">
-            {{ $t('查看任务') }}
+            {{ $t('task.view') }}
             #{{ taskId }}
         </template>
         <template v-else>
-            {{ $t('暂未运行') }}
+            {{ $t('status.notRunning') }}
         </template>
     </a-button>
-    <AppsItemDialog ref="itemDialog" :title="title || $t('任务详情')"/>
+    <AppsItemDialog ref="itemDialog" :title="title || $t('task.details')"/>
 </template>

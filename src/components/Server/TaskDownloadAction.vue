@@ -39,12 +39,12 @@ const doDownload = async () => {
         Dialog.tipError(mapError(e));
         return;
     }
-    Dialog.tipSuccess(t("下载成功"));
+    Dialog.tipSuccess(t("common.downloadSuccess"));
 };
 </script>
 
 <template>
-    <a-tooltip :content="title || $t('下载')" mini>
+    <a-tooltip :content="title || $t('common.download')" mini>
         <a-button class="mr-2" :disabled="!canDownload" @click="doDownload()">
             <template #icon>
                 <slot name="icon">

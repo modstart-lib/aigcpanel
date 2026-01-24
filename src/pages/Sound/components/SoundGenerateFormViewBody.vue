@@ -10,11 +10,11 @@ const props = defineProps<{
 <template>
     <a-tag v-if="data.type === 'SoundTts'" class="rounded-lg">
         <i class="iconfont icon-sound-generate w-5"></i>
-        {{ $t("声音合成") }}
+        {{ $t("voice.synthesis") }}
     </a-tag>
     <a-tag v-else-if="data.type === 'SoundClone'" class="rounded-lg">
         <i class="iconfont icon-sound-clone w-5"></i>
-        {{ $t("声音克隆") }}
+        {{ $t("voice.clone") }}
     </a-tag>
     <ServerNameVersion v-if="data.serverTitle" :record="data" />
     <a-tag v-if="data.type === 'SoundClone'" class="rounded-lg">

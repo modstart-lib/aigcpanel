@@ -30,11 +30,11 @@ const doRefresh = async () => {
 
 const typeName = (type: string) => {
     if (EnumServerType.LOCAL === type) {
-        return t("本地模型");
+        return t("model.localModel");
     } else if (EnumServerType.LOCAL_DIR === type) {
-        return t("本地模型目录");
+        return t("setting.localModelDir");
     } else if (EnumServerType.CLOUD === type) {
-        return t("云端模型");
+        return t("model.cloudModel");
     }
 };
 </script>
@@ -43,20 +43,20 @@ const typeName = (type: string) => {
     <div class="pb-device-container bg-white p-6 min-h-full relative select-none">
         <div class="mb-4 flex items-center">
             <div class="text-3xl font-bold flex-grow">
-                {{ $t("模型") }}
+                {{ $t("model.model") }}
             </div>
             <div class="flex items-center">
                 <a-button class="ml-1" @click="modelSettingDialog?.show()">
                     <template #icon>
                         <icon-command/>
                     </template>
-                    {{ $t("大模型设置") }}
+                    {{ $t("setting.llm") }}
                 </a-button>
                 <a-button v-if="serverStore.records.length > 0" class="ml-1" @click="addDialog?.show()">
                     <template #icon>
                         <icon-plus/>
                     </template>
-                    {{ $t("添加本地模型") }}
+                    {{ $t("model.addLocal") }}
                 </a-button>
             </div>
         </div>
@@ -66,37 +66,37 @@ const typeName = (type: string) => {
                     <img class="h-32 m-auto opacity-50" src="./../assets/image/server-empty.svg"/>
                 </div>
                 <div class="mt-5 text-center text-gray-400">
-                    <div>{{ $t("暂时还没有模型，请添加模型~") }}</div>
+                    <div>{{ $t("empty.noModelAdd") }}</div>
                 </div>
                 <div class="mt-5 text-center">
                     <a-button class="ml-1" @click="addDialog?.show()">
                         <template #icon>
                             <icon-plus/>
                         </template>
-                        {{ $t("添加本地模型") }}
+                        {{ $t("model.addLocal") }}
                     </a-button>
                     <a-button v-if="0" class="ml-1">
                         <template #icon>
                             <icon-apps/>
                         </template>
-                        {{ $t("添加云端模型") }}
+                        {{ $t("model.addCloud") }}
                     </a-button>
                     <a-button class="mx-1" @click="helpShow = true">
                         <template #icon>
                             <icon-book class="mr-1"/>
                         </template>
-                        {{ $t("如何添加模型？") }}
+                        {{ $t("help.howToAddModel") }}
                     </a-button>
                 </div>
                 <div v-if="helpShow" class="pt-5 text-center">
                     <div class="inline-block bg-gray-100 text-left rounded-lg p-6 leading-8">
-                        <div>① {{ $t("访问模型市场，下载模型到本地") }}</div>
-                        <div>② {{ $t("解压模型压缩包，选择目录中的config.json文件") }}</div>
+                        <div>① {{ $t("model.marketTip") }}</div>
+                        <div>② {{ $t("model.unzipTip") }}</div>
                         <div class="pt-3">
-                            {{ $t("更多内容，请查看") }}
+                            {{ $t("msg.moreContent") }}
                             <a href="javascript:;" class="text-link" @click="doHelp">
                                 <icon-book/>
-                                {{ $t("在线文档") }}
+                                {{ $t("common.onlineDocs") }}
                             </a>
                         </div>
                     </div>
@@ -121,7 +121,7 @@ const typeName = (type: string) => {
                             </div>
                             <div class="flex items-center gap-1">
                                 <a-tooltip v-if="record.config?.mode?.type==='watch'"
-                                           :content="$t('连续调用加速已开启')">
+                                           :content="$t('model.accelerationOn')">
                                     <icon-thunderbolt/>
                                 </a-tooltip>
                                 <ServerStatus

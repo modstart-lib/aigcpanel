@@ -16,7 +16,7 @@ import PageGuide from "../pages/PageGuide.vue";
 
 const app = createApp(Page, {
     name: "guide",
-    title: t("新手指引"),
+    title: t("nav.guide"),
     page: PageGuide,
 });
 app.use(ArcoVue);

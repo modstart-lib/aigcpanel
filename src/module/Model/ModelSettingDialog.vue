@@ -22,7 +22,7 @@ defineExpose({
         title-align="start"
     >
         <template #title>
-            {{ $t("大模型设置") }}
+            {{ $t("setting.llm") }}
         </template>
         <div class="-mx-5 -my-6" style="height: calc(100vh - 15rem)">
             <ModelSetting/>

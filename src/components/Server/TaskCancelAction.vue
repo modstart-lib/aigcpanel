@@ -14,15 +14,15 @@ const props = defineProps<{
 
 const doCancel = async () => {
     const record = props.record;
-    Dialog.loadingOn(t("正在取消任务"));
+    Dialog.loadingOn(t("status.cancelling"));
     try {
         taskStore.requestCancel(record.biz, record.id as any);
         await sleep(500);
         Dialog.loadingOff();
-        Dialog.tipSuccess(t("已发送停止请求，请等待运行停止"));
+        Dialog.tipSuccess(t("msg.stopRequested"));
     } catch (e) {
         Dialog.loadingOff();
-        Dialog.tipError(t("取消任务失败"));
+        Dialog.tipError(t("error.cancelTaskFailed"));
     }
 };
 const isCloud = computed(() => {
@@ -31,7 +31,7 @@ const isCloud = computed(() => {
 </script>
 
 <template>
-    <a-tooltip v-if="!isCloud && record.status === 'running'" :content="$t('取消任务')" mini>
+    <a-tooltip v-if="!isCloud && record.status === 'running'" :content="$t('task.cancel')" mini>
         <a-button class="mr-2" type="primary" status="danger" @click="doCancel()">
             <template #icon>
                 <icon-record-stop/>

@@ -17,18 +17,18 @@ const canDownload = computed(() => {
 const doDownload = async () => {
     const recordsDownload = props.records.filter(record => record.status === "success");
     if (recordsDownload.length === 0) {
-        Dialog.tipError(t("没有可以下载的记录"));
+        Dialog.tipError(t("empty.noDownloadRecord"));
         return;
     }
     const pathDir = await window.$mapi.file.openDirectory();
     if (!pathDir) {
         return;
     }
-    Dialog.loadingOn(t("正在下载"));
+    Dialog.loadingOn(t("status.downloading"));
     let errors: any = [];
     for (const r of recordsDownload) {
         Dialog.loadingUpdate(
-            t("正在下载 {index}/{total}", {
+            t("status.downloadingProgress", {
                 index: recordsDownload.indexOf(r) + 1,
                 total: recordsDownload.length,
             })
@@ -55,15 +55,15 @@ const doDownload = async () => {
     }
     Dialog.loadingOff();
     if (errors.length > 0) {
-        Dialog.tipError(t("下载失败") + "\n" + errors.join("\n"));
+        Dialog.tipError(t("common.downloadFailed") + "\n" + errors.join("\n"));
         return;
     }
-    Dialog.tipSuccess(t("下载成功"));
+    Dialog.tipSuccess(t("common.downloadSuccess"));
 };
 </script>
 
 <template>
-    <a-tooltip :content="$t('下载')" mini>
+    <a-tooltip :content="$t('common.download')" mini>
         <a-button class="mr-2" :disabled="!canDownload" @click="doDownload()">
             <template #icon>
                 <icon-download />

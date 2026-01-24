@@ -174,7 +174,7 @@ export const liveStore = defineStore("live", {
             if (this.status !== "running") {
                 return;
             }
-            Dialog.tipSuccess(t("知识库更新，直播数据将会在30秒后更新"));
+            Dialog.tipSuccess(t("live.knowledgeUpdateHint"));
             if (this.liveDataUpdateTimer) {
                 clearTimeout(this.liveDataUpdateTimer);
             }
@@ -406,9 +406,9 @@ export const liveStore = defineStore("live", {
                 scene: ObjectUtil.clone(configPost),
             });
             if (res.code) {
-                Dialog.tipError(t("更新失败") + ":" + res.msg);
+                Dialog.tipError(t("error.updateFailed") + ":" + res.msg);
             } else {
-                Dialog.tipSuccess(t("直播知识库已更新"));
+                Dialog.tipSuccess(t("live.knowledgeUpdated"));
             }
         },
         async start() {
@@ -453,7 +453,7 @@ export const liveStore = defineStore("live", {
             if (res.code) {
                 this.status = "error";
                 this.statusMsg = res.msg;
-                Dialog.tipError(t("启动失败") + ":" + res.msg);
+                Dialog.tipError(t("service.startFailed") + ":" + res.msg);
                 return;
             }
         },
@@ -464,7 +464,7 @@ export const liveStore = defineStore("live", {
             if (res.code) {
                 this.status = "error";
                 this.statusMsg = res.msg;
-                Dialog.tipError(t("停止失败") + ":" + res.msg);
+                Dialog.tipError(t("common.stopFailed") + ":" + res.msg);
                 return;
             }
             this.statusMsg = "";
@@ -472,10 +472,10 @@ export const liveStore = defineStore("live", {
         async talk(text) {
             const res = await this.apiRequest("scene/talk", {sceneId: SCENE_ID, data: {text}});
             if (res.code) {
-                Dialog.tipError(t("发送失败") + ":" + res.msg);
+                Dialog.tipError(t("common.sendFailed") + ":" + res.msg);
                 return;
             }
-            Dialog.tipSuccess(t("发送成功"));
+            Dialog.tipSuccess(t("common.sendSuccess"));
         },
         fireEvent(type, data) {
             this.apiRequest("scene/event", {sceneId: SCENE_ID, type, data});

@@ -7,7 +7,7 @@ import {StorageUtil} from "../../lib/storage";
 import {VersionUtil} from "../../lib/util";
 
 export const doCopy = async (text: string | object, successTip: string = ""): Promise<void> => {
-    successTip = successTip || t("复制成功");
+    successTip = successTip || t("common.copySuccess");
     text = typeof text === "object" ? JSON.stringify(text) : String(text);
     await window.$mapi.app.setClipboardText(text);
     Dialog.tipSuccess(successTip);
@@ -23,10 +23,10 @@ export const doSaveFile = async (filePath: string) => {
             await window.$mapi.file.copy(filePath, savePath, {
                 isDataPath: false
             });
-            Dialog.tipSuccess(t("文件已保存到 {path}", {path: savePath}));
+            Dialog.tipSuccess(t("msg.fileSavedTo", {path: savePath}));
         }
     } catch (error) {
-        Dialog.tipError(t("保存文件失败: {error}", {error: (error as Error).message || error}));
+        Dialog.tipError(t("error.saveFileFailed", {error: (error as Error).message || error}));
     }
 };
 
@@ -44,6 +44,7 @@ export const doOpenFile = async (
         const opt: any = {};
         if (options.extensions && options.extensions.length > 0) {
             opt.filters = [{
+                name: t("hint.fileTypes"),
                 extensions: toRaw(options.extensions),
             }]
         }
@@ -55,7 +56,7 @@ export const doOpenFile = async (
             return result
         }
     } catch (error) {
-        Dialog.tipError(t("选择文件失败:{error}", {error}));
+        Dialog.tipError(t("error.selectFileFailed", {error}));
     }
 }
 
@@ -124,16 +125,16 @@ export const doCheckForUpdate = async (noticeLatest?: boolean) => {
     const res = await window.$mapi.updater.checkForUpdate();
     defaultResponseProcessor(res, (res: ApiResult<any>) => {
         if (!res.data.version) {
-            Dialog.tipError(t("检测更新失败"));
+            Dialog.tipError(t("update.checkFailed"));
             return;
         }
         if (VersionUtil.le(res.data.version, AppConfig.version)) {
             if (noticeLatest) {
-                Dialog.tipSuccess(t("已经是最新版本"));
+                Dialog.tipSuccess(t("update.alreadyLatest"));
             }
             return;
         }
-        Dialog.confirm(t("发现新版本{version}，是否立即下载更新？", {version: res.data.version})).then(() => {
+        Dialog.confirm(t("update.newVersionFound", {version: res.data.version})).then(() => {
             window.$mapi.app.openExternal(AppConfig.downloadUrl);
         });
     });

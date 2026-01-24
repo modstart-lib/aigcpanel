@@ -78,7 +78,7 @@ const doConfirm = () => {
         }
     }
     if (props.limit > 0 && ids.length + idsNew.length > props.limit) {
-        Dialog.tipError(t(`最多只能选择{count}个`, {count: props.limit}));
+        Dialog.tipError(t(`error.maxSelection`, {count: props.limit}));
         return;
     }
     ids.push(...idsNew);

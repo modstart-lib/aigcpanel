@@ -55,8 +55,8 @@ watch(
 </script>
 
 <template>
-    <a-select ref="select" :placeholder="$t('选择模型')" size="small" class="min-w-64" style="height:32px;">
-        <a-optgroup :label="$t('本地模型')">
+    <a-select ref="select" :placeholder="$t('model.select')" size="small" class="min-w-64" style="height:32px;">
+        <a-optgroup :label="$t('model.localModel')">
             <a-option v-for="server in recordsFilter" :key="server.key" :value="server.key">
                 <div class="flex items-center py-2 flex-nowrap truncate no-wrap">
                     <div
@@ -80,7 +80,7 @@ watch(
             </a-option>
             <a-option v-if="recordsFilter.length === 0" disabled>
                 <div class="text-xs py-2">
-                    {{ $t("没有可用本地模型") }}
+                    {{ $t("empty.noLocalModel") }}
                 </div>
             </a-option>
         </a-optgroup>

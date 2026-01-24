@@ -19,7 +19,7 @@ const disabled = computed(() => {
 </script>
 
 <template>
-    <a-tooltip :content="$t('设置')" mini>
+    <a-tooltip :content="$t('common.setting')" mini>
         <a-button
             class="mr-2"
             @click="actionSettingDialog?.show()"

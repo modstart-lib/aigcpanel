@@ -47,7 +47,7 @@ const doDevSettingTriggerClick = () => {
                 </div>
             </div>
             <div class="flex mb-3 items-center">
-                <div class="w-20">{{ t("版本") }}</div>
+                <div class="w-20">{{ t("common.version") }}</div>
                 <div class="flex-grow">
                     <div class="inline-block">v{{ AppConfig.version }} Build {{ setting.buildInfo.buildId }}</div>
                 </div>
@@ -56,7 +56,7 @@ const doDevSettingTriggerClick = () => {
                 </div>
             </div>
             <div class="flex mb-3 items-center">
-                <div class="w-20">{{ t("官网") }}</div>
+                <div class="w-20">{{ t("common.officialSite") }}</div>
                 <div class="flex-grow">
                     <a :href="AppConfig.website" target="_blank" class="text-link">
                         {{ AppConfig.website }}
@@ -70,14 +70,14 @@ const doDevSettingTriggerClick = () => {
                         <template #icon>
                             <icon-file />
                         </template>
-                        {{ t("日志") }}
+                        {{ t("nav.log") }}
                     </a-button>
                 </div>
             </div>
             <div class="flex mb-3 items-center">
-                <div class="w-20">{{ t("声明") }}</div>
+                <div class="w-20">{{ t("about.disclaimer") }}</div>
                 <div class="flex-grow">
-                    {{ t("本产品为开源软件，遵循 AGPL-3.0 license 协议。") }}
+                    {{ t("about.license") }}
                 </div>
             </div>
             <div class="mb-3 mt-6 flex items-center">

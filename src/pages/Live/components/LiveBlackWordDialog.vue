@@ -57,7 +57,7 @@ defineExpose({
         <template #title>
             <div class="flex items-center">
                 <icon-exclamation-circle class="text-red-500 mr-2"/>
-                {{ $t("违规词检测结果") }}
+                {{ $t("model.censorResult") }}
                 <div class="ml-4 text-sm text-gray-500">共检测到 {{ violationRecords.length }} 条违规内容</div>
             </div>
         </template>

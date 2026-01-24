@@ -1,4 +1,3 @@
-import source from "./../../src/lang/source.json";
 import enUS from "./../../src/lang/en-US.json";
 import zhCN from "./../../src/lang/zh-CN.json";
 import {isDev} from "../lib/env";
@@ -25,14 +24,7 @@ export const langMessageList = [
 const buildMessages = (): any => {
     let messages = {};
     for (let m of langMessageList) {
-        let msgList = {};
-        for (let k in source) {
-            const v = source[k];
-            if (m.messages[v]) {
-                msgList[k] = m.messages[v];
-            }
-        }
-        messages[m.name] = msgList;
+        messages[m.name] = m.messages;
     }
     return messages;
 };
@@ -52,9 +44,6 @@ export const t = (text: string, param: object | null = null) => {
             }
             return messages[locale][text];
         }
-    }
-    if (isDev) {
-        lang.writeSourceKey(text).then();
     }
     if (param) {
         return text.replace(/\{(\w+)\}/g, function (match, key) {

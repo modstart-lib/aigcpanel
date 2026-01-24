@@ -23,7 +23,7 @@ const doSelectFile = async () => {
     for (const file of files) {
         const ext = FileUtil.getExt(file);
         if (!props.extensions.includes(ext)) {
-            Dialog.tipError(t("请选择{extensions}格式的文件", {extensions: props.extensions.join(',')}));
+            Dialog.tipError(t("hint.selectFileFormat", {extensions: props.extensions.join(',')}));
             return;
         }
         validFiles.push(file);
@@ -57,8 +57,8 @@ const names = computed(() => {
         </div>
         <a-button @click="doSelectFile">
             <icon-plus/>
-            {{ t("添加文件") }}
-            ({{ t("{extensions}", {extensions: extensions.join(', ')}) }})
+            {{ t("common.addFile") }}
+            ({{ t("common.extensions", {extensions: extensions.join(', ')}) }})
         </a-button>
     </div>
 </template>

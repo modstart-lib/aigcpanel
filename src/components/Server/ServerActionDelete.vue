@@ -17,8 +17,8 @@ const emit = defineEmits({
 
 const doDelete = async () => {
     const record = props.record;
-    await Dialog.confirm(t("确定删除模型 {title} v{version} 吗？", {title: record.title, version: record.version}));
-    Dialog.loadingOn(t("正在删除"));
+    await Dialog.confirm(t("model.deleteConfirm", {title: record.title, version: record.version}));
+    Dialog.loadingOn(t("status.deleting"));
     await sleep(500);
     await serverStore.delete(record);
     Dialog.loadingOff();
@@ -38,7 +38,7 @@ const disabled = computed(() => {
 </script>
 
 <template>
-    <a-tooltip :content="$t('删除')" mini>
+    <a-tooltip :content="$t('common.delete')" mini>
         <a-button class="mr-2" :disabled="disabled" @click="doDelete()">
             <template #icon>
                 <icon-delete />

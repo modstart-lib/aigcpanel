@@ -46,21 +46,21 @@ const getValue = async (): Promise<VideoGenParamType | undefined> => {
 
     const server = await serverStore.getByKey(data.serverKey);
     if (!server) {
-        Dialog.tipError(t("请选择数字人模型"));
+        Dialog.tipError(t("hint.selectAvatarModel"));
         return;
     }
     if (server.status !== EnumServerStatus.RUNNING) {
-        Dialog.tipError(t("数字人模型未启动"));
+        Dialog.tipError(t("error.avatarModelNotStarted"));
         return;
     }
 
     if (!formData.value.videoTemplateId) {
-        Dialog.tipError(t("请选择视频"));
+        Dialog.tipError(t("hint.selectVideo"));
         return;
     }
     const videoTemplate = await VideoTemplateService.get(formData.value.videoTemplateId);
     if (!videoTemplate) {
-        Dialog.tipError(t("请选择视频"));
+        Dialog.tipError(t("hint.selectVideo"));
         return;
     }
 
@@ -73,7 +73,7 @@ const getValue = async (): Promise<VideoGenParamType | undefined> => {
 
     data.param = paramForm.value?.getValue();
     if (!data.param) {
-        Dialog.tipError(t("语音识别参数不正确"));
+        Dialog.tipError(t("error.recognitionParamInvalid"));
         return;
     }
 
@@ -89,11 +89,11 @@ defineExpose({
     <div class="mb-4">
         <div class="font-bold">
             <icon-settings />
-            {{ $t("数字人配置") }}
+            {{ $t("avatar.config") }}
         </div>
         <div class="flex items-center h-12 mb-2">
             <div class="mr-1">
-                <a-tooltip :content="$t('数字人模型')" mini>
+                <a-tooltip :content="$t('avatar.model')" mini>
                     <i class="iconfont icon-server"></i>
                 </a-tooltip>
             </div>
@@ -106,7 +106,7 @@ defineExpose({
         </div>
         <div class="flex items-center h-12 mb-2">
             <div class="mr-1">
-                <a-tooltip :content="$t('视频形象')" mini>
+                <a-tooltip :content="$t('avatar.video')" mini>
                     <i class="iconfont icon-video-template"></i>
                 </a-tooltip>
             </div>

@@ -1,13 +1,13 @@
 import {t} from "../lang";
 
 export const allFunctions = [
-    {value: "soundTts", label: t("语音合成")},
-    {value: "soundClone", label: t("声音克隆")},
-    {value: "videoGen", label: t("数字人")},
-    {value: "asr", label: t("语音识别")},
-    {value: "textToImage", label: t("文生图")},
-    {value: "imageToImage", label: t("图生图")},
-    {value: "live", label: t("智能直播")},
+    {value: "soundTts", label: t("voice.synthesis")},
+    {value: "soundClone", label: t("voice.clone")},
+    {value: "videoGen", label: t("avatar.digitalHuman")},
+    {value: "asr", label: t("voice.recognition")},
+    {value: "textToImage", label: t("model.txt2img")},
+    {value: "imageToImage", label: t("model.img2img")},
+    {value: "live", label: t("avatar.smartLive")},
 ]
 
 export function functionToLabels(functions: string[]) {

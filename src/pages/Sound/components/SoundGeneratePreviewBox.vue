@@ -48,13 +48,13 @@ const doPreview = async () => {
         requestSecond.value++;
     }, 1000);
     request().then((url) => {
-        Dialog.tipSuccess(t('请求成功，开始播放'));
+        Dialog.tipSuccess(t('msg.requestSuccessPlaying'));
         previewUrl.value = url as string;
         const audio = new Audio(`file://${url}`);
         audio.play();
     }).catch((e) => {
         console.error(e);
-        Dialog.tipError(t('请求失败') + ':' + e + '')
+        Dialog.tipError(t('error.requestFailed') + ':' + e + '')
     }).finally(() => {
         loading.value = false;
         requestSecond.value = 0;
@@ -67,7 +67,7 @@ const doPreview = async () => {
     <div class="flex items-center gap-2">
         <a-input
             v-model="text"
-            :placeholder="$t('输入预览文字')"
+            :placeholder="$t('hint.inputPreviewText')"
             style="width: 200px"
             allow-clear
             class="flex-grow"
@@ -81,7 +81,7 @@ const doPreview = async () => {
             </a-button>
             <template #content>
                 <div class="mb-2 font-bold">
-                    {{ $t("当前声音合成配置") }}
+                    {{ $t("voice.currentConfig") }}
                 </div>
                 <div class="flex gap-2">
                     <SoundGenerateFormViewBody :data="props.soundGenerate as any"/>
@@ -94,7 +94,7 @@ const doPreview = async () => {
             <template #icon>
                 <icon-send/>
             </template>
-            {{ $t("合成") }}
+            {{ $t("task.synthesize") }}
         </a-button>
         <a-button v-if="previewUrl">
             <template #icon>

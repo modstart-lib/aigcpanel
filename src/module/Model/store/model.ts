@@ -49,7 +49,7 @@ const mapModelError = (e: any, provider: Provider) => {
         };
         const map = {
             insufficient_user_quota: {
-                msg: t("大模型能量不足，请充值后继续使用"),
+                msg: t("error.energyInsufficient"),
                 callback: showCharge,
             },
         };
@@ -290,7 +290,7 @@ export const modelStore = defineStore("model", {
             if (!m) {
                 return;
             }
-            Dialog.loadingOn(t("测试中，请稍候..."));
+            Dialog.loadingOn(t("common.testing"));
             try {
                 const ret = await ModelProvider.chat("你是什么模型，简短回答", {
                     type: provider.type,
@@ -302,9 +302,9 @@ export const modelStore = defineStore("model", {
                 if (ret.code) {
                     throw ret.msg;
                 }
-                Dialog.tipSuccess(t("测试成功"));
+                Dialog.tipSuccess(t("common.testSuccess"));
             } catch (e) {
-                Dialog.tipError(t("测试失败") + " " + mapModelError(e, provider));
+                Dialog.tipError(t("common.testFailed") + " " + mapModelError(e, provider));
             } finally {
                 Dialog.loadingOff();
             }
@@ -319,8 +319,8 @@ export const modelStore = defineStore("model", {
         ): Promise<ModelChatResult> {
             await this.refreshBuildIn();
             if (!providerId || !modelId) {
-                Dialog.tipError(t("请选择模型"));
-                return {code: -1, msg: t("请选择模型")};
+                Dialog.tipError(t("hint.selectModel"));
+                return {code: -1, msg: t("hint.selectModel")};
             }
             option = Object.assign(
                 {

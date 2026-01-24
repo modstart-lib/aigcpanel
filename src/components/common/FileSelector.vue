@@ -19,7 +19,7 @@ const doSelectFile = async () => {
     }
     const ext = FileUtil.getExt((result || '') as string);
     if (!props.extensions.includes(ext)) {
-        Dialog.tipError(t("请选择{extensions}格式的文件", {extensions: props.extensions.join(',')}));
+        Dialog.tipError(t("hint.selectFileFormat", {extensions: props.extensions.join(',')}));
         return;
     }
     emit("update:modelValue", result as string);
@@ -39,8 +39,8 @@ const name = computed(() => {
     </a-tooltip>
     <a-button @click="doSelectFile" :class="modelValue?'':'w-64'">
         <icon-file/>
-        {{ modelValue ? t("重新选择") : t("选择文件") }}
-        ({{ t("{extensions}", {extensions: extensions.join(', ')}) }})
+        {{ modelValue ? t("common.reselect") : t("common.selectFile") }}
+        ({{ t("common.extensions", {extensions: extensions.join(', ')}) }})
     </a-button>
 </template>
 

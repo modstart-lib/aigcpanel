@@ -40,13 +40,13 @@ const doRefresh = async () => {
 };
 
 const doDelete = async (record: StorageRecord) => {
-    await Dialog.confirm(t("确认删除？"));
+    await Dialog.confirm(t("common.deleteConfirm"));
     await StorageService.delete(record);
     await doRefresh();
 };
 
 const doClear = async () => {
-    await Dialog.confirm(t("确认清空？"));
+    await Dialog.confirm(t("common.clearConfirm"));
     await StorageService.clear("LiveTalk");
     await doRefresh();
 };
@@ -92,7 +92,7 @@ onMounted(() => {
                                 :indeterminate="isIndeterminate"
                                 @change="onCheckAll"
                             >
-                                {{ $t("全选") }}
+                                {{ $t("common.selectAll") }}
                             </a-checkbox>
                         </div>
                         <StorageBatchDeleteAction :records="checkRecords" @update="doRefresh" />

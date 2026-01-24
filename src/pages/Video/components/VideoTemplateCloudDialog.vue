@@ -50,7 +50,7 @@ const show = () => {
 
 const doDownload = async (record: VideoTemplateCloudRecord) => {
     try {
-        Dialog.loadingOn(t("下载中，请耐心等待"));
+        Dialog.loadingOn(t("common.downloadingWait"));
         const videoTemplate = await serverCloudStore.getVideoTemplate(record.id);
         const videoPath = await $mapi.file.download(videoTemplate.video);
         const normalPath = await ffmpegVideoNormal(videoPath, {
@@ -63,11 +63,11 @@ const doDownload = async (record: VideoTemplateCloudRecord) => {
             video: videoPathFull,
             info: videoInfo,
         } as VideoTemplateRecord);
-        Dialog.tipSuccess(t("下载成功"));
+        Dialog.tipSuccess(t("common.downloadSuccess"));
         emit("update");
     } catch (e) {
         console.error(e);
-        Dialog.tipError(t("下载失败") + ":" + e);
+        Dialog.tipError(t("common.downloadFailed") + ":" + e);
     } finally {
         Dialog.loadingOff();
     }
@@ -92,12 +92,12 @@ const emit = defineEmits({
         title-align="start"
     >
         <template #title>
-            {{ $t("云端视频形象") }}
+            {{ $t("model.cloudVideoAvatar") }}
         </template>
         <div style="height: calc(100vh - 15rem)">
             <div>
                 <a-alert class="mb-3">
-                    {{ $t("云端视频形象，支持直接下载到本地使用") }}
+                    {{ $t("model.cloudVideoAvatarDesc") }}
                 </a-alert>
             </div>
             <div class="mb-3 flex gap-2">
@@ -135,7 +135,7 @@ const emit = defineEmits({
                                     <template #icon>
                                         <icon-download />
                                     </template>
-                                    {{ $t("保存到我的形象") }}
+                                    {{ $t("avatar.saveToMine") }}
                                 </a-button>
                             </div>
                         </div>

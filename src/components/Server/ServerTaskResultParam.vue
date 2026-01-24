@@ -16,7 +16,7 @@ const deviceName = computed(() => {
 
 <template>
     <div v-if="record.result['Device']" class="text-xs">
-        <a-tooltip v-if="record.result['Device']==='cuda'" :content="$t('CUDA加速')" mini>
+        <a-tooltip v-if="record.result['Device']==='cuda'" :content="$t('setting.cudaAcceleration')" mini>
             <div class="bg-green-100 text-green-600 rounded-lg px-1 leading-6 h-6 inline-flex items-center">
                 <i class="iconfont icon-cuda"></i>
                 <div v-if="deviceName">

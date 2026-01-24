@@ -17,14 +17,14 @@ window['__logInit'] = (option: { log: string }) => {
         <div class="flex p-2 items-center">
             <div class="mr-2">
                 <a-checkbox v-model="autoScroll"/>
-                {{ $t('自动滚动') }}
+                {{ $t('log.autoScroll') }}
             </div>
             <div class="mr-1">
                 <a-button @click="doOpen" size="mini">
                     <template #icon>
                         <icon-file/>
                     </template>
-                    {{ $t('打开文件') }}
+                    {{ $t('common.openFile') }}
                 </a-button>
             </div>
             <div class="text-gray-400 text-xs">
@@ -39,7 +39,7 @@ window['__logInit'] = (option: { log: string }) => {
                         <icon-info-circle class="text-5xl"/>
                     </div>
                     <div>
-                        {{ $t('暂无日志文件') }}
+                        {{ $t('empty.noLogFile') }}
                     </div>
                 </div>
             </div>

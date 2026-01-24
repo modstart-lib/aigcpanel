@@ -44,22 +44,22 @@ const doSubmit = async () => {
             v-if="!data.soundAsr && !data.soundGenerate"
             @click="visible = true"
             class="p-2 text-center text-xs text-gray-500 rounded-lg bg-gray-100 cursor-pointer">
-            {{ $t("点击配置") }}
+            {{ $t("common.clickToConfig") }}
         </div>
         <div v-else class="mt-2">
-            <a-button size="mini" @click="visible = true">{{ $t("修改") }}</a-button>
+            <a-button size="mini" @click="visible = true">{{ $t("common.modify") }}</a-button>
         </div>
     </div>
     <a-modal
         v-model:visible="visible"
         title-align="start"
-        :title="$t('声音替换设置')"
+        :title="$t('voice.replaceConfig')"
         width="600px"
         :destroyOnClose="true"
     >
         <template #footer>
             <div class="flex justify-end space-x-2">
-                <a-button type="primary" @click="doSubmit">{{ $t("保存") }}</a-button>
+                <a-button type="primary" @click="doSubmit">{{ $t("common.save") }}</a-button>
             </div>
         </template>
         <div v-if="visible" class="space-y-4 overflow-y-auto" style="max-height: calc(100vh - 10rem)">

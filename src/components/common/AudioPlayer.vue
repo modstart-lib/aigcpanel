@@ -335,32 +335,32 @@ defineExpose({
                     :step="0.001" :min="0" />
             </div>
             <div class="ml-3">
-                <a-tooltip :content="$t('收起')" mini v-if="showWave && waveVisible && !isTrimming && !isRecording">
+                <a-tooltip :content="$t('common.collapse')" mini v-if="showWave && waveVisible && !isTrimming && !isRecording">
                     <div @click="waveVisible = false" class="cursor-pointer w-8 h-8 inline-flex">
                         <icon-up class="m-auto text-gray-700 hover:text-primary text-2xl" />
                     </div>
                 </a-tooltip>
-                <a-tooltip :content="$t('重新录制')" mini v-if="recordUrl && !isTrimming">
+                <a-tooltip :content="$t('voice.rerecord')" mini v-if="recordUrl && !isTrimming">
                     <div @click="doRecordClean" class="cursor-pointer w-8 h-8 inline-flex">
                         <i class="iconfont icon-refresh-circle m-auto text-gray-700 hover:text-primary text-2xl"></i>
                     </div>
                 </a-tooltip>
-                <a-tooltip :content="$t('裁剪音频')" mini v-if="!isTrimming && props.trimEnable">
+                <a-tooltip :content="$t('media.cropAudio')" mini v-if="!isTrimming && props.trimEnable">
                     <div @click="doTrim" class="cursor-pointer w-8 h-8 inline-flex">
                         <i class="iconfont icon-cut m-auto text-gray-700 hover:text-primary text-2xl"></i>
                     </div>
                 </a-tooltip>
-                <a-tooltip :content="$t('确定裁剪')" mini v-if="isTrimming && props.trimEnable">
+                <a-tooltip :content="$t('media.cropConfirm')" mini v-if="isTrimming && props.trimEnable">
                     <div @click="doTrimSave" class="cursor-pointer w-8 h-8 inline-flex">
                         <icon-check class="m-auto text-gray-700 hover:text-primary text-2xl" />
                     </div>
                 </a-tooltip>
-                <a-tooltip :content="$t('下载音频')" mini v-if="!isTrimming && props.downloadEnable">
+                <a-tooltip :content="$t('download.audio')" mini v-if="!isTrimming && props.downloadEnable">
                     <div @click="doDownload" class="cursor-pointer w-8 h-8 inline-flex">
                         <icon-download class="m-auto text-gray-700 hover:text-primary text-2xl" />
                     </div>
                 </a-tooltip>
-                <a-tooltip :content="$t('录制音频')" mini v-if="props.recordEnable && !isTrimming && !recordUrl">
+                <a-tooltip :content="$t('voice.record')" mini v-if="props.recordEnable && !isTrimming && !recordUrl">
                     <div @click="doRecord" class="cursor-pointer w-8 h-8 inline-flex">
                         <i class="iconfont icon-mic m-auto text-gray-700 hover:text-primary text-2xl"></i>
                     </div>
@@ -384,7 +384,7 @@ defineExpose({
             <div class="ml-3">
                 <div v-if="!recordInputDevices.length" class="text-sm bg-gray-100 h-10 leading-10 rounded-lg px-5">
                     <icon-info-circle />
-                    {{ $t("未检测到录音设备") }}
+                    {{ $t("error.noMicrophone") }}
                 </div>
                 <a-select v-else v-model="recordInputDeviceSelect as any" size="mini" style="width: 100%">
                     <a-option v-for="device in recordInputDevices" :key="device.id" :value="device.id">

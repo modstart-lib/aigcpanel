@@ -48,58 +48,58 @@ onMounted(async () => {
     <div class="page-narrow-container p-6 pb-home h-full overflow-hidden overflow-y-auto">
         <div class="flex">
             <div class="text-3xl font-bold mb-5 flex-grow">
-                {{ $t("欢迎使用 AIGCPanel !") }}
+                {{ $t("welcome.title") }}
             </div>
             <div>
                 <a target="_blank" class="text-red-500" href="https://aigcpanel.com/forum">
                     <icon-message class="mr-1" />
-                    {{ $t("使用遇到问题？发帖求助") }}
+                    {{ $t("feedback.help") }}
                 </a>
             </div>
         </div>
         <div class="mb-5">
             <div class="flex gap-5 pb-top-area">
                 <div class="flex-grow w-0 bg-white rounded-lg p-3 bg-contain bg-right bg-no-repeat hover:shadow-lg">
-                    <div class="font-bold text-xl mb-1">{{ $t("声音合成") }}</div>
+                    <div class="font-bold text-xl mb-1">{{ $t("voice.synthesis") }}</div>
                     <div class="h-8 truncate overflow-hidden text-gray-500">
-                        {{ $t("上千种音色模型支持") }}
+                        {{ $t("intro.modelsSupported") }}
                     </div>
                     <div>
                         <a-button type="primary" @click="$router.push('/sound?tab=soundGenerate')">
-                            {{ $t("立即使用") }}
+                            {{ $t("common.useNow") }}
                         </a-button>
                     </div>
                 </div>
                 <div class="flex-grow w-0 bg-white rounded-lg p-3 bg-contain bg-right bg-no-repeat hover:shadow-lg">
-                    <div class="font-bold text-xl mb-1">{{ $t("语音识别") }}</div>
+                    <div class="font-bold text-xl mb-1">{{ $t("voice.recognition") }}</div>
                     <div class="h-8 truncate overflow-hidden text-gray-500">
-                        {{ $t("识别文件下载文本/字幕") }}
+                        {{ $t("desc.recognitionDownload") }}
                     </div>
                     <div>
                         <a-button type="primary" @click="$router.push('/sound?tab=soundAsr')">
-                            {{ $t("立即使用") }}
+                            {{ $t("common.useNow") }}
                         </a-button>
                     </div>
                 </div>
                 <div class="flex-grow w-0 bg-white rounded-lg p-3 bg-contain bg-right bg-no-repeat hover:shadow-lg">
-                    <div class="font-bold text-xl mb-1">{{ $t("数字人合成") }}</div>
+                    <div class="font-bold text-xl mb-1">{{ $t("avatar.synthesis") }}</div>
                     <div class="h-8 truncate overflow-hidden text-gray-500">
-                        {{ $t("音频驱动口型合成视频") }}
+                        {{ $t("avatar.audioToVideo") }}
                     </div>
                     <div>
                         <a-button type="primary" @click="$router.push('/video?tab=videoGen')">
-                            {{ $t("立即使用") }}
+                            {{ $t("common.useNow") }}
                         </a-button>
                     </div>
                 </div>
                 <div class="flex-grow w-0 bg-white rounded-lg p-3 bg-contain bg-right bg-no-repeat hover:shadow-lg">
-                    <div class="font-bold text-xl mb-1">{{ $t("数字人直播") }}</div>
+                    <div class="font-bold text-xl mb-1">{{ $t("avatar.live") }}</div>
                     <div class="h-8 truncate overflow-hidden text-gray-500">
-                        {{ $t("互动交流支持各大平台") }}
+                        {{ $t("intro.interactionSupport") }}
                     </div>
                     <div>
                         <a-button type="primary" @click="$router.push('/live')">
-                            {{ $t("立即使用") }}
+                            {{ $t("common.useNow") }}
                         </a-button>
                     </div>
                 </div>
@@ -108,18 +108,18 @@ onMounted(async () => {
         <div class="bg-white rounded-lg p-4 mb-5 hover:shadow-lg">
             <div class="text-xl font-bold mb-4">
                 <icon-bar-chart />
-                {{ $t("数据统计") }}
+                {{ $t("dashboard.statistics") }}
             </div>
             <div class="flex">
                 <div class="flex-grow w-0">
                     <div class="mb-3">
-                        {{ $t("声音合成") }}
+                        {{ $t("voice.synthesis") }}
                     </div>
                     <div class="font-bold text-2xl mb-3">
                         <a-statistic animation placeholder="-" :value="usageData.soundGenerate as any" />
                     </div>
                     <div>
-                        {{ $t("今日") }} +
+                        {{ $t("dashboard.today") }} +
                         <a-statistic
                             animation
                             placeholder="-"
@@ -134,13 +134,13 @@ onMounted(async () => {
                 </div>
                 <div class="flex-grow w-0">
                     <div class="mb-3">
-                        {{ $t("语音识别") }}
+                        {{ $t("voice.recognition") }}
                     </div>
                     <div class="font-bold text-2xl mb-3">
                         <a-statistic animation placeholder="-" :value="usageData.soundAsr as any" />
                     </div>
                     <div>
-                        {{ $t("今日") }} +
+                        {{ $t("dashboard.today") }} +
                         <a-statistic
                             animation
                             placeholder="-"
@@ -154,13 +154,13 @@ onMounted(async () => {
                 </div>
                 <div class="flex-grow w-0">
                     <div class="mb-3">
-                        {{ $t("数字人合成") }}
+                        {{ $t("avatar.synthesis") }}
                     </div>
                     <div class="font-bold text-2xl mb-3">
                         <a-statistic animation placeholder="-" :value="usageData.videoGen as any" />
                     </div>
                     <div>
-                        {{ $t("今日") }} +
+                        {{ $t("dashboard.today") }} +
                         <a-statistic
                             animation
                             placeholder="-"
@@ -174,13 +174,13 @@ onMounted(async () => {
                 </div>
                 <div class="flex-grow w-0">
                     <div class="mb-3">
-                        {{ $t("今日总任务") }}
+                        {{ $t("dashboard.todayTotalTasks") }}
                     </div>
                     <div class="font-bold text-2xl mb-3">
                         <a-statistic animation placeholder="-" :value="usageData.taskTotal as any" />
                     </div>
                     <div>
-                        {{ $t("今日") }} +
+                        {{ $t("dashboard.today") }} +
                         <a-statistic
                             animation
                             placeholder="-"
@@ -203,10 +203,10 @@ onMounted(async () => {
                 >
                     <div class="flex-grow">
                         <div class="font-bold text-xl mb-3">
-                            {{ $t("模型市场") }}
+                            {{ $t("model.market") }}
                         </div>
                         <div class="text-gray-600">
-                            {{ $t("多种开源模型持续更新") }}
+                            {{ $t("intro.modelsUpdate") }}
                         </div>
                     </div>
                     <div>
@@ -216,10 +216,10 @@ onMounted(async () => {
                 <div class="bg-white rounded-lg p-3 flex items-center flex-grow w-0 hover:shadow-lg">
                     <div class="flex-grow">
                         <div class="font-bold text-xl mb-3">
-                            {{ $t("工单反馈") }}
+                            {{ $t("nav.feedback") }}
                         </div>
                         <div class="text-gray-600">
-                            {{ $t("遇到问题随时反馈") }}
+                            {{ $t("feedback.anytime") }}
                         </div>
                     </div>
                     <div>
@@ -231,7 +231,7 @@ onMounted(async () => {
         <div class="bg-white rounded-lg p-4 mb-5">
             <div class="text-xl font-bold mb-4">
                 <icon-tool />
-                {{ $t("应用工具") }}
+                {{ $t("nav.apps") }}
             </div>
             <div class="flex flex-wrap gap-5 mt-3">
                 <div

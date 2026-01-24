@@ -32,7 +32,7 @@ const dynamicComponent = computed(() => {
             >
                 <div class="text-base truncate flex items-center">
                     <i class="iconfont icon-video w-6 inline-block"></i>
-                    {{ t("数字人合成") }}
+                    {{ t("avatar.synthesis") }}
                 </div>
             </div>
             <div
@@ -42,7 +42,7 @@ const dynamicComponent = computed(() => {
             >
                 <div class="text-base truncate flex items-center">
                     <i class="iconfont icon-video-template w-6 inline-block"></i>
-                    {{ t("数字人形象") }}
+                    {{ t("avatar.avatar") }}
                 </div>
             </div>
             <div

@@ -107,7 +107,7 @@ const validate = () => {
     for (const item of formData.value) {
         if (item.required) {
             if (!item.value && item.value !== 0 && item.value !== false) {
-                Dialog.tipError(t('{title}不能为空', {title: item.title}));
+                Dialog.tipError(t('form.required', {title: item.title}));
                 return false;
             }
         }
@@ -174,7 +174,7 @@ defineExpose({
                                 :min="item.min" :max="item.max">
                 </a-input-number>
                 <a-tooltip v-if="item.opt && item.opt.includes('seed')"
-                           :content="$t('点击生成随机种子，种子相同则生成的结果相同')">
+                           :content="$t('model.seedTip')">
                     <icon-refresh
                         @click="item.value = Math.floor(Math.random() * 1000000)"
                         class="cursor-pointer text-gray-400 w-4 h-4"/>

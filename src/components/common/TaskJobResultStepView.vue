@@ -30,7 +30,7 @@ const stepData = computed(() => {
     >
         <div class="text-gray-400 text-xs p-2">
             <icon-refresh spin />
-            {{ $t("处理中") }}
+            {{ $t("task.processing") }}
         </div>
         <slot name="running"></slot>
         <slot name="successRunning"></slot>
@@ -41,19 +41,19 @@ const stepData = computed(() => {
     >
         <div class="text-red-400 text-xs p-2">
             <icon-info-circle />
-            {{ $t("处理出错") }}
+            {{ $t("error.processError") }}
         </div>
     </div>
     <div v-else-if="stepData && stepData.status === 'fail'" class="w-full bg-gray-100 rounded-lg">
         <div class="text-red-400 text-xs p-2">
             <icon-info-circle />
-            {{ $t("处理出错") }}
+            {{ $t("error.processError") }}
         </div>
     </div>
     <div v-else class="w-full bg-gray-100 rounded-lg">
         <div class="text-gray-400 text-xs p-2">
             <icon-info-circle />
-            {{ $t("未处理") }}
+            {{ $t("status.unprocessed") }}
         </div>
     </div>
 </template>

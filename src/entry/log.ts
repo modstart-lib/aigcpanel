@@ -16,7 +16,7 @@ import PageLog from "../pages/PageLog.vue";
 
 const app = createApp(Page, {
     name: "log",
-    title: t("日志"),
+    title: t("nav.log"),
     page: PageLog,
 });
 app.use(ArcoVue);

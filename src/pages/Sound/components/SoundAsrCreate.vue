@@ -19,15 +19,15 @@ const formData = ref({
 const onSelectAudioFile = async () => {
     try {
         const filePath = await window.$mapi.file.openFile({
-            title: t("选择音频文件"),
-            filters: [{name: t("音频文件"), extensions: ["mp3", "wav"]}],
+            title: t("media.selectAudio"),
+            filters: [{name: t("media.audioFile"), extensions: ["mp3", "wav"]}],
         });
 
         if (filePath) {
             formData.value.audio = filePath;
         }
     } catch (error) {
-        Dialog.tipError(t("文件选择失败"));
+        Dialog.tipError(t("error.fileSelectFailed"));
     }
 };
 
@@ -42,7 +42,7 @@ const doSubmit = async () => {
         }
 
         if (!formData.value.audio) {
-            Dialog.tipError(t("请选择音频文件"));
+            Dialog.tipError(t("hint.selectAudioFile"));
             return;
         }
 
@@ -74,7 +74,7 @@ const doSubmit = async () => {
         formData.value.audio = "";
 
         emit("submitted");
-        Dialog.tipSuccess(t("语音识别任务已提交"));
+        Dialog.tipSuccess(t("task.recognitionSubmitted"));
     } finally {
         isSubmitting.value = false;
     }
@@ -87,7 +87,7 @@ const isSubmitting = ref(false);
     <div class="rounded-xl shadow border p-4">
         <div class="mb-4 flex items-start">
             <div class="mr-1 pt-1">
-                <a-tooltip :content="$t('声音文件')" mini>
+                <a-tooltip :content="$t('voice.file')" mini>
                     <i class="iconfont icon-sound"></i>
                 </a-tooltip>
             </div>
@@ -99,7 +99,7 @@ const isSubmitting = ref(false);
         <div class="flex">
             <a-button class="mr-2" type="primary" @click="doSubmit" :loading="isSubmitting">
                 <i class="iconfont icon-submit mr-2"></i>
-                {{ t("开始识别") }}
+                {{ t("task.startRecognition") }}
             </a-button>
         </div>
     </div>

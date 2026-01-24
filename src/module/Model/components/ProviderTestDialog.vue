@@ -54,11 +54,11 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" width="20rem" :esc-to-close="false" :mask-closable="false" title-align="start">
         <template #title>
-            {{ $t("请选择要检测的模型") }}
+            {{ $t("hint.selectModelCheck") }}
         </template>
         <template #footer>
-            <a-button type="primary" @click="doSubmit">{{ $t("测试") }}</a-button>
-            <a-button @click="visible = false">{{ $t("关闭") }}</a-button>
+            <a-button type="primary" @click="doSubmit">{{ $t("common.test") }}</a-button>
+            <a-button @click="visible = false">{{ $t("common.close") }}</a-button>
         </template>
         <div style="max-height: 50vh" class="overflow-y-auto" v-if="props.provider">
             <a-form :model="data" layout="vertical" class="mt-4">

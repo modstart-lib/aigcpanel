@@ -89,8 +89,8 @@ const createEventChannel = (server: ServerRecord, serverRuntime?: ServerRuntime)
                     case "LoginRequired":
                     case "VipRequired":
                         const msgMap = {
-                            LoginRequired: t("请先登录"),
-                            VipRequired: t("请先开通会员"),
+                            LoginRequired: t("common.loginRequired"),
+                            VipRequired: t("common.vipRequired"),
                         };
                         Dialog.tipError(data.msg || msgMap[data.type]);
                         setTimeout(() => {
