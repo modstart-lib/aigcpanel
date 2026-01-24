@@ -1,15 +1,15 @@
-import {defineStore} from "pinia";
+import { defineStore } from "pinia";
+import { computed } from "vue";
+import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
+import { mapError } from "../../lib/error";
+import { ObjectUtil } from "../../lib/util";
+import { StorageService } from "../../service/StorageService";
+import { VideoTemplateService } from "../../service/VideoTemplateService";
+import { LiveStatusType } from "../../types/Live";
+import { EnumServerStatus, ServerRecord } from "../../types/Server";
 import store from "../index";
-import {useServerStore} from "./server";
-import {computed} from "vue";
-import {EnumServerStatus, ServerRecord} from "../../types/Server";
-import {ObjectUtil} from "../../lib/util";
-import {Dialog} from "../../lib/dialog";
-import {t} from "../../lang";
-import {LiveStatusType} from "../../types/Live";
-import {StorageService} from "../../service/StorageService";
-import {VideoTemplateService} from "../../service/VideoTemplateService";
-import {mapError} from "../../lib/error";
+import { useServerStore } from "./server";
 
 const serverStore = useServerStore();
 
@@ -315,7 +315,7 @@ export const liveStore = defineStore("live", {
             if (this.localConfig.mode === "avatar") {
                 const videoTemplate = await VideoTemplateService.get(this.localConfig.avatar.avatarId);
                 if (!videoTemplate) {
-                    throw "没有选择播放的数字人";
+                    throw t("live.noAvatarSelected");
                 }
                 avatars.push({
                     id: "Avatar" + videoTemplate.id,
@@ -329,7 +329,7 @@ export const liveStore = defineStore("live", {
                     return s.content.type === "flowVideo" && s.content.enable;
                 });
                 if (!(storageFlowVideos && storageFlowVideos.length > 0)) {
-                    throw "没有选择循环素材";
+                    throw t("live.noLoopMaterialSelected");
                 }
                 for (const s of storageFlowVideos) {
                     flowVideos.push({
@@ -344,7 +344,7 @@ export const liveStore = defineStore("live", {
                 return s.content.type === "flowTalk" && s.content.enable;
             });
             if (!(storageFlowTalks && storageFlowTalks.length > 0)) {
-                throw "没有选择循环素材";
+                throw t("live.noLoopMaterialSelected");
             }
             for (const s of storageFlowTalks) {
                 s.content.replies = s.content.replies.map(r => {
@@ -505,7 +505,7 @@ export const liveStore = defineStore("live", {
         },
         async startMonitor() {
             if (!this.localConfig.config.liveMonitorUrl) {
-                Dialog.tipError("请先设置直播间地址");
+                Dialog.tipError(t("live.setLiveRoomAddressFirst"));
                 return;
             }
             await this.saveLocalConfig();

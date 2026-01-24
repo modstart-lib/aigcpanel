@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
-import {Dialog} from "../lib/dialog";
+import { computed, onMounted, ref } from "vue";
+import { t } from "../lang";
+import { Dialog } from "../lib/dialog";
+
 
 const recordActiveIndex = ref(0);
 const recordActive = computed(() => {
@@ -51,7 +53,7 @@ const doCheck = async () => {
         }
     }
     if (!hasMore) {
-        await window.$mapi.app.toast("已完成所有设置");
+        await window.$mapi.app.toast(t("setup.allCompleted"));
         await window.$mapi.app.restart();
     }
 };

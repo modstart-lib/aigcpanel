@@ -1,7 +1,8 @@
-import {getDataContent} from "../components/common/dataConfig";
-import {SoundGenerateReplaceContent} from "../pages/Sound/config/replaceContent";
-import {TaskBiz} from "../service/TaskService";
-import {useServerStore} from "../store/modules/server";
+import { getDataContent } from "../components/common/dataConfig";
+import { t } from "../lang";
+import { SoundGenerateReplaceContent } from "../pages/Sound/config/replaceContent";
+import { TaskBiz } from "../service/TaskService";
+import { useServerStore } from "../store/modules/server";
 
 const serverStore = useServerStore();
 
@@ -62,7 +63,7 @@ export const serverSoundAsr = async (
             ret.end = res.data.end;
             ret.records = res.data.data.records || [];
             if (!ret.records || !ret.records.length) {
-                throw "SoundAsr 识别结果为空，请检查音频文件是否正常";
+                throw t("error.soundAsrResultEmpty");
             }
             await $mapi.file.cacheSet({soundAsr, audio}, ret.records);
             break;
@@ -159,7 +160,7 @@ export const serverSoundGenerate = async (
         case "success":
             ret.url = res.data.data.url;
             if (!ret.url) {
-                throw "SoundGenerate 生成结果为空，请检查参数是否正确";
+                throw t("error.soundGenerateResultEmpty");
             }
             await $mapi.file.cacheSet({soundGenerate, text}, ret.url);
             break;
@@ -222,7 +223,7 @@ export const serverTextToImage = async (
         case "success":
             ret.url = res.data.data.url;
             if (!ret.url) {
-                throw "TextToImage 生成结果为空，请检查参数是否正确";
+                throw t("error.textToImageResultEmpty");
             }
             await $mapi.file.cacheSet({textToImage, prompt}, ret.url);
             break;
@@ -287,7 +288,7 @@ export const serverImageToImage = async (
         case "success":
             ret.url = res.data.data.url;
             if (!ret.url) {
-                throw "ImageToImage 生成结果为空，请检查参数是否正确";
+                throw t("error.imageToImageResultEmpty");
             }
             await $mapi.file.cacheSet({imageToImage, prompt, image}, ret.url);
             break;

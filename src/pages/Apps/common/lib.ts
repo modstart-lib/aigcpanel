@@ -1,6 +1,7 @@
-import {TaskRecord, TaskService} from "../../../service/TaskService";
-import {TaskChangeType, useTaskStore} from "../../../store/modules/task";
-import {TaskRunResult} from "./type";
+import { t } from "../../../lang";
+import { TaskRecord, TaskService } from "../../../service/TaskService";
+import { TaskChangeType, useTaskStore } from "../../../store/modules/task";
+import { TaskRunResult } from "./type";
 
 const taskStore = useTaskStore();
 
@@ -10,7 +11,7 @@ export const createTaskRunResult = async (
 ) => {
     const task = await TaskService.get(taskId);
     if (!task) {
-        throw "任务不存在";
+        throw t("error.taskNotFound");
     }
     const biz = task.biz;
     return () => {
@@ -21,7 +22,7 @@ export const createTaskRunResult = async (
                 }
                 TaskService.get(bizId).then(task => {
                     if (!task) {
-                        resolve({code: -1, msg: "任务不存在"});
+                        resolve({code: -1, msg: t("error.taskNotFound")});
                         taskStore.offChange(biz, callback);
                         return;
                     }
@@ -46,12 +47,12 @@ export const createTaskRunResult = async (
                         return;
                     }
                     if (task.status === 'fail') {
-                        resolve({code: -1, msg: task.statusMsg || "任务失败"});
+                        resolve({code: -1, msg: task.statusMsg || t("error.taskFailed")});
                         taskStore.offChange(biz, callback);
                         return;
                     }
                 }).catch(error => {
-                    resolve({code: -1, msg: '' + error || "任务获取失败"});
+                    resolve({code: -1, msg: '' + error || t("error.getTaskFailed")});
                     taskStore.offChange(biz, callback);
                 })
             }

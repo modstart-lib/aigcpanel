@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
-import {TaskRecord, TaskService} from "../../../service/TaskService";
-import {Dialog} from "../../../lib/dialog";
-import {TaskChangeType, useTaskStore} from "../../../store/modules/task";
+import { computed, ref } from "vue";
+import { t } from "../../../lang";
+import { Dialog } from "../../../lib/dialog";
+import { TaskRecord, TaskService } from "../../../service/TaskService";
+import { TaskChangeType, useTaskStore } from "../../../store/modules/task";
 
 const props = defineProps<{
     title: string
@@ -35,11 +36,11 @@ const doLoad = async () => {
     try {
         record.value = await TaskService.get(currentId.value!);
         if (!record.value) {
-            Dialog.tipError("未找到记录");
+            Dialog.tipError(t("error.recordNotFound"));
             return;
         }
     } catch (error) {
-        Dialog.tipError("加载记录失败 " + error);
+        Dialog.tipError(t("error.loadRecordFailed", {error: '' + error}));
     } finally {
         loading.value = false;
     }
@@ -85,13 +86,13 @@ defineExpose({
         title-align="start">
         <template #title>
             <div class="font-bold">
-                {{ props.title || "记录查看" }}
+                {{ props.title || t("common.viewRecord") }}
             </div>
         </template>
         <div v-if="visible" class="h-[calc(100vh-10rem)] -my-6 -mx-4 p-3 overflow-y-auto">
             <div v-if="loading&&!record" class="flex justify-center items-center p-8">
                 <icon-refresh spin class="mr-2"/>
-                加载中...
+                {{ t("common.loadingDots") }}
             </div>
             <div v-else-if="record">
                 <component
