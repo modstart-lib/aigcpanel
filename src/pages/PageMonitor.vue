@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, watch} from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import PageWebviewStatus from "../components/common/PageWebviewStatus.vue";
 
 const status = ref<InstanceType<typeof PageWebviewStatus> | null>(null);
@@ -142,9 +142,9 @@ onMounted(async () => {
                 v-if="pageDebugToolsShow"
                 @click="doOpenWebDevTools"
             >
-                调试
+                {{ $t("monitor.debug") }}
             </a-button>
-            <a-button shape="round" type="primary" @click="doRefresh"> 刷新 </a-button>
+            <a-button shape="round" type="primary" @click="doRefresh"> {{ $t("monitor.refresh") }} </a-button>
             <div class="ml-2 select-none">
                 <div :style="{color: pageStatusColor}" v-html="pageStatusMsg"></div>
             </div>

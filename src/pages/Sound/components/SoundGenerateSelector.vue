@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { ref, watch } from "vue";
 import AudioPlayerButton from "../../../components/common/AudioPlayerButton.vue";
+import { TaskRecord } from "../../../service/TaskService";
 import SoundGenerateDialog from "./SoundGenerateDialog.vue";
-import {ref, watch} from "vue";
-import {TaskRecord} from "../../../service/TaskService";
 
 const soundGenerateDialog = ref<InstanceType<typeof SoundGenerateDialog> | null>(null);
 const props = defineProps({
@@ -47,7 +47,7 @@ watch(
             @click="soundGenerateDialog?.show()"
             class="w-96 mr-2 h-8 leading-8 px-3 rounded-lg cursor-pointer truncate bg-gray-100 hover:bg-gray-200"
         >
-            {{ soundTitle || "选择声音" }}
+            {{ soundTitle || $t("hint.selectVoice") }}
         </div>
         <AudioPlayerButton
             v-if="soundUrl"

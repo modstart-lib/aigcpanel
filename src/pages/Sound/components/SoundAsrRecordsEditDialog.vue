@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import {computed, nextTick, ref} from "vue";
+import { computed, nextTick, ref } from "vue";
 import DataConfigDialogButton from "../../../components/common/DataConfigDialogButton.vue";
-import {t} from "../../../lang";
-import {Dialog} from "../../../lib/dialog";
-import {TimeUtil} from "../../../lib/util";
-import ModelGenerateButton, {ModelGenerateButtonOptionType} from "../../../module/Model/ModelGenerateButton.vue";
-import {SoundAsrResultOptimizedPrompt} from "../config/prompt";
-import {SoundGenerateReplaceContent} from "../config/replaceContent";
+import { t } from "../../../lang";
+import { Dialog } from "../../../lib/dialog";
+import { TimeUtil } from "../../../lib/util";
+import ModelGenerateButton, { ModelGenerateButtonOptionType } from "../../../module/Model/ModelGenerateButton.vue";
+import { SoundAsrResultOptimizedPrompt } from "../config/prompt";
+import { SoundGenerateReplaceContent } from "../config/replaceContent";
 import SoundAsrRecordsSubtitlePreviewDialog from "./SoundAsrRecordsSubtitlePreviewDialog.vue";
 import SoundGeneratePreviewBox from "./SoundGeneratePreviewBox.vue";
 
@@ -154,7 +154,7 @@ const secondsToMs = (seconds: number) => {
 // 保存编辑，过滤空白条目
 const doSave = () => {
     if (!editingRecords.value || editingRecords.value.length === 0) {
-        Dialog.tipError("没有编辑记录");
+        Dialog.tipError(t("soundAsrEdit.noEditRecord"));
         return;
     }
     // 过滤空白条目
@@ -184,7 +184,7 @@ const replaceText = ref("");
 
 const onFindReplace = () => {
     if (!findText.value.trim()) {
-        Dialog.tipError("请输入查找内容");
+        Dialog.tipError(t("soundAsrEdit.inputSearchContent"));
         return;
     }
 
@@ -197,9 +197,9 @@ const onFindReplace = () => {
     });
 
     if (replaceCount > 0) {
-        Dialog.tipSuccess(`已替换 ${replaceCount} 条记录`);
+        Dialog.tipSuccess(t("soundAsrEdit.replacedRecords", {count: replaceCount}));
     } else {
-        Dialog.tipError("未找到匹配的内容");
+        Dialog.tipError(t("soundAsrEdit.noMatchFound"));
     }
 };
 
@@ -251,7 +251,7 @@ const doMerge = () => {
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
     if (last - first !== sorted.length - 1) {
-        Dialog.tipError('只能合并连续的记录');
+        Dialog.tipError(t("soundAsrEdit.mergeOnlyContinuous"));
         return;
     }
     const text = editingRecords.value.slice(first, last + 1).map(r => r.text).filter(t => t).join('；');
@@ -296,7 +296,7 @@ const doMergeBlanks = () => {
     }
 
     editingRecords.value = newRecords;
-    Dialog.tipSuccess("已合并连续空白片段");
+    Dialog.tipSuccess(t("soundAsrEdit.mergedBlankSegments"));
 };
 
 // 一键优化时间线
@@ -345,7 +345,7 @@ const doOptimizeTimeline = () => {
         }
     }
 
-    Dialog.tipSuccess(`优化完成，成功修复 ${successCount} 句，失败 ${failCount} 句`);
+    Dialog.tipSuccess(t("soundAsrEdit.optimizeComplete", {successCount, failCount}));
 };
 
 // 合并到前一条
@@ -379,7 +379,7 @@ const doSplit = () => {
     }
     const record = editingRecords.value[currentIndex.value];
     if (!(sliderValue.value > record.startSeconds! && sliderValue.value < record.endSeconds!)) {
-        Dialog.tipError('时间范围不合法，必须在记录中间');
+        Dialog.tipError(t("soundAsrEdit.invalidTimeRange"));
         return;
     }
     const newRecord = {

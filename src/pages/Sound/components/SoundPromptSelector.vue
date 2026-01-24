@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
-import {StorageRecord, StorageService} from "../../../service/StorageService";
+import { onMounted, ref } from "vue";
 import AudioPlayerButton from "../../../components/common/AudioPlayerButton.vue";
+import { StorageRecord, StorageService } from "../../../service/StorageService";
 import SoundPromptDialog from "./SoundPromptDialog.vue";
 
 const soundPromptDialog = ref<InstanceType<typeof SoundPromptDialog>>();
@@ -42,7 +42,7 @@ const doSelect = () => {
             class="mr-1 h-8 leading-8 px-3 rounded-lg cursor-pointer truncate bg-gray-100 hover:bg-gray-200 min-w-64"
             :class="disabled ? 'cursor-not-allowed bg-gray-50 hover:bg-gray-50 text-gray-400' : ''"
         >
-            {{ records.find(s => s.id === props.modelValue)?.title || "选择音色" }}
+            {{ records.find(s => s.id === props.modelValue)?.title || $t("hint.selectTimbre") }}
         </div>
         <AudioPlayerButton
             v-if="props.modelValue"

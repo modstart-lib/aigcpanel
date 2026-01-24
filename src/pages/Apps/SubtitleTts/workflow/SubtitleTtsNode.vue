@@ -24,7 +24,7 @@ const paramDialog = ref<InstanceType<typeof SubtitleTtsParamDialog>>();
                     <template #icon>
                         <icon-settings/>
                     </template>
-                    设置
+                    {{ $t("common.setting") }}
                 </a-button>
                 <TaskDialogViewButton :task-id="nodeRunData.taskId"/>
             </div>

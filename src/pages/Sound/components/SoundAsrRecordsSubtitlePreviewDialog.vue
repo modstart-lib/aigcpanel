@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { subtitleGenerateRecords, subtitleGenerateSrtContent } from "../../../lib/subtitle";
 import { TimeUtil } from "../../../lib/util";
-import { subtitleGenerateSrtContent, subtitleGenerateRecords } from "../../../lib/subtitle";
 
 interface EditingAsrRecord {
     start: number;
@@ -58,8 +58,8 @@ defineExpose({
         <div class="-mx-4 -my-5 overflow-y-auto" style="max-height:calc( 100vh - 20rem);">
             <div class="border border-gray-200 rounded-lg shadow-md bg-white text-xs">
                 <div class="flex items-center border-b border-gray-200 py-3 font-semibold bg-blue-50 text-blue-800 rounded-t-lg">
-                    <div class="w-48 flex-shrink-0 px-4 text-center">时间</div>
-                    <div class="flex-1 px-4 text-center">字幕</div>
+                    <div class="w-48 flex-shrink-0 px-4 text-center">{{ $t("soundAsrEdit.time") }}</div>
+                    <div class="flex-1 px-4 text-center">{{ $t("media.subtitle") }}</div>
                 </div>
                 <div v-for="(item, index) in dataSource" :key="item.time" :class="['flex items-center border-b border-gray-100 py-3 hover:bg-gray-50', index % 2 === 0 ? 'bg-white' : 'bg-gray-50']">
                     <div class="w-48 flex-shrink-0 px-4 text-right text-gray-600 font-mono">{{ item.time }}</div>

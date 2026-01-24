@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import { computed, ref } from "vue";
 import ServerNameVersion from "../../../../components/Server/ServerNameVersion.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
@@ -13,11 +13,11 @@ import ItemsLimitedView from "../../../../components/common/ItemsLimitedView.vue
 import TaskBizStatus from "../../../../components/common/TaskBizStatus.vue";
 import TaskJobResultStepView from "../../../../components/common/TaskJobResultStepView.vue";
 import VideoPreviewBox from "../../../../components/common/VideoPreviewBox.vue";
-import {TaskRecord, TaskService} from "../../../../service/TaskService";
-import {useTaskStore} from "../../../../store/modules/task";
+import { TaskRecord, TaskService } from "../../../../service/TaskService";
+import { useTaskStore } from "../../../../store/modules/task";
 import SoundAsrRecordsEditDialog from "../../../Sound/components/SoundAsrRecordsEditDialog.vue";
 import SoundGenerateFormViewBody from "../../../Sound/components/SoundGenerateFormViewBody.vue";
-import {SoundReplaceJobResultType, SoundReplaceModelConfigType} from "../type";
+import { SoundReplaceJobResultType, SoundReplaceModelConfigType } from "../type";
 
 const taskStore = useTaskStore()
 const props = defineProps<{
@@ -126,7 +126,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <i class="iconfont icon-sound-prompt"></i>
-                    提取音频
+                    {{ $t("soundReplace.extractAudio") }}
                 </div>
             </div>
             <div class="flex-grow pt-1">
@@ -139,7 +139,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <i class="iconfont icon-asr"></i>
-                    语音识别
+                    {{ $t("voice.recognition") }}
                 </div>
             </div>
             <div class="flex-grow pt-1">
@@ -157,7 +157,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-ordered-list/>
-                    重排确认
+                    {{ $t("soundReplace.reorderConfirm") }}
                 </div>
             </div>
             <div class="flex-grow pt-1">
@@ -180,7 +180,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
                                 <template #icon>
                                     <icon-pen/>
                                 </template>
-                                手动确认文字
+                                {{ $t("soundReplace.manualConfirmText") }}
                             </a-button>
                         </div>
                     </template>
@@ -191,7 +191,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <i class="iconfont icon-sound"></i>
-                    声音合成
+                    {{ $t("voice.synthesis") }}
                 </div>
             </div>
             <div class="flex-grow">
@@ -208,7 +208,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
                                             <icon-info-circle v-else class="text-gray-400 text-xs"/>
                                         </div>
                                         <div class="w-6 flex-shrink-0 -mt-0.5">
-                                            <a-popover title="修改文字" placement="right" trigger="click">
+                                            <a-popover :title="$t('soundReplace.modifyText')" placement="right" trigger="click">
                                                 <a href="javascript:;">
                                                     <icon-pen-fill class="text-gray-500"/>
                                                 </a>
@@ -217,7 +217,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
                                                         :default-value="item.text"
                                                         class="w-96"
                                                         size="small"
-                                                        placeholder="请输入文字"
+                                                        :placeholder="$t('hint.inputContent')"
                                                         @keydown.enter.prevent="doSaveConfirmRecordItem(index, $event.target.value)"
                                                     />
                                                 </template>
@@ -244,7 +244,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <i class="iconfont icon-video"></i>
-                    视频合成
+                    {{ $t("soundReplace.videoSynthesis") }}
                 </div>
             </div>
             <TaskJobResultStepView :record="record" step="Combine">
@@ -263,7 +263,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
                         <template #icon>
                             <icon-pen/>
                         </template>
-                        重新校验文字
+                        {{ $t("soundReplace.reverifyText") }}
                     </a-button>
                     <a-button
                         v-if="record.jobResult?.CombineConfirm?.status==='pending'"
@@ -272,7 +272,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
                         <template #icon>
                             <icon-check/>
                         </template>
-                        确认无误完成
+                        {{ $t("soundReplace.confirmComplete") }}
                     </a-button>
                 </div>
             </TaskJobResultStepView>
@@ -286,7 +286,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
             </div>
             <div class="">
                 <TaskDownloadAction :record="record"/>
-                <TaskDownloadAction :record="record" name="srt" title="下载字幕">
+                <TaskDownloadAction :record="record" name="srt" :title="$t('download.subtitleFile')">
                     <template #icon>
                         <icon-file/>
                     </template>
@@ -302,5 +302,5 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
     </div>
     <SoundAsrRecordsEditDialog ref="soundAsrRecordsEditDialog"
                                :sound-generate="record.modelConfig?.soundGenerate!"
-                               save-title="保存并合成" @save="onConfirm"/>
+                               :save-title="$t('soundReplace.saveAndSynthesize')" @save="onConfirm"/>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed} from "vue";
+import { computed } from "vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
@@ -8,12 +8,12 @@ import TaskTitleField from "../../../../components/Server/TaskTitleField.vue";
 import TextTruncateView from "../../../../components/TextTruncateView.vue";
 import AudioPlayer from "../../../../components/common/AudioPlayer.vue";
 import AudioPlayerButton from "../../../../components/common/AudioPlayerButton.vue";
+import ItemsLimitedView from "../../../../components/common/ItemsLimitedView.vue";
 import TaskBizStatus from "../../../../components/common/TaskBizStatus.vue";
 import TaskJobResultStepView from "../../../../components/common/TaskJobResultStepView.vue";
-import {TaskRecord} from "../../../../service/TaskService";
+import { TaskRecord } from "../../../../service/TaskService";
 import SoundGenerateFormViewBody from "../../../Sound/components/SoundGenerateFormViewBody.vue";
-import {SubtitleTtsJobResultType, SubtitleTtsModelConfigType} from "../type";
-import ItemsLimitedView from "../../../../components/common/ItemsLimitedView.vue";
+import { SubtitleTtsJobResultType, SubtitleTtsModelConfigType } from "../type";
 
 const props = defineProps<{
     record: TaskRecord<SubtitleTtsModelConfigType, SubtitleTtsJobResultType>;
@@ -53,7 +53,7 @@ const subtitleText = computed(() => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-file/>
-                    解析字幕
+                    {{ $t("subtitleTts.parseSubtitle") }}
                 </div>
             </div>
             <div class="flex-grow pt-1">
@@ -68,7 +68,7 @@ const subtitleText = computed(() => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-file-audio/>
-                    音频合成
+                    {{ $t("subtitleTts.audioSynthesis") }}
                 </div>
             </div>
             <div class="flex-grow">
@@ -100,7 +100,7 @@ const subtitleText = computed(() => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-file-audio/>
-                    合成音频
+                    {{ $t("subtitleTts.synthesizedAudio") }}
                 </div>
             </div>
             <TaskJobResultStepView :record="record" step="Combine">

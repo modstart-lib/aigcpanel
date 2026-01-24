@@ -49,15 +49,15 @@ const doRefresh = async () => {
     <div class="p-5">
         <div class="app-header mb-4 flex items-center">
             <div class="flex-grow flex items-end">
-                <div class="text-3xl font-bold">声音替换</div>
-                <div class="text-gray-400 ml-3">使用新声音替换已有视频的声音</div>
+                <div class="text-3xl font-bold">{{ $t("voice.replace") }}</div>
+                <div class="text-gray-400 ml-3">{{ $t("desc.videoVoiceReplace") }}</div>
             </div>
             <ToggleButton v-model="stepsVisible"/>
         </div>
         <Steps v-if="stepsVisible" :steps="[
-            {key: 1, label: '提取音频并识别', description: '选择包含需要替换声音的视频文件'},
-            {key: 2, label: '确认文字', description: '检查并确认识别出的文本内容'},
-            {key: 3, label: '声音合成替换', description: '设置声音合成模型参数，生成新的语音'},
+            {key: 1, label: $t('soundReplace.extractAndRecognize'), description: $t('soundReplace.extractAndRecognizeDesc')},
+            {key: 2, label: $t('soundReplace.confirmText'), description: $t('soundReplace.confirmTextDesc')},
+            {key: 3, label: $t('soundReplace.synthesizeReplace'), description: $t('soundReplace.synthesizeReplaceDesc')},
         ]"/>
         <div>
             <SoundReplaceCreate @submitted="doRefresh"/>
@@ -69,7 +69,7 @@ const doRefresh = async () => {
                                 :model-value="isAllChecked"
                                 :indeterminate="isIndeterminate"
                                 @change="onCheckAll">
-                                全选
+                                {{ $t("common.selectAll") }}
                             </a-checkbox>
                         </div>
                         <TaskBatchDeleteAction

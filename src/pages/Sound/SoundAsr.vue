@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import {IconCopy, IconDown, IconDownload, IconEdit} from "@arco-design/web-vue/es/icon";
-import {computed, onMounted, ref} from "vue";
+import { IconCopy, IconDown, IconDownload, IconEdit } from "@arco-design/web-vue/es/icon";
+import { computed, onMounted, ref } from "vue";
+import ServerNameVersion from "../../components/Server/ServerNameVersion.vue";
 import ServerTaskResultParam from "../../components/Server/ServerTaskResultParam.vue";
 import TaskBatchDeleteAction from "../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../components/Server/TaskBatchDownloadAction.vue";
@@ -10,17 +11,17 @@ import TaskDuration from "../../components/Server/TaskDuration.vue";
 import TaskTitleField from "../../components/Server/TaskTitleField.vue";
 import TextTruncateView from "../../components/TextTruncateView.vue";
 import TaskBizStatus from "../../components/common/TaskBizStatus.vue";
-import {useCheckAll} from "../../components/common/check-all";
-import {doCopy} from "../../components/common/util";
-import {Dialog} from "../../lib/dialog";
-import {DownloadUtil} from "../../lib/util";
-import {TaskRecord, TaskService} from "../../service/TaskService";
-import {usePaginate} from "../../hooks/paginate";
-import {formatSRTTime} from "../../lib/srt";
-import {useTaskChangeRefresh} from "../../hooks/task";
+import { useCheckAll } from "../../components/common/check-all";
+import { doCopy } from "../../components/common/util";
+import { usePaginate } from "../../hooks/paginate";
+import { useTaskChangeRefresh } from "../../hooks/task";
+import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
+import { formatSRTTime } from "../../lib/srt";
+import { DownloadUtil } from "../../lib/util";
+import { TaskRecord, TaskService } from "../../service/TaskService";
 import SoundAsrCreate from "./components/SoundAsrCreate.vue";
 import SoundAsrRecordsEditDialog from "./components/SoundAsrRecordsEditDialog.vue";
-import ServerNameVersion from "../../components/Server/ServerNameVersion.vue";
 
 interface AsrRecord {
     start: number;
@@ -75,7 +76,7 @@ const onDownloadResultSubtitle = (record: TaskRecord) => {
 };
 const onEditSave = async (taskId: number, records: AsrRecord[]) => {
     await TaskService.update(taskId, {result: {records}});
-    Dialog.tipSuccess("保存成功");
+    Dialog.tipSuccess(t("common.saveSuccess"));
     await doRefresh();
 };
 </script>
@@ -151,7 +152,7 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
                             </div>
                             <div class="">
                                 <a-tooltip v-if="r.result && r.runtime?.text" :content="$t('common.copyText')" mini>
-                                    <a-button class="mr-2" @click="doCopy(r.runtime?.text)" title="复制识别结果">
+                                    <a-button class="mr-2" @click="doCopy(r.runtime?.text)" :title="$t('soundAsr.copyResult')">
                                         <template #icon>
                                             <icon-copy/>
                                         </template>
@@ -189,7 +190,7 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
                                     <a-button
                                         class="mr-2"
                                         @click="soundAsrRecordsEditDialog?.edit(r.id as any, r.result.records)"
-                                        title="编辑识别结果"
+                                        :title="$t('task.editResult')"
                                     >
                                         <template #icon>
                                             <icon-edit/>

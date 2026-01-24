@@ -43,12 +43,12 @@ defineExpose({
     <a-modal
         v-model:visible="visible"
         title-align="start"
-        :title="'字幕转音频设置'"
+        :title="$t('subtitleTts.settings')"
         width="600px"
         :destroyOnClose="true">
         <template #footer>
             <div class="flex justify-end space-x-2">
-                <a-button type="primary" @click="doSubmit">{{ "保存" }}</a-button>
+                <a-button type="primary" @click="doSubmit">{{ $t("common.save") }}</a-button>
             </div>
         </template>
         <div v-if="visible" class="space-y-4 overflow-y-auto" style="max-height: calc(100vh - 10rem)">

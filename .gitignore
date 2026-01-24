@@ -41,3 +41,6 @@ src/lang/source-use.json
 /electron/resources/extra/osx-arm64/
 /electron/resources/extra/osx-x86/
 /electron/resources/extra/win-x86/
+/.electron-agent
+/AGENTS.md
+/.github/prompts/

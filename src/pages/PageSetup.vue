@@ -42,8 +42,8 @@ const doCheck = async () => {
     if (records.value[recordActiveIndex.value].status !== "success") {
         return;
     }
-    Dialog.tipSuccess(`恭喜完成 ${records.value[recordActiveIndex.value].title} 设置`);
-    // 自动跳转到下一个
+    Dialog.tipSuccess(t("setup.congratulations", {title: records.value[recordActiveIndex.value].title}));
+    // Auto navigate to next
     let hasMore = false;
     for (let i = 0; i < records.value.length; i++) {
         if (records.value[i].status === "fail") {
@@ -98,13 +98,13 @@ const doCheck = async () => {
                                 <template #icon>
                                     <icon-settings />
                                 </template>
-                                打开设置
+                                {{ $t("setup.openSettings") }}
                             </a-button>
                             <a-button type="primary" @click="doCheck">
                                 <template #icon>
                                     <icon-check />
                                 </template>
-                                验证完成
+                                {{ $t("setup.verifyComplete") }}
                             </a-button>
                         </div>
                     </div>

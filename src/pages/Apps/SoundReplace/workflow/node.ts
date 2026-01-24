@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import { NodeFunctionCall, NodeRunController, NodeRunParam, NodeRunResult } from "../../../../module/Workflow/core/type";
 import { workflowRun } from "../../common/workflow";
 import { SoundReplaceRun } from "../task";
@@ -6,8 +7,8 @@ import SoundReplaceIcon from "./../assets/icon.svg";
 
 export default <NodeFunctionCall>{
     name: "SoundReplace",
-    title: "声音替换",
-    description: "替换视频中的音频",
+    title: t("voice.replace"),
+    description: t("desc.videoVoiceReplace"),
     icon: SoundReplaceIcon,
     comp: defineAsyncComponent(() => import("./SoundReplaceNode.vue")),
     inputFields: [
@@ -43,10 +44,10 @@ export default <NodeFunctionCall>{
                 };
                 if (!taskRunData.video || !taskRunData.soundAsr || !taskRunData.soundGenerate) {
                     const missing: string[] = [];
-                    if (!taskRunData.video) missing.push("视频");
-                    if (!taskRunData.soundAsr) missing.push("声音识别服务");
-                    if (!taskRunData.soundGenerate) missing.push("声音生成服务");
-                    throw `参数错误：缺少 ${missing.join(", ")}`;
+                    if (!taskRunData.video) missing.push(t("media.video"));
+                    if (!taskRunData.soundAsr) missing.push(t("workflow.soundRecognitionService"));
+                    if (!taskRunData.soundGenerate) missing.push(t("workflow.soundGenerationService"));
+                    throw t("workflow.paramErrorMissing", {items: missing.join(", ")});
                 }
                 return await SoundReplaceRun(taskRunData);
             },
@@ -58,10 +59,10 @@ export default <NodeFunctionCall>{
     },
     async check(node) {
         if (!node.properties?.data?.soundAsr || !node.properties?.data?.soundGenerate) {
-            throw "请配置声音识别和声音生成服务";
+            throw t("workflow.configureRecognitionAndGeneration");
         }
         if (node.properties?.inputFields?.[0].value === '') {
-            throw "请输入视频参数";
+            throw t("workflow.inputVideoParam");
         }
     }
 }
