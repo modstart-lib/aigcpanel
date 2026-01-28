@@ -3,6 +3,7 @@ import {AigcServerUtil} from "./util";
 import {Files} from "../mapi/file/main";
 import axios from "axios";
 import {Base64} from "js-base64";
+import {Log} from "../mapi/log/main";
 
 type LauncherResultType = {
     result: {
@@ -17,7 +18,7 @@ const RemoteApi = {
             const response = await axios.post(`${url}/config`);
             return response.data;
         } catch (e: any) {
-            console.error("RemoteApi.config.error", e);
+            Log.error("RemoteApi.config.error", e);
             throw e;
         }
     },
@@ -27,7 +28,7 @@ const RemoteApi = {
             const response = await axios.post(`${url}/submit`, data);
             return response.data;
         } catch (e: any) {
-            console.error("RemoteApi.submit.error", e);
+            Log.error("RemoteApi.submit.error", e);
             throw e;
         }
     },
@@ -41,12 +42,12 @@ const RemoteApi = {
                 try {
                     data.data.logs = Base64.decode(data.data.logs);
                 } catch (decodeError) {
-                    console.error("RemoteApi.query.decodeError", decodeError);
+                    Log.error("RemoteApi.query.decodeError", decodeError);
                 }
             }
             return data;
         } catch (e: any) {
-            console.error("RemoteApi.query.error", e);
+            Log.error("RemoteApi.query.error", e);
             throw e;
         }
     },
@@ -56,7 +57,7 @@ const RemoteApi = {
             const response = await axios.post(`${url}/cancel`);
             return response.data;
         } catch (e: any) {
-            console.error("RemoteApi.cancel.error", e);
+            Log.error("RemoteApi.cancel.error", e);
             // Ignore cancel errors usually
             return {code: -1, msg: e.message};
         }
@@ -82,7 +83,7 @@ const RemoteApi = {
                 throw new Error("Upload only supported in Electron main process");
             }
         } catch (e: any) {
-            console.error("RemoteApi.upload.error", e);
+            Log.error("RemoteApi.upload.error", e);
             throw e;
         }
     }
@@ -159,7 +160,7 @@ export const RemoteServer = function (config: any) {
             await RemoteApi.config(getBaseUrl());
             this.send("running", this.ServerInfo);
         } catch (e) {
-            console.error("RemoteServer.start.error", e);
+            Log.error("RemoteServer.start.error", e);
             this.send("error", this.ServerInfo);
             this.serverRuntime.startTime = 0;
         }
@@ -196,7 +197,7 @@ export const RemoteServer = function (config: any) {
         try {
             await RemoteApi.cancel(getBaseUrl());
         } catch (e) {
-            console.error("RemoteServer.cancel.error", e);
+            Log.error("RemoteServer.cancel.error", e);
         }
 
         // Notify failure/cancellation locally
@@ -253,7 +254,7 @@ export const RemoteServer = function (config: any) {
                 const queryRes = await RemoteApi.query(baseUrl, token);
                 // console.log('RemoteServer.query.result', JSON.stringify(queryRes));
                 if (queryRes.code !== 0) {
-                    console.error("RemoteServer.query.error", queryRes);
+                    Log.error("RemoteServer.query.error", queryRes);
                 } else {
                     const {logs, status} = queryRes.data;
                     if (logs) {
@@ -291,7 +292,7 @@ export const RemoteServer = function (config: any) {
                 // Continue polling
                 controllerWatching.timer = setTimeout(poll, pollInterval);
             } catch (e) {
-                console.error("RemoteServer.poll.error", e);
+                Log.error("RemoteServer.poll.error", e);
                 // Retry polling on error?
                 controllerWatching.timer = setTimeout(poll, pollInterval);
             }

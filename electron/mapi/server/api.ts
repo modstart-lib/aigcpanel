@@ -240,7 +240,6 @@ const env = async () => {
     const result = {};
     result["AIGCPANEL_SERVER_API_TOKEN"] = await User.getApiToken();
     result["AIGCPANEL_SERVER_UUID"] = platformUUID();
-    result["AIGCPANEL_SERVER_LAUNCHER_MODE"] = "api";
     return result;
 };
 
