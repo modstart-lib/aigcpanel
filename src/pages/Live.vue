@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import Router from "../router";
+import ProUpgrade from "../components/common/ProUpgrade.vue";
 
 const tab = ref("");
 
@@ -62,22 +63,7 @@ onMounted(() => {
             </div>
         </div>
         <div class="flex-grow h-full overflow-y-auto">
-            <div class="text-center py-32 text-lg">
-                <div class="text-center mb-4">
-                    <img class="w-32 h-32 opacity-50 mx-auto" src="./../assets/image/upgrade.svg" />
-                </div>
-                <div class="mb-4">请下载 Pro 版本使用直播功能</div>
-                <div>
-                    <a
-                        class="arco-btn arco-btn-size-medium arco-btn-primary"
-                        href="https://aigcpanel.com"
-                        target="_blank"
-                    >
-                        <icon-link />
-                        立即下载
-                    </a>
-                </div>
-            </div>
+            <ProUpgrade />
         </div>
     </div>
 </template>
