@@ -9,7 +9,6 @@ const routes = [
             {path: "home", component: () => import("./pages/Home.vue")},
             {path: "server", component: () => import("./pages/Server.vue")},
             {path: "video", component: () => import("./pages/Video.vue")},
-            {path: "image", component: () => import("./pages/Image.vue")},
             {path: "sound", component: () => import("./pages/Sound.vue")},
             {path: "tool", component: () => import("./pages/Tool.vue")},
             {path: "live", component: () => import("./pages/Live.vue")},

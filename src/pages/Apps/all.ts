@@ -53,7 +53,7 @@ export const VideoApps = [
     },
 ];
 
-export const ImageApps = [
+export const ToolApps = [
     {
         name: "TextToImage",
         title: t("model.txt2img"),
@@ -79,9 +79,9 @@ export const AllApps = [
         ...app,
         url: `/video?tab=${app.name}`,
     })) as any),
-    ...(ImageApps.map(app => ({
+    ...(ToolApps.map(app => ({
         ...app,
-        url: `/image?tab=${app.name}`,
+        url: `/tool?tab=${app.name}`,
     })) as any),
     {
         title: t("feedback.toolRequest"),
