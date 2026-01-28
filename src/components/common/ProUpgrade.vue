@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import {AppConfig} from "../../config";
+import {t} from "../../lang";
 
 const props = defineProps({
     desc: {
         type: String,
-        default: "请下载 Pro 版本解锁完整功能"
+        default: ""
     }
 });
 </script>
@@ -25,8 +26,8 @@ const props = defineProps({
                         fill="#FFFFFF" p-id="5743"></path>
                 </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-3">功能升级提示</h3>
-            <p class="text-gray-500 mb-8 leading-relaxed">{{ desc }}</p>
+            <h3 class="text-xl font-bold text-gray-800 mb-3">{{ $t("proUpgrade.title") }}</h3>
+            <p class="text-gray-500 mb-8 leading-relaxed">{{ desc || $t("proUpgrade.defaultDesc") }}</p>
             <div>
                 <a
                     class="arco-btn arco-btn-size-large arco-btn-primary px-8 rounded-full shadow-blue-200 shadow-lg hover:shadow-xl transition-all"
@@ -34,7 +35,7 @@ const props = defineProps({
                     target="_blank"
                 >
                     <icon-link/>
-                    <span class="ml-2">立即下载 Pro 版本</span>
+                    <span class="ml-2">{{ $t("proUpgrade.downloadButton") }}</span>
                 </a>
             </div>
         </div>
