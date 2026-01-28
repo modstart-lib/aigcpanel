@@ -1,4 +1,5 @@
 import api from "./api";
+import {EnumServerType} from "../../../src/types/Server";
 
 export type ServerApiType = typeof api;
 
@@ -18,6 +19,7 @@ export type SendType =
     | "taskStatus";
 
 export type ServerInfo = {
+    type: EnumServerType;
     localPath: string;
     name: string;
     version: string;

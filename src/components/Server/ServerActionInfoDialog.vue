@@ -74,13 +74,18 @@ defineExpose({
                                 <i class="iconfont icon-network mr-1"></i>
                                 {{ $t("model.cloudModel") }}
                             </div>
+                            <div v-else-if="record.type === EnumServerType.REMOTE">
+                                <icon-cloud class="mr-1"></icon-cloud>
+                                {{ $t("model.cloudModel") }}
+                            </div>
                         </div>
-                        <div
-                            v-if="record.type === EnumServerType.LOCAL_DIR"
+                        <div v-if="record.type === EnumServerType.LOCAL_DIR"
                             class="rounded-lg py-1 px-1 text-xs bg-gray-100 cursor-pointer"
-                            @click="doOpenDir(props.record.localPath!)"
-                        >
+                            @click="doOpenDir(props.record.localPath!)">
                             {{ props.record.localPath }}
+                        </div>
+                        <div v-else-if="record.type === EnumServerType.REMOTE">
+                            {{ props.record.remoteConfig.url}}
                         </div>
                     </div>
                 </div>

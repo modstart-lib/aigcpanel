@@ -455,6 +455,7 @@ export const serverStore = defineStore("server", {
                 localPath: "",
                 name: server.name,
                 version: server.version,
+                type: server.type,
                 setting: toRaw(server.setting),
                 logFile: "",
                 eventChannelName: "",
@@ -466,6 +467,8 @@ export const serverStore = defineStore("server", {
                 result.localPath = server.localPath as string;
             } else if (server.type === EnumServerType.CLOUD) {
                 result.localPath = server.localPath as string;
+            } else if (server.type === EnumServerType.REMOTE) {
+                result.localPath = await $mapi.file.fullPath(server.localPath as string);
             }
             const serverRuntime = getOrCreateServerRuntime(server);
             if (serverRuntime) {

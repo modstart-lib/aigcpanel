@@ -12,10 +12,12 @@ import {AppConfig} from "../config";
 import {t} from "../lang";
 import {functionToLabels} from "../lib/aigcpanel";
 import ModelSettingDialog from "../module/Model/ModelSettingDialog.vue";
+import ServerRemoteAddDialog from "../components/Server/ServerRemoteAddDialog.vue";
 import {useServerStore} from "../store/modules/server";
 import {EnumServerType} from "../types/Server";
 
 const addDialog = ref<InstanceType<typeof ServerAddDialog> | null>(null);
+const remoteAddDialog = ref<InstanceType<typeof ServerRemoteAddDialog> | null>(null);
 const modelSettingDialog = ref<InstanceType<typeof ModelSettingDialog> | null>(null);
 const serverStore = useServerStore();
 const helpShow = ref(false);
@@ -35,6 +37,8 @@ const typeName = (type: string) => {
         return t("setting.localModelDir");
     } else if (EnumServerType.CLOUD === type) {
         return t("model.cloudModel");
+    } else if (EnumServerType.REMOTE === type) {
+        return t("model.remoteModel");
     }
 };
 </script>
@@ -51,6 +55,12 @@ const typeName = (type: string) => {
                         <icon-command/>
                     </template>
                     {{ $t("setting.llm") }}
+                </a-button>
+                <a-button v-if="serverStore.records.length > 0" class="ml-1" @click="remoteAddDialog?.show()">
+                    <template #icon>
+                        <icon-cloud/>
+                    </template>
+                    {{ $t("model.addRemote") }}
                 </a-button>
                 <a-button v-if="serverStore.records.length > 0" class="ml-1" @click="addDialog?.show()">
                     <template #icon>
@@ -74,6 +84,12 @@ const typeName = (type: string) => {
                             <icon-plus/>
                         </template>
                         {{ $t("model.addLocal") }}
+                    </a-button>
+                    <a-button class="ml-1" @click="remoteAddDialog?.show()">
+                        <template #icon>
+                            <icon-cloud/>
+                        </template>
+                        {{ $t("model.addRemote") }}
                     </a-button>
                     <a-button v-if="0" class="ml-1">
                         <template #icon>
@@ -110,7 +126,8 @@ const typeName = (type: string) => {
                                 <div class="inline-block mr-4">
                                     <a-tooltip :content="typeName(record.type as string)" mini>
                                         <div class="inline-block">
-                                            <i class="iconfont icon-folder"></i>
+                                            <icon-cloud v-if="record.type===EnumServerType.REMOTE" class="text-lg"></icon-cloud>
+                                            <i v-else class="iconfont icon-folder"></i>
                                         </div>
                                     </a-tooltip>
                                 </div>
@@ -163,6 +180,7 @@ const typeName = (type: string) => {
         </div>
     </div>
     <ServerAddDialog ref="addDialog" @update="doRefresh" />
+    <ServerRemoteAddDialog ref="remoteAddDialog" @update="doRefresh"/>
     <ModelSettingDialog ref="modelSettingDialog" />
 </template>
 

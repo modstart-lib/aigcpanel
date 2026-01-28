@@ -10,6 +10,7 @@ export enum EnumServerType {
     LOCAL = "local",
     LOCAL_DIR = "localDir",
     CLOUD = "cloud",
+    REMOTE = "remote",
 }
 
 export type ServerRecord = {
@@ -36,6 +37,7 @@ export type ServerRecord = {
         [key: string]: any;
     };
     cloudConfig?: any;
+    remoteConfig?: any;  // Remote model config: { url: string, name: string, version: string, ... }
     status?: any;
     runtime?: ServerRuntime | any;
     config?: {

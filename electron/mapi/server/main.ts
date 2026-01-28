@@ -6,6 +6,7 @@ import {AigcServer} from "../../aigcserver";
 import {SendType, ServerContext, ServerInfo} from "./type";
 import {Files} from "../file/main";
 import {getGpuInfo} from "../../lib/env-main";
+import {EnumServerType} from "../../../src/types/Server";
 
 ipcMain.handle("server:listGpus", async event => {
     return await getGpuInfo();
@@ -54,6 +55,12 @@ const getModule = async (
                 serverModule[serverInfo.localPath] = server;
             } else if (serverInfo.name in AigcServer) {
                 const server = AigcServer[serverInfo.name] as ServerContext;
+                server.type = "buildIn";
+                server.ServerApi = ServerApi;
+                await server.init();
+                serverModule[serverInfo.localPath] = server;
+            } else if (serverInfo.type === EnumServerType.REMOTE) {
+                const server = new AigcServer["RemoteServer"](serverInfo);
                 server.type = "buildIn";
                 server.ServerApi = ServerApi;
                 await server.init();
