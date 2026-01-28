@@ -240,13 +240,17 @@ export const RemoteServer = function (config: any) {
         const pollInterval = 1000;
         const startTime = Date.now();
 
+        const pollError = (msg: string) => {
+            if (controllerWatching.reject && !controllerWatching.promiseResolved) {
+                controllerWatching.promiseResolved = true;
+                controllerWatching.reject(msg);
+            }
+        }
+
         const poll = async () => {
             if (option.timeout > 0 && Date.now() - startTime > option.timeout * 1000) {
                 await this.cancel();
-                if (controllerWatching.reject && !controllerWatching.promiseResolved) {
-                    controllerWatching.promiseResolved = true;
-                    controllerWatching.reject("Task timeout");
-                }
+                pollError("Task timeout");
                 return;
             }
 
@@ -255,6 +259,8 @@ export const RemoteServer = function (config: any) {
                 // console.log('RemoteServer.query.result', JSON.stringify(queryRes));
                 if (queryRes.code !== 0) {
                     Log.error("RemoteServer.query.error", queryRes);
+                    pollError(queryRes.msg || "Remote query failed");
+                    return;
                 } else {
                     const {logs, status} = queryRes.data;
                     if (logs) {
@@ -282,10 +288,7 @@ export const RemoteServer = function (config: any) {
                         }
                         return;
                     } else if (status === "error") {
-                        if (controllerWatching.reject && !controllerWatching.promiseResolved) {
-                            controllerWatching.promiseResolved = true;
-                            controllerWatching.reject(controllerWatching.launcherResult?.result?.error || "Remote task failed");
-                        }
+                        pollError(controllerWatching.launcherResult?.result?.error || "Remote task failed")
                         return;
                     }
                 }
@@ -293,8 +296,7 @@ export const RemoteServer = function (config: any) {
                 controllerWatching.timer = setTimeout(poll, pollInterval);
             } catch (e) {
                 Log.error("RemoteServer.poll.error", e);
-                // Retry polling on error?
-                controllerWatching.timer = setTimeout(poll, pollInterval);
+                pollError(e.message || "Remote poll failed");
             }
         };
         poll();
