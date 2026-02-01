@@ -6,6 +6,7 @@ import {useModelStore} from "./store/model";
 import {StringUtil} from "../../lib/util";
 import {ModelChatResult} from "./provider/provider";
 import {t} from "../../lang";
+import {ChatParam} from "./types";
 
 const modelStore = useModelStore();
 const selectedModel = ref<string>("");
@@ -28,6 +29,7 @@ onMounted(() => {
 
 const chat = async (
     prompt: string,
+    chatParam: ChatParam,
     param?: Record<string, any>,
     option?: {
         format?: "text" | "json";
@@ -38,9 +40,12 @@ const chat = async (
     }, option);
     if (param) {
         prompt = StringUtil.replaceParam(prompt, param);
+        if (chatParam.systemPrompt) {
+            chatParam.systemPrompt = StringUtil.replaceParam(chatParam.systemPrompt, param);
+        }
     }
     const [providerId, modelId] = (selectedModel.value || "|").split("|");
-    const ret = await modelStore.chat(providerId, modelId, prompt);
+    const ret = await modelStore.chat(providerId, modelId, prompt, chatParam);
     if (ret.code) {
         return ret;
     }

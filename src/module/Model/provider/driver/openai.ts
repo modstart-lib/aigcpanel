@@ -1,5 +1,5 @@
 import {ModelChatResult} from "../provider";
-import {ProviderType} from "../../types";
+import {ChatParam, ProviderType} from "../../types";
 import {AbstractModelProvider} from "./base";
 
 export class OpenAiModelProvider extends AbstractModelProvider {
@@ -14,9 +14,20 @@ export class OpenAiModelProvider extends AbstractModelProvider {
         super(config);
     }
 
-    async chat(prompt: string): Promise<ModelChatResult> {
+    async chat(
+        prompt: string,
+        chatParam: ChatParam
+    ): Promise<ModelChatResult> {
         // this.config.url =  'http://localhost:3000/v1/chat/completions';
         // this.config.apiKey = '';
+        chatParam = Object.assign({
+            systemPrompt: null
+        }, chatParam)
+        const messages: any[] = []
+        if (chatParam.systemPrompt) {
+            messages.push({role: "system", content: chatParam.systemPrompt})
+        }
+        messages.push({role: "user", content: prompt})
         const response = await fetch(this.config.url, {
             method: "POST",
             headers: {
@@ -25,7 +36,7 @@ export class OpenAiModelProvider extends AbstractModelProvider {
             },
             body: JSON.stringify({
                 model: this.config.modelId,
-                messages: [{role: "user", content: prompt}],
+                messages: messages,
             }),
         });
         if (!response.ok) {

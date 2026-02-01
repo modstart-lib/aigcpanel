@@ -1,4 +1,4 @@
-import {ProviderType} from "../types";
+import {ChatParam, ProviderType} from "../types";
 import {OpenAiModelProvider} from "./driver/openai";
 import {mapError} from "../../../lib/error";
 
@@ -41,6 +41,7 @@ export const ModelProvider = {
     },
     async chat(
         prompt: string,
+        chatParam: ChatParam,
         config: {
             type: ProviderType;
             modelId: string;
@@ -50,7 +51,6 @@ export const ModelProvider = {
         }
     ): Promise<ModelChatResult> {
         let url = this.apiUrl(config.type, config.apiUrl, config.apiHost);
-
         if (!(config.type in ModelProviderMap)) {
             return {
                 code: -1,
@@ -62,7 +62,7 @@ export const ModelProvider = {
             url,
         });
         try {
-            return provider.chat(prompt);
+            return provider.chat(prompt, chatParam);
         } catch (e) {
             return {
                 code: -1,

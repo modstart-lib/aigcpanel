@@ -3,7 +3,7 @@ import store from "../../../store/index";
 
 import {getProviderLogo, getProviderTitle, SystemProviders} from "../providers";
 import {SystemModels} from "../models";
-import {Model, Provider} from "../types";
+import {ChatParam, Model, Provider} from "../types";
 import {ObjectUtil, StringUtil} from "../../../lib/util";
 import {debounce} from "lodash-es";
 import {ModelChatResult, ModelProvider} from "../provider/provider";
@@ -292,13 +292,17 @@ export const modelStore = defineStore("model", {
             }
             Dialog.loadingOn(t("common.testing"));
             try {
-                const ret = await ModelProvider.chat("你是什么模型，简短回答", {
-                    type: provider.type,
-                    modelId: m.id,
-                    apiUrl: provider.apiUrl,
-                    apiHost: provider.data.apiHost,
-                    apiKey: provider.data.apiKey,
-                });
+                const ret = await ModelProvider.chat("你是什么模型，简短回答",
+                    {
+                        systemPrompt: null
+                    },
+                    {
+                        type: provider.type,
+                        modelId: m.id,
+                        apiUrl: provider.apiUrl,
+                        apiHost: provider.data.apiHost,
+                        apiKey: provider.data.apiKey,
+                    });
                 if (ret.code) {
                     throw ret.msg;
                 }
@@ -313,6 +317,7 @@ export const modelStore = defineStore("model", {
             providerId: string,
             modelId: string,
             prompt: string,
+            chatParam: ChatParam,
             option?: {
                 loading: boolean;
             }
@@ -322,12 +327,9 @@ export const modelStore = defineStore("model", {
                 Dialog.tipError(t("hint.selectModel"));
                 return {code: -1, msg: t("hint.selectModel")};
             }
-            option = Object.assign(
-                {
-                    loading: false,
-                },
-                option
-            );
+            option = Object.assign({
+                loading: false,
+            }, option);
             const provider = this.providers.find(p => p.id === providerId);
             // console.log("provider.chat", JSON.stringify({provider}, null, 2));
             if (!provider) {
@@ -341,7 +343,7 @@ export const modelStore = defineStore("model", {
                 Dialog.loadingOn();
             }
             try {
-                return await ModelProvider.chat(prompt, {
+                return await ModelProvider.chat(prompt, chatParam, {
                     type: provider.type,
                     modelId: m.id,
                     apiUrl: provider.apiUrl,

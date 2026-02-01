@@ -8,6 +8,7 @@ import {getDataContent} from "../../components/common/dataConfig";
 export type ModelGenerateButtonOptionType = {
     mode: 'once' | 'repeat',
     promptDefault: string,
+    promptSystem: string,
     onResult: (result: string, param: Record<string, any>) => Promise<void>,
     onStart?: () => Promise<void>,
     onEnd?: () => Promise<void>,
@@ -40,6 +41,9 @@ const doGenerateReply = async () => {
         Dialog.tipError('onGetParam missing');
         return;
     }
+    const chatParam = {
+        systemPrompt: props.option.promptSystem,
+    }
     try {
         if (props.option.onStart) {
             await props.option.onStart();
@@ -49,7 +53,7 @@ const doGenerateReply = async () => {
             if (props.option.onGetParam) {
                 param = await props.option.onGetParam() || {};
             }
-            const ret = await modelGenerator.value.chat(prompt, param);
+            const ret = await modelGenerator.value.chat(prompt, chatParam, param);
             if (ret.code) {
                 Dialog.tipError(ret.msg);
                 return;
@@ -61,7 +65,7 @@ const doGenerateReply = async () => {
                 if (null === param) {
                     break;
                 }
-                const ret = await modelGenerator.value.chat(prompt, param);
+                const ret = await modelGenerator.value.chat(prompt, chatParam, param);
                 if (ret.code) {
                     Dialog.tipError(ret.msg);
                     return;

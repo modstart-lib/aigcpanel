@@ -14,6 +14,7 @@ export type ModelAgentButtonFormItems = {
 const props = withDefaults(defineProps<{
     biz: string,
     promptDefault: string,
+    systemPrompt:string,
     title: string,
     placeholder: string,
     formItems: ModelAgentButtonFormItems,
@@ -87,7 +88,9 @@ const doGenerate = async () => {
     loading.value = true;
     buttonLoading.value = true;
     try {
-        const ret = await modelGenerator.value.chat(prompt, {});
+        const ret = await modelGenerator.value.chat(prompt, {
+            systemPrompt: props.systemPrompt,
+        });
         if (ret.code) {
             Dialog.tipError(ret.msg);
             return;
