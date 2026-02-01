@@ -71,7 +71,7 @@ const doRestore = () => {
                 </a-alert>
             </div>
             <div v-if="enableSystemPrompt">
-                <div class="text-sm mb-1">系统提示词</div>
+                <div class="text-sm mb-1">{{ $t("model.systemPrompt") }}</div>
                 <div>
                     <a-textarea v-model="systemPrompt as any"
                                 :placeholder="systemPromptPlaceholder"
@@ -80,7 +80,7 @@ const doRestore = () => {
             </div>
             <div>
                 <div v-if="enableSystemPrompt" class="text-sm mb-1">
-                    用户提示词
+                    {{ $t("model.userPrompt") }}
                 </div>
                 <div>
                     <a-textarea v-model="prompt as any"
