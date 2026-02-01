@@ -14,6 +14,7 @@ import {
 } from "./Sound/config/prompt";
 import {SoundGenerateReplaceContent} from "./Sound/config/replaceContent";
 import DataConfigDialogButton from "../components/common/DataConfigDialogButton.vue";
+import ModelPromptDataConfigButton from "../module/Model/ModelPromptDataConfigButton.vue";
 
 let tabContentScroller: TabContentScroller | null = null;
 const contentContainer = ref<HTMLElement | null>(null);
@@ -99,18 +100,18 @@ onBeforeUnmount(() => {
                                 placeholder="多个词语请用英文逗号分隔"
                                 :default-value="LiveBlackWordContent"
                             />
-                            <DataConfigDialogButton
+                            <ModelPromptDataConfigButton
                                 title="直播回复生成提示词"
                                 name="LiveReplyGenerateContent"
-                                placeholder="支持使用变量：{reply}"
-                                :default-value="LiveReplyGenerateContent"
+                                prompt-placeholder="支持使用变量：{reply}"
+                                :default-prompt="LiveReplyGenerateContent"
                                 :param="{reply:'示例回复内容',count: '数量'}"
                             />
-                            <DataConfigDialogButton
+                            <ModelPromptDataConfigButton
                                 title="ASR结果优化提示词"
                                 name="SoundReplaceAsrResultOptimizedPrompt"
-                                placeholder="支持使用变量：{content}"
-                                :default-value="SoundAsrResultOptimizedPrompt"
+                                prompt-placeholder="支持使用变量：{content}"
+                                :default-prompt="SoundAsrResultOptimizedPrompt"
                                 :param="{content:'识别结果内容'}"
                             />
                             <DataConfigDialogButton
@@ -118,11 +119,11 @@ onBeforeUnmount(() => {
                                 name="SoundGenerateReplaceContent"
                                 help="声音合成时会自动把文本中的“键”替换为“值”，可用于修正发音"
                                 :default-value="SoundGenerateReplaceContent"/>
-                            <DataConfigDialogButton
+                            <ModelPromptDataConfigButton
                                 title="声音合成内容生成"
                                 name="SoundGenerateTextPrompt"
                                 :param="SoundGenerateTextFormItems.map(i => ({name: i.name, label: i.label}))"
-                                :default-value="SoundGenerateTextPrompt"/>
+                                :default-prompt="SoundGenerateTextPrompt"/>
                         </div>
                     </div>
                 </div>
