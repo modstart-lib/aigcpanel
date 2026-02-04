@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { t } from "../../lang";
-import { Dialog } from "../../lib/dialog";
-import { FileUtil } from "../../lib/file";
-import { doOpenFile } from "./util";
+import {computed} from "vue";
+import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
+import {FileUtil} from "../../lib/file";
+import {doOpenFile} from "./util";
 
 const props = defineProps<{
     modelValue: string[];

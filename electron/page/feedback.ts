@@ -1,15 +1,14 @@
 import {BrowserWindow} from "electron";
-import {preloadDefault} from "../lib/env-main";
-import {AppRuntime} from "../mapi/env";
 import {t} from "../config/lang";
-import {Page} from "./index";
 import {WindowConfig} from "../config/window";
+import {preloadDefault} from "../lib/env-main";
+import {Page} from "./index";
 
 export const PageFeedback = {
     NAME: "feedback",
     open: async (option: any) => {
         const win = new BrowserWindow({
-            title: t("工单反馈"),
+            title: t("page.feedback.title"),
             parent: null,
             minWidth: WindowConfig.feedbackWidth,
             minHeight: WindowConfig.feedbackHeight,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { t } from "../lang";
-import { Dialog } from "../lib/dialog";
+import {computed, onMounted, ref} from "vue";
+import {t} from "../lang";
+import {Dialog} from "../lib/dialog";
 
 
 const recordActiveIndex = ref(0);

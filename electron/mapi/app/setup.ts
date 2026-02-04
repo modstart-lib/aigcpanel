@@ -8,24 +8,24 @@ export const SetupMain = {
         return [
             {
                 name: "accessibility",
-                title: "辅助功能",
+                title: t("setup.accessibility.title"),
                 status: (await Permissions.checkAccessibilityAccess()) ? "success" : "fail",
-                desc: "系统运行需要依赖辅助功能，请打开设置，找到辅助功能，开启本软件的辅助功能。",
+                desc: t("setup.accessibility.desc"),
                 steps: [
                     {
-                        title: "打开 设置 → 隐私与安全性 → 辅助功能，开启本软件",
+                        title: t("setup.accessibility.step"),
                         image: "/setup/accessibility.png",
                     },
                 ],
             },
             {
                 name: "screen",
-                title: "屏幕录制",
+                title: t("setup.screen.title"),
                 status: (await Permissions.checkScreenCaptureAccess()) ? "success" : "fail",
-                desc: "系统运行需要依赖屏幕录制，请打开设置，找到屏幕录制，开启本软件的屏幕录制权限。",
+                desc: t("setup.screen.desc"),
                 steps: [
                     {
-                        title: "打开 设置 → 隐私与安全性 → 录屏与系统录音，开启本软件",
+                        title: t("setup.screen.step"),
                         image: "/setup/screen.png",
                     },
                 ],

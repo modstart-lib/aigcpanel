@@ -1,7 +1,6 @@
 import {BrowserWindow} from "electron";
-import {preloadDefault} from "../lib/env-main";
-import {AppRuntime} from "../mapi/env";
 import {t} from "../config/lang";
+import {preloadDefault} from "../lib/env-main";
 import {Page} from "./index";
 
 export const PageUser = {
@@ -12,7 +11,7 @@ export const PageUser = {
         }, option)
         let alwaysOnTop = !option.parent;
         const win = new BrowserWindow({
-            title: t("用户中心"),
+            title: t("page.user.title"),
             minWidth: 700,
             minHeight: 500,
             width: 700,

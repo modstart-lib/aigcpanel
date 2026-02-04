@@ -120,6 +120,12 @@ export const extraResolve = (filePath: string): string => {
     return resolve(basePath, "extra", filePath);
 };
 
+export const extraResolveWithPlatform = (filePath: string): string => {
+    const dir = [platformName(), platformArch()].join("-");
+    const p = [dir, filePath].join("/");
+    return extraResolve(p);
+}
+
 export const extraResolveBin = (filePath: string): string => {
     if (isWin) {
         if (!filePath.endsWith(".exe")) {

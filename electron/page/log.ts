@@ -1,9 +1,9 @@
 import {BrowserWindow} from "electron";
-import {preloadDefault} from "../lib/env-main";
 import {t} from "../config/lang";
-import {Page} from "./index";
 import {WindowConfig} from "../config/window";
+import {preloadDefault} from "../lib/env-main";
 import {AppRuntime} from "../mapi/env";
+import {Page} from "./index";
 
 export const PageLog = {
     NAME: "log",
@@ -14,7 +14,7 @@ export const PageLog = {
             AppRuntime.windows[PageLog.NAME].close();
         }
         const win = new BrowserWindow({
-            title: t("日志"),
+            title: t("page.log.title"),
             parent: null,
             minWidth: WindowConfig.logWidth,
             minHeight: WindowConfig.logHeight,

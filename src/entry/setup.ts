@@ -1,22 +1,22 @@
 import {createApp} from "vue";
 import store from "../store";
 
-import ArcoVue, {Message} from "@arco-design/web-vue";
-import ArcoVueIcon from "@arco-design/web-vue/es/icon";
+import ArcoVue, { Message } from "@arco-design/web-vue";
 import "@arco-design/web-vue/dist/arco.css";
+import ArcoVueIcon from "@arco-design/web-vue/es/icon";
 
 import {i18n, t} from "../lang";
 
-import "../style.less";
 import {Dialog} from "../lib/dialog";
+import "../style.less";
 
 import {CommonComponents} from "../components/common";
-import Page from "./Page.vue";
 import PageSetup from "../pages/PageSetup.vue";
+import Page from "./Page.vue";
 
 const app = createApp(Page, {
     name: "setup",
-    title: "请按照说明完成软件配置",
+    title: t("page.setup.title"),
     page: PageSetup,
 });
 app.use(ArcoVue);

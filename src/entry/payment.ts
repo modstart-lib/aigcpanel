@@ -1,22 +1,22 @@
 import {createApp} from "vue";
 import store from "../store";
 
-import ArcoVue, {Message} from "@arco-design/web-vue";
-import ArcoVueIcon from "@arco-design/web-vue/es/icon";
+import ArcoVue, { Message } from "@arco-design/web-vue";
 import "@arco-design/web-vue/dist/arco.css";
+import ArcoVueIcon from "@arco-design/web-vue/es/icon";
 
 import {i18n, t} from "../lang";
 
-import "../style.less";
 import {Dialog} from "../lib/dialog";
+import "../style.less";
 
 import {CommonComponents} from "../components/common";
-import Page from "./Page.vue";
 import PagePayment from "../pages/PagePayment.vue";
+import Page from "./Page.vue";
 
 const app = createApp(Page, {
     name: "payment",
-    title: "扫码支付",
+    title: t("page.payment.title"),
     page: PagePayment,
 });
 app.use(ArcoVue);

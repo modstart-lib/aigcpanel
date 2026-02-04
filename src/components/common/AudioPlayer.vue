@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch, watchEffect} from "vue";
 import WaveSurfer from "wavesurfer.js";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.esm.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
-import { AudioUtil } from "../../lib/audio";
-import { Dialog } from "../../lib/dialog";
-import { TimeUtil } from "../../lib/util";
+import {AudioUtil} from "../../lib/audio";
+import {Dialog} from "../../lib/dialog";
+import {TimeUtil} from "../../lib/util";
 
 const props = withDefaults(
     defineProps<{

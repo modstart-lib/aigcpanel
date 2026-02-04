@@ -106,7 +106,7 @@ export const doOpenBrowserFile = (options: {
                     }
                     resolve(files[0]);
                 } else {
-                    Dialog.tipError(`上传文件大小不能大于${options.max}`);
+                    Dialog.tipError(t("error.fileSizeExceedMax", {max: options.max}));
                     resolve(null);
                 }
             } else {

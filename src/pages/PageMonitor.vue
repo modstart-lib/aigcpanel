@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import PageWebviewStatus from "../components/common/PageWebviewStatus.vue";
 
 const status = ref<InstanceType<typeof PageWebviewStatus> | null>(null);

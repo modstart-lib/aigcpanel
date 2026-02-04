@@ -38,20 +38,20 @@ const ready = () => {
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: t("显示主界面"),
+            label: t("tray.showMain"),
             click: () => {
                 showApp();
             },
         },
         {
-            label: t("重启"),
+            label: t("tray.restart"),
             click: () => {
                 app.relaunch();
                 quitApp();
             },
         },
         {
-            label: t("退出"),
+            label: t("menu.quit"),
             click: () => {
                 quitApp();
             },

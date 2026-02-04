@@ -4,7 +4,7 @@ import {Dialog} from "./../lib/dialog";
 
 const app = getCurrentInstance();
 const doQuit = () => {
-    Dialog.confirm("确定退出吗？").then(() => {
+    Dialog.confirm(t("common.confirmQuit")).then(() => {
         window.$mapi.app.quit();
     });
 };

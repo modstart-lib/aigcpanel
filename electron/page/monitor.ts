@@ -1,15 +1,15 @@
 import {BrowserWindow} from "electron";
-import {preloadDefault} from "../lib/env-main";
-import {Page} from "./index";
-import {Events} from "../mapi/event/main";
 import {t} from "../config/lang";
+import {preloadDefault} from "../lib/env-main";
+import {Events} from "../mapi/event/main";
+import {Page} from "./index";
 
 export const PageMonitor = {
     NAME: "monitor",
     open: async (option: {title?: string; width?: number; height?: number; [key: string]: any}) => {
         option = Object.assign(
             {
-                title: t("加载中"),
+                title: t("page.monitor.title"),
                 width: 700,
                 height: 500,
                 url: "",
