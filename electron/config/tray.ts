@@ -1,9 +1,9 @@
-import {app, Menu, Tray} from "electron";
-import {trayPath} from "./icon";
-import {AppRuntime} from "../mapi/env";
-import {AppConfig} from "../../src/config";
-import {t} from "./lang";
-import {isMac, isWin} from "../lib/env";
+import { app, Menu, Tray } from "electron";
+import { AppConfig } from "../../src/config";
+import { isMac, isWin } from "../lib/env";
+import { AppRuntime } from "../mapi/env";
+import { trayPath } from "./icon";
+import { t } from "./lang";
 
 let tray = null;
 

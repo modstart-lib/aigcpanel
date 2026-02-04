@@ -1,7 +1,6 @@
 import enUS from "./../../src/lang/en-US.json";
 import zhCN from "./../../src/lang/zh-CN.json";
 import {isDev} from "../lib/env";
-import lang from "../mapi/lang/main";
 import {ConfigMain} from "../mapi/config/main";
 
 export const defaultLocale = "zh-CN";
@@ -32,9 +31,6 @@ const buildMessages = (): any => {
 let messages = buildMessages();
 
 export const t = (text: string, param: object | null = null) => {
-    if (isDev) {
-        lang.writeSourceKeyUse(text).then();
-    }
     if (messages[locale]) {
         if (messages[locale][text]) {
             if (param) {

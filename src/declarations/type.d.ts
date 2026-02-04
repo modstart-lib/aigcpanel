@@ -293,9 +293,6 @@ type DefsMapi = {
     statistics: {
         tick: (name: string, data: any = null) => Promise<void>;
     };
-    lang: {
-        writeSourceKeyUse: (key: string) => Promise<void>;
-    };
     event: {
         send: (name: string, type: string, data: any) => void;
         callPage: (

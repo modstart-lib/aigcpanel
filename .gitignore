@@ -30,7 +30,6 @@ pnpm-lock.yaml
 yarn.lock
 database.db
 
-src/lang/source-use.json
 /data
 /_delete
 .vscode

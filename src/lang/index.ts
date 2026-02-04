@@ -91,9 +91,6 @@ export const changeLocale = (lang: string) => {
 };
 
 export const t = (key: string, param: object | null = null) => {
-    if (isDev) {
-        window.$mapi.lang.writeSourceKeyUse(key).then();
-    }
     // check if exists key
     if (!(key in messages[i18n.global.locale.value])) {
         if (param) {
