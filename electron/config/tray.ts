@@ -22,6 +22,8 @@ const hideApp = () => {
 };
 
 const quitApp = () => {
+    // @ts-ignore
+    app.quitForce = true;
     app.quit();
 };
 
