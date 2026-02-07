@@ -7,6 +7,11 @@ import pkg from "./package.json";
 import path from "node:path";
 import {AppConfig} from "./src/config";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // https://vitejs.dev/config/
 export default defineConfig(({command}) => {
@@ -40,7 +45,7 @@ export default defineConfig(({command}) => {
             {
                 name: "add-build-time",
                 generateBundle() {
-                    const buildId = dayjs().format("YYYYMMDDHHmmss");
+                    const buildId = dayjs().tz("Asia/Shanghai").format("YYYYMMDDHHmmss");
                     this.emitFile({
                         type: "asset",
                         fileName: "build.json",
