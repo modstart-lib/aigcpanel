@@ -11,14 +11,27 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            arch: [ arm64, amd64 ]
-          - os: macos-latest
-            arch: [ arm64, amd64 ]
-          - os: windows-latest
-            arch: [ arm64, amd64 ]
+          - name: linux-x64
+            os: ubuntu-latest
+            arch: x64
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            arch: arm64
+          - name: mac-x64
+            os: macos-latest
+            arch: x64
+          - name: mac-arm64
+            os: macos-latest
+            arch: arm64
+          - name: win-x64
+            os: windows-latest
+            arch: x64
+          - name: win-arm64
+            os: windows-11-arm
+            arch: arm64
 
     steps:
       - name: Checkout Code
@@ -61,6 +74,19 @@ jobs:
         run: |
           brew install python-setuptools
 
+      - name: Install fpm (Linux arm64)
+        if: runner.os == 'Linux' && runner.arch == 'ARM64'
+        run: |
+          sudo apt-get install -y ruby ruby-dev rubygems
+          sudo gem install fpm
+          # Replace cached x86 fpm with symlink to native arm64 system fpm
+          # (electron-builder always uses cached fpm, so we override it)
+          FPM_PATH=$(which fpm)
+          echo "System fpm: $FPM_PATH"
+          CACHE_DIR="$HOME/.cache/electron-builder/fpm/fpm-1.9.3-2.3.1-linux-x86"
+          rm -rf "$CACHE_DIR"
+          mkdir -p "$CACHE_DIR"
+          ln -sf "$FPM_PATH" "$CACHE_DIR/fpm"
 
       - name: Cert Prepare (macOS)
         if: runner.os == 'macOS'
@@ -74,6 +100,7 @@ jobs:
           security create-keychain -p "" build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security list-keychains -s build.keychain
+          security default-keychain -s build.keychain
           security set-keychain-settings -t 3600 -u build.keychain
           security unlock-keychain -p "" build.keychain
           echo "find-identity"
@@ -81,7 +108,7 @@ jobs:
           echo "find-identity"
           security find-identity -p codesigning
           echo "set-key-partition-list"
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" -l "Mac Developer ID Application: Xi'an Yanyi Information Technology Co., Ltd" -t private build.keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" -t private build.keychain
           echo "export"
           security export -k build.keychain -t certs -f x509 -p -o certificate.cer
           echo "add-trusted-cert"
@@ -94,21 +121,49 @@ jobs:
         working-directory: code
         run: npm install
 
+      - name: Configure Windows build environment
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          # npm_config_ prefix is npm's way to inject config values via env vars
+          # (avoids 'msvs_version is not a valid npm option' error from npm config set)
+          "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Install Visual Studio Build Tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $params = @(
+            "--add", "Microsoft.VisualStudio.Workload.VCTools",
+            "--includeRecommended"
+          )
+          if ($env:RUNNER_ARCH -eq 'ARM64') {
+            $params += @(
+              "--add", "Microsoft.VisualStudio.Component.VC.ARM64",
+              "--add", "Microsoft.VisualStudio.Component.VC.Tools.ARM64"
+            )
+          }
+          choco install visualstudio2022buildtools --params ($params -join ' ') -y
+
       - name: Install Dependencies (Windows)
         if: runner.os == 'Windows'
         working-directory: code
         shell: pwsh
-        run: npm install
+        run: |
+          npm install --ignore-scripts
+          if (Test-Path node_modules\canvas) { Remove-Item -Recurse -Force node_modules\canvas }
+          npx electron-builder install-app-deps
+
+      - name: init ( Linux/macOS )
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        working-directory: code
+        run: bash ./scripts/init.sh
 
       - name: init ( Windows )
         if: runner.os == 'Windows'
         working-directory: code
         shell: pwsh
-        run: bash ./scripts/init.sh
-
-      - name: init ( Linux/osx )
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        working-directory: code
         run: bash ./scripts/init.sh
 
       - name: Build Release Files
@@ -117,13 +172,28 @@ jobs:
         env:
           DEBUG: "electron-notarize:*"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_ARCH: ${{ matrix.arch == 'x64' && 'x64' || '' }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
+      - name: Rename output files (Linux/macOS)
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        working-directory: code
+        run: |
+          find dist-release/ -type f -name 'AigcPanelPro-*' -exec bash -c 'f="{}"; mv "$f" "${f/AigcPanelPro-/AigcPanel-}"' \;
+
+      - name: Rename output files (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: code
+        run: |
+          Get-ChildItem dist-release\AigcPanelPro-* | Rename-Item -NewName { $_.Name -replace 'AigcPanelPro-','AigcPanel-' }
+
       - name: Set Build Name ( Linux / macOS )
         if: runner.os == 'Linux' || runner.os == 'macOS'
+        working-directory: code
         run: |
           DIST_FILE_NAME=${{ runner.os }}-${{ runner.arch }}-v$(date +%Y%m%d_%H%M%S)-${RANDOM}
           echo ::add-mask::$DIST_FILE_NAME
@@ -132,16 +202,13 @@ jobs:
       - name: Set Build Name ( Windows )
         if: runner.os == 'Windows'
         shell: pwsh
+        working-directory: code
         run: |
+          $arch = "${{ runner.arch }}"
           $randomNumber = Get-Random -Minimum 10000 -Maximum 99999
-          $DIST_FILE_NAME = "Windows-X64-v$(Get-Date -Format 'yyyyMMdd_HHmmss')-$randomNumber"
+          $DIST_FILE_NAME = "Windows-$arch-v$(Get-Date -Format 'yyyyMMdd_HHmmss')-$randomNumber"
           Write-Host "::add-mask::$DIST_FILE_NAME"
           echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
-
-      - name: Rename output files (Linux/macOS)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: |
-          find code/dist-release/ -type f -name 'AigcPanelPro-*' -exec bash -c 'f="{}"; mv "$f" "${f/AigcPanelPro-/AigcPanel-}"' \;
 
       - name: Upload Sourcemaps
         if: runner.os == 'Linux'
@@ -165,14 +232,30 @@ jobs:
           done
           echo "Sourcemap upload done."
 
-      - name: Rename output files (Windows)
+      - name: Upload Artifact (Windows)
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Get-ChildItem code\dist-release\AigcPanelPro-* | Rename-Item -NewName { $_.Name -replace 'AigcPanelPro-','AigcPanel-' }
+        uses: actions/upload-artifact@v4
+        with:
+          name: aigcpanel-win-${{ matrix.arch }}
+          path: code/dist-release/*.exe
+
+      - name: Upload Artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: aigcpanel-mac-${{ matrix.arch }}
+          path: code/dist-release/*.dmg
+
+      - name: Upload Artifact (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: aigcpanel-linux-${{ matrix.arch }}
+          path: |
+            code/dist-release/*.AppImage
+            code/dist-release/*.deb
 
       - name: Upload
-        if: github.event_name == 'workflow_dispatch'
         uses: modstart/github-oss-action@master
         with:
           title: ${{ github.event.head_commit.message }}
@@ -183,35 +266,60 @@ jobs:
           callbackTitle: ✅AIGCPanel-${{ runner.os }}-打包成功
           callback: ${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}
           assets: |
-            code/dist-release/*.exe:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
-            code/dist-release/*.dmg:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
-            code/dist-release/*.AppImage:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
-            code/dist-release/*.deb:apps/aigcpanel-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
+            code/dist-release/*.exe:apps/{random}.bin:{name}.exe
+            code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+            code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
+            code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
-      - name: Release Assets
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
+  # ── Snapshot Release (vsnapshot) ───────────────────────────────────────────────
+  vsnapshot-release:
+    name: Snapshot Release
+    needs: [build]
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
         with:
-          draft: true
-          prerelease: false
-          fail_on_unmatched_files: false
-          overwrite_files: true
-          files: |
-            code/dist-release/*.exe
-            code/dist-release/*.dmg
-            code/dist-release/*.AppImage
-            code/dist-release/*.deb
+          path: _artifacts
+          merge-multiple: false
+      - name: Upload to Snapshot Release (with overwrite)
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Ensure vsnapshot release exists (create if not)
+          gh release create vsnapshot \
+            --title "Snapshot" \
+            --notes "Latest build from main branch" \
+            --prerelease \
+            2>/dev/null || true
+          # Copy artifacts to temp dir with version replaced by "snapshot"
+          tmpdir=$(mktemp -d)
+          echo "=== Downloaded artifacts ==="
+          find _artifacts/ -type f -print
+          echo "=== Cleaning filenames ==="
+          find _artifacts/ -type f | while read f; do
+            base=$(basename "$f")
+            clean=$(echo "$base" | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+(-(beta|alpha|rc|dev)(\.[0-9]+)?)?/snapshot/')
+            cp "$f" "$tmpdir/$clean"
+            echo "Staged: $base -> $clean"
+          done
+          echo "=== Uploading to vsnapshot ==="
+          for f in "$tmpdir"/*; do
+            echo "Uploading: $(basename "$f")"
+            gh release upload vsnapshot "$f" --clobber
+          done
+          rm -rf "$tmpdir"
 
   # ── Notify ────────────────────────────────────────────────────────────────────
   notify:
     name: Notify
-    needs: [build]
-    runs-on: ubuntu-latest
+    needs: [build, vsnapshot-release]
     if: success()
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Notify Webhook
         run: |
           NAME="${{ github.event.repository.name }}"

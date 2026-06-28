@@ -137,6 +137,7 @@ async function createWindow() {
         backgroundColor: await AppsMain.defaultDarkModeBackgroundColor(),
         titleBarStyle: "hidden",
         trafficLightPosition: { x: 10, y: 11 },
+        backgroundThrottling: false,
         webPreferences: {
             preload: preloadDefault,
             // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
