@@ -121,6 +121,15 @@ jobs:
         run: npm install
 
       # ── Windows build environment ─────────────────────────────────────────────
+      - name: Configure Windows build environment
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          # npm_config_ prefix is npm's way to inject config values via env vars
+          # (avoids 'msvs_version is not a valid npm option' error from npm config set)
+          "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Install Visual Studio Build Tools
         if: runner.os == 'Windows'
         shell: pwsh
@@ -137,32 +146,6 @@ jobs:
           }
           choco install visualstudio2022buildtools --params ($params -join ' ') -y
 
-      - name: Configure VS dev environment for node-gyp
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          # Set MSVS version for node-gyp
-          "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "npm_config_build_from_source=true" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          # Locate VS installation and set MSBuild path for node-gyp
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          if (Test-Path $vswhere) {
-            $vsInstallDir = & $vswhere -latest -property installationPath
-            $msbuildPath = Join-Path $vsInstallDir "MSBuild\Current\Bin\MSBuild.exe"
-            if (-not (Test-Path $msbuildPath)) {
-              $msbuildPath = Join-Path $vsInstallDir "MSBuild\15.0\Bin\MSBuild.exe"
-            }
-            if (Test-Path $msbuildPath) {
-              Write-Host "MSBuild found at: $msbuildPath"
-              "npm_config_msbuild_path=$msbuildPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-            } else {
-              Write-Host "MSBuild not found under $vsInstallDir"
-            }
-          }
-          # Verify we can find the compiler
-          Write-Host "GYP_MSVS_VERSION set to 2022"
-
       - name: Install Dependencies (Windows)
         if: runner.os == 'Windows'
         working-directory: code
@@ -170,13 +153,16 @@ jobs:
         run: |
           npm install --ignore-scripts
           if (Test-Path node_modules\canvas) { Remove-Item -Recurse -Force node_modules\canvas }
-          # Retry native rebuild once if it fails (transient issues with node-gyp)
-          npx electron-builder install-app-deps
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "First rebuild attempt failed, retrying..."
-            Start-Sleep -Seconds 3
-            npx electron-builder install-app-deps
+          # Remove bufferutil binding.gyp so electron-builder skips native rebuild.
+          # bufferutil is an optional dep of ws (JS fallback when unavailable),
+          # and its native compilation reliably fails on Windows CI.
+          if (Test-Path "node_modules\bufferutil\binding.gyp") {
+            Remove-Item "node_modules\bufferutil\binding.gyp" -Force
           }
+          if (Test-Path "node_modules\bufferutil\build") {
+            Remove-Item -Recurse -Force "node_modules\bufferutil\build"
+          }
+          npx electron-builder install-app-deps
 
       - name: init ( Linux/macOS )
         if: runner.os == 'Linux' || runner.os == 'macOS'
