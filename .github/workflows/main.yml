@@ -121,6 +121,7 @@ jobs:
         working-directory: code
         run: npm install
 
+      # ── Windows build environment ─────────────────────────────────────────────
       - name: Configure Windows build environment
         if: runner.os == 'Windows'
         shell: pwsh
@@ -153,6 +154,15 @@ jobs:
         run: |
           npm install --ignore-scripts
           if (Test-Path node_modules\canvas) { Remove-Item -Recurse -Force node_modules\canvas }
+          # Remove bufferutil binding.gyp so electron-builder skips native rebuild.
+          # bufferutil is an optional dep of ws (JS fallback when unavailable),
+          # and its native compilation reliably fails on Windows CI.
+          if (Test-Path "node_modules\bufferutil\binding.gyp") {
+            Remove-Item "node_modules\bufferutil\binding.gyp" -Force
+          }
+          if (Test-Path "node_modules\bufferutil\build") {
+            Remove-Item -Recurse -Force "node_modules\bufferutil\build"
+          }
           npx electron-builder install-app-deps
 
       - name: init ( Linux/macOS )
