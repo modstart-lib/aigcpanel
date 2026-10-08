@@ -8,7 +8,7 @@ import { useServerStore } from "../store/modules/server";
  *
  * 一个音色 = 一次可复用的「语音能力」绑定：
  * - type=tts：声音合成模型 + 参数（如 speaker 音色）
- * - type=clone：声音克隆模型 + 参考音频/文本（参考音频为全新录音/上传，不复用其它库）
+ * - type=clone：声音复刻模型 + 参考音频/文本（参考音频为全新录音/上传，不复用其它库）
  *
  * 共两套独立存储（数据表 biz）：
  * - LiveVoice 直播音色（智能直播使用）
@@ -25,11 +25,11 @@ export type VoiceContent = {
     serverName: string;
     serverTitle: string;
     serverVersion: string;
-    /** 声音合成/克隆参数，如 { speaker: "中文女" } */
+    /** 声音合成/复刻参数，如 { speaker: "中文女" } */
     param?: Record<string, any>;
-    /** 声音克隆：参考音频（本地路径，全新录音/上传） */
+    /** 声音复刻：参考音频（本地路径，全新录音/上传） */
     promptUrl?: string;
-    /** 声音克隆：参考文本 */
+    /** 声音复刻：参考文本 */
     promptText?: string;
     /** 试听音频（本地路径） */
     previewUrl?: string;

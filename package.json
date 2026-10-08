@@ -1,6 +1,6 @@
 {
   "name": "aigcpanel",
-  "version": "2.5.0",
+  "version": "2.6.0-beta",
   "main": "dist-electron/main/index.js",
   "description": "开源 AI 数字人视频系统",
   "author": "ModStartLib",

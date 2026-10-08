@@ -11,7 +11,7 @@
 
 AIGCPanel 是一款简单易用的一站式 AI 数字人桌面应用，支持 Windows / macOS / Linux 三平台。无需深厚技术背景，普通用户也能快速上手，将本地 AI 模型变成生产力工具。
 
-核心能力涵盖：**数字人视频合成**（换口型）、**语音合成 / 克隆 / 识别**、**25+ 音视频处理工具**、**智能直播互动**，Pro 版额外提供**可视化工作流编排**和**云端 AI 模型服务**。
+核心能力涵盖：**数字人视频合成**（换口型）、**语音合成 / 声音复刻 / 识别**、**25+ 音视频处理工具**、**智能直播互动**，Pro 版额外提供**可视化工作流编排**和**云端 AI 模型服务**。
 
 软件内置模型市场，支持一键下载启动包，开箱即用；同时兼容远程 API 模型，灵活适配各类部署场景。
 
@@ -28,7 +28,7 @@ AIGCPanel 是一款简单易用的一站式 AI 数字人桌面应用，支持 Wi
 **语音处理**
 
 - 语音合成（TTS）：多模型支持，可调速度、音调等参数
-- 语音克隆：上传参考音频即可克隆特定音色
+- 声音复刻：上传参考音频即可复刻特定音色
 - 语音识别（ASR）：输出带时间戳文字，可导出字幕文件（工具箱）
 - 声音替换：一键将视频音轨替换为合成音频（工具箱）
 
@@ -71,10 +71,10 @@ AIGCPanel 是一款简单易用的一站式 AI 数字人桌面应用，支持 Wi
 | [CosyVoice-300M](https://github.com/FunAudioLLM/CosyVoice)          | 阿里通义实验室开源 TTS |
 | [CosyVoice-300M-Instruct](https://github.com/FunAudioLLM/CosyVoice) | 指令控制版             |
 | [CosyVoice2-0.5b](https://github.com/FunAudioLLM/CosyVoice)         | 第二代轻量版           |
-| [FishSpeech](https://github.com/fishaudio/fish-speech)              | 高质量零样本语音克隆   |
+| [FishSpeech](https://github.com/fishaudio/fish-speech)              | 高质量零样本声音复刻   |
 | [IndexTTS](https://github.com/index-tts/index-tts)                  | 工业级中文 TTS         |
 | [SparkTTS](https://github.com/SparkAudio/Spark-TTS)                 | 讯飞开源语音合成       |
-| [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS)                | 少样本声音克隆         |
+| [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS)                | 少样本声音复刻         |
 
 ### 声音识别
 
@@ -113,7 +113,7 @@ AIGCPanel 是一款简单易用的一站式 AI 数字人桌面应用，支持 Wi
 
 ### 语音合成
 
-多模型 TTS，支持语音克隆（上传参考音频）、速度/音调调节，任务列表可批量下载。
+多模型 TTS，支持声音复刻（上传参考音频）、速度/音调调节，任务列表可批量下载。
 
 ![](demo/image/sound-tts.png)
 

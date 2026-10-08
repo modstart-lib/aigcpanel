@@ -675,7 +675,7 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
             );
         },
 
-        // 声音克隆：通过 param.comfyuiName 选择工作流（text + promptAudio 由平台端传入）
+        // 声音复刻：通过 param.comfyuiName 选择工作流（text + promptAudio 由平台端传入）
         soundClone: async function (data: any) {
             return this._callFunc(
                 data,

@@ -303,7 +303,7 @@ const buildTaskTitle = (funcName: string, param: any): string => {
         case "soundClone":
             return param?.text
                 ? String(param.text).slice(0, 20)
-                : "音色克隆任务";
+                : "音色复刻任务";
         case "videoGen":
             return "AI数字人视频";
         case "asr":

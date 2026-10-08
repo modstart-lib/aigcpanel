@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Upgrade the project version in package.json and package-lock.json.
+// Update the project version in package.json and package-lock.json.
 // Usage:
-//   node scripts/upgrade-version.mjs 2.2.0
-//   VERSION=2.2.0 node scripts/upgrade-version.mjs
+//   node scripts/update-version.mjs 2.2.0
+//   VERSION=2.2.0 node scripts/update-version.mjs
 import { readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
@@ -11,8 +11,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const newVersion = process.argv[2] || process.env.VERSION;
 if (!newVersion) {
-  console.error('Usage: node scripts/upgrade-version.mjs <version>');
-  console.error('   or: VERSION=<version> node scripts/upgrade-version.mjs');
+  console.error('Usage: node scripts/update-version.mjs <version>');
+  console.error('   or: VERSION=<version> node scripts/update-version.mjs');
   process.exit(1);
 }
 // semver-compatible: major.minor.patch with optional pre-release/build suffix
@@ -38,4 +38,4 @@ if (lock.packages && lock.packages[''] && lock.packages[''].version !== undefine
 }
 writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
 
-console.log(`Version upgraded: ${oldVersion} -> ${newVersion}`);
+console.log(`Version updated: ${oldVersion} -> ${newVersion}`);
