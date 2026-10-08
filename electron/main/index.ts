@@ -22,6 +22,7 @@ import { isDev, isMac, isPackaged } from "../lib/env";
 import { executeHooks } from "../lib/hooks";
 import { loadClientConfig } from "../lib/clientConfig";
 import { DevToolsManager } from "../lib/devtools";
+import { Diagnostics } from "../lib/diagnostics";
 import { AppsMain } from "../mapi/app/main";
 import { ServerMain } from "../mapi/server/main";
 import { HttpServerMain } from "../mapi/httpserver/main";
@@ -58,6 +59,12 @@ process.on("unhandledRejection", (reason) => {
         reason instanceof Error ? (reason as Error).stack : undefined,
     );
 });
+
+// Runtime diagnostics: renderer crashes, unresponsive windows, load failures,
+// child (GPU/utility) process crashes and periodic memory snapshots, all
+// written to the standard log file for post-mortem analysis. Must be
+// registered before any window is created.
+Diagnostics.register();
 
 // Ensure consistent app name (macOS uses Info.plist CFBundleName from the dev binary,
 // which would be "Electron" instead of "aigcpanel" without this explicit override)
