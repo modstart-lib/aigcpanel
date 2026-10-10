@@ -38,7 +38,8 @@
     "re-sqlite": "npx electron-rebuild -f -w better-sqlite3",
     "format": "prettier --write --log-level warn \"src/**/*.{ts,tsx,vue,js}\" \"electron/**/*.{ts,tsx,js}\"",
     "dev:seed": "tsx test/dev-seed.ts",
-    "screenshot": "tsx test/screenshot/index.ts"
+    "screenshot": "tsx test/screenshot/index.ts",
+    "auto-serve": "tsx test/auto-serve/index.ts"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",
