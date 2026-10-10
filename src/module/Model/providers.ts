@@ -48,7 +48,7 @@ import { ModelProvider } from "./provider/provider";
 import { Provider } from "./types";
 
 const ProviderLogoMap = {
-    
+    atlascloud: OpenAiProviderLogo,
     openai: OpenAiProviderLogo,
     silicon: SiliconFlowProviderLogo,
     deepseek: DeepSeekProviderLogo,
@@ -110,7 +110,7 @@ export function getProviderUrl(provider: Provider) {
 
 export const getProviderTitle = (providerId: string) => {
     const map: Record<string, string> = {
-        
+        atlascloud: "Atlas Cloud",
         aihubmix: "AiHubMix",
         alayanew: "Alaya NeW",
         anthropic: "Anthropic",
@@ -162,6 +162,17 @@ export const getProviderTitle = (providerId: string) => {
 };
 
 export const SystemProviders = {
+    atlascloud: {
+        api: {
+            url: "https://api.atlascloud.ai/v1/",
+        },
+        websites: {
+            official: "https://www.atlascloud.ai/",
+            apiKey: "https://www.atlascloud.ai/console/api-keys",
+            docs: "https://www.atlascloud.ai/docs",
+            models: "https://www.atlascloud.ai/models",
+        },
+    },
     openai: {
         api: {
             url: "https://api.openai.com",

@@ -268,6 +268,26 @@ export function getModelLogo(modelId: string) {
 }
 
 export const SystemModels: Record<string, Partial<Model>[]> = {
+    atlascloud: [
+        {
+            id: "deepseek-ai/deepseek-v4-pro",
+            provider: "atlascloud",
+            name: "DeepSeek V4 Pro",
+            group: "DeepSeek",
+        },
+        {
+            id: "deepseek-ai/deepseek-v4-flash",
+            provider: "atlascloud",
+            name: "DeepSeek V4 Flash",
+            group: "DeepSeek",
+        },
+        {
+            id: "qwen/qwen3.5-flash",
+            provider: "atlascloud",
+            name: "Qwen3.5 Flash",
+            group: "Qwen",
+        },
+    ],
     aihubmix: [
         {
             id: "gpt-4o",
