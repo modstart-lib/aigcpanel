@@ -17,6 +17,17 @@ const formData = ref({
     promptText: "",
 });
 
+/**
+ * Extension to keep for an uploaded reference file. Only wav/mp3 are accepted
+ * (matching the upload filter); anything else returns "" so we fall back to
+ * re-encoding instead of mislabeling the bytes.
+ */
+const originalFileExt = (name: string) => {
+    const m = /\.([a-z0-9]+)$/i.exec(name || "");
+    const ext = m ? m[1].toLowerCase() : "";
+    return ext === "wav" || ext === "mp3" ? ext : "";
+};
+
 const add = () => {
     formData.value.name = "";
     formData.value.promptWav = "";
@@ -62,8 +73,20 @@ const doSave = async () => {
         Dialog.tipError(t("voice.refAudioGuide2"));
         return;
     }
-    const wav = AudioUtil.audioBufferToWav(audioBuffer);
-    formData.value.promptWav = await DataService.saveBuffer("wav", wav);
+    const sourceFile = audioPlayer.value?.getOriginalFile?.();
+    const originalExt = sourceFile ? originalFileExt(sourceFile.name) : "";
+    if (sourceFile && originalExt) {
+        // Save the uploaded file verbatim to avoid re-encoding quality loss.
+        const data = new Uint8Array(await sourceFile.arrayBuffer());
+        formData.value.promptWav = await DataService.saveBuffer(
+            originalExt,
+            data,
+        );
+    } else {
+        // Recorded or trimmed audio: re-encode to wav at the original rate.
+        const wav = AudioUtil.audioBufferToWav(audioBuffer);
+        formData.value.promptWav = await DataService.saveBuffer("wav", wav);
+    }
     await StorageService.add("SoundPrompt", {
         title: formData.value.name,
         content: {
@@ -127,6 +150,7 @@ const emit = defineEmits({
                                         show-wave
                                         trim-enable
                                         record-enable
+                                        decode-original-rate
                                     />
                                 </div>
                                 <div

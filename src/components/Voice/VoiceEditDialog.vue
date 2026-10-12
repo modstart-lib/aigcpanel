@@ -47,6 +47,17 @@ const funcName = () => {
     return formData.value.type === "clone" ? "soundClone" : "soundTts";
 };
 
+/**
+ * Extension to keep for an uploaded reference file. Only wav/mp3 are accepted
+ * (matching the upload filter); anything else returns "" so we fall back to
+ * re-encoding instead of mislabeling the bytes.
+ */
+const originalFileExt = (name: string) => {
+    const m = /\.([a-z0-9]+)$/i.exec(name || "");
+    const ext = m ? m[1].toLowerCase() : "";
+    return ext === "wav" || ext === "mp3" ? ext : "";
+};
+
 const onServerUpdate = (config: any) => {
     serverConfig.value = config;
     paramDef.value = config?.functions?.[funcName()]?.param || [];
@@ -139,10 +150,21 @@ const buildContent = async (): Promise<VoiceContent | null> => {
             return null;
         }
         let promptUrl = existingPromptUrl.value;
-        const buffer = audioPlayer.value?.getAudioBuffer();
-        if (buffer) {
-            const wav = AudioUtil.audioBufferToWav(buffer);
-            promptUrl = await DataService.saveBuffer("wav", wav);
+        const player = audioPlayer.value;
+        const sourceFile = player?.getOriginalFile?.();
+        const sourceType = player?.getSourceType?.();
+        const originalExt = sourceFile ? originalFileExt(sourceFile.name) : "";
+        if (sourceFile && originalExt) {
+            // Save the uploaded file verbatim to avoid re-encoding quality loss.
+            const data = new Uint8Array(await sourceFile.arrayBuffer());
+            promptUrl = await DataService.saveBuffer(originalExt, data);
+        } else if (sourceType === "record" || sourceType === "trim") {
+            // Recorded or trimmed audio: re-encode to wav at the original rate.
+            const buffer = player?.getAudioBuffer();
+            if (buffer) {
+                const wav = AudioUtil.audioBufferToWav(buffer);
+                promptUrl = await DataService.saveBuffer("wav", wav);
+            }
         }
         if (!promptUrl) {
             Dialog.tipError(t("hint.recordVoice"));
@@ -350,6 +372,7 @@ const emit = defineEmits({
                                     show-wave
                                     trim-enable
                                     record-enable
+                                    decode-original-rate
                                 />
                                 <div
                                     class="mt-2 text-gray-400 flex items-center text-sm"
