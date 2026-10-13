@@ -24,6 +24,24 @@ const syncTab = () => {
     tab.value = VIDEO_TABS.includes(next) ? next : "soundGenerate";
 };
 
+/**
+ * Switch the secondary menu and sync the selected tab into the route query.
+ * Otherwise the URL and the active tab drift apart: after visiting "voice"
+ * and switching back to "soundGenerate" the URL still keeps ?tab=voice, so a
+ * later entry such as "Voice Manage" pushes the same address and vue-router
+ * treats it as a duplicated navigation and does nothing.
+ */
+const selectTab = (next: string) => {
+    if (!VIDEO_TABS.includes(next)) {
+        return;
+    }
+    tab.value = next;
+    if (Router.currentRoute.value.query.tab === next) {
+        return;
+    }
+    Router.push({ path: "/video", query: { tab: next } }).catch(() => {});
+};
+
 onMounted(() => {
     syncTab();
     testActionSet("page.ready", () => {});
@@ -48,7 +66,7 @@ watch(() => Router.currentRoute.value.query.tab, syncTab);
             <div
                 class="p-2 rounded-lg mb-2 cursor-pointer"
                 :class="tab === 'soundGenerate' ? 'menu-item-active' : ''"
-                @click="tab = 'soundGenerate'"
+                @click="selectTab('soundGenerate')"
             >
                 <div class="text-base truncate flex items-center">
                     <i-mdi-waveform
@@ -60,7 +78,7 @@ watch(() => Router.currentRoute.value.query.tab, syncTab);
             <div
                 class="p-2 rounded-lg mb-2 cursor-pointer"
                 :class="tab === 'voice' ? 'menu-item-active' : ''"
-                @click="tab = 'voice'"
+                @click="selectTab('voice')"
             >
                 <div class="text-base truncate flex items-center">
                     <i-mdi-microphone
@@ -75,7 +93,7 @@ watch(() => Router.currentRoute.value.query.tab, syncTab);
             <div
                 class="p-2 rounded-lg mb-2 cursor-pointer"
                 :class="tab === 'videoTemplate' ? 'menu-item-active' : ''"
-                @click="tab = 'videoTemplate'"
+                @click="selectTab('videoTemplate')"
             >
                 <div class="text-base truncate flex items-center">
                     <i-mdi-account-box
@@ -87,7 +105,7 @@ watch(() => Router.currentRoute.value.query.tab, syncTab);
             <div
                 class="p-2 rounded-lg mb-2 cursor-pointer"
                 :class="tab === 'videoGen' ? 'menu-item-active' : ''"
-                @click="tab = 'videoGen'"
+                @click="selectTab('videoGen')"
             >
                 <div class="text-base truncate flex items-center">
                     <i-mdi-video-account
@@ -99,7 +117,7 @@ watch(() => Router.currentRoute.value.query.tab, syncTab);
             <div
                 class="p-2 rounded-lg mb-2 cursor-pointer"
                 :class="tab === 'VideoGenFlow' ? 'menu-item-active' : ''"
-                @click="tab = 'VideoGenFlow'"
+                @click="selectTab('VideoGenFlow')"
             >
                 <div class="text-base truncate flex items-center">
                     <i-mdi-auto-fix

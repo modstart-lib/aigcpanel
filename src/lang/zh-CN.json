@@ -506,5 +506,6 @@
     "home.templateCountValue": "形象{count}",
     "home.workflowCountValue": "共{count}个",
     "home.avatar": "形象",
-    "home.knowledgeBase": "知识库"
+    "home.knowledgeBase": "知识库",
+    "home.openSource": "开源地址"
 }

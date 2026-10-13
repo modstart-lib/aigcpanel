@@ -506,5 +506,6 @@
     "home.templateCountValue": "Avatars {count}",
     "home.workflowCountValue": "{count} in total",
     "home.avatar": "Avatars",
-    "home.knowledgeBase": "Knowledge Base"
+    "home.knowledgeBase": "Knowledge Base",
+    "home.openSource": "Open Source"
 }

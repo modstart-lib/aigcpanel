@@ -4,6 +4,7 @@ import FeedbackTicketButton from "../components/common/FeedbackTicketButton.vue"
 
 
 import { TimeUtil } from "../lib/util";
+import { AppConfig } from "../config";
 import { t } from "../lang";
 import { TaskService } from "../service/TaskService";
 
@@ -484,6 +485,23 @@ onUnmounted(() => {
                     />
                 </div>
             </div>
+        </div>
+        <!-- 开源地址（地址始终为 github.com/modstart-lib/aigcpanel） -->
+        <div
+            class="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-xs text-gray-400"
+        >
+            <span class="flex items-center gap-1">
+                <i-mdi-open-source-initiative class="text-sm" />
+                {{ $t("home.openSource") }}
+            </span>
+            <a
+                :href="AppConfig.websiteGithub"
+                target="_blank"
+                class="flex items-center gap-1 text-gray-500 dark:text-gray-300 hover:text-blue-500 transition-colors"
+            >
+                <i-mdi-github class="text-sm" />
+                modstart-lib/aigcpanel
+            </a>
         </div>
     </div>
     
