@@ -54,13 +54,25 @@ export const EasyServer = function (config: any) {
     };
     this.init = async function () {};
     this.config = async function () {
+        // config.json 的 functions 有两种写法：
+        // - 新写法：顶层 functions 直接是 { [func]: { param, result, content } } 映射
+        // - 旧写法：顶层 functions 为能力名数组，函数定义放在 easyServer.functions
+        // 优先使用顶层对象形式，兼容旧写法的 easyServer.functions。
+        const easyServer = this.serverConfig.easyServer || {};
+        const topFunctions = this.serverConfig.functions;
+        const functions =
+            topFunctions &&
+            typeof topFunctions === "object" &&
+            !Array.isArray(topFunctions)
+                ? topFunctions
+                : easyServer.functions || {};
         return {
             code: 0,
             msg: "ok",
             data: {
                 httpUrl: null,
-                content: this.serverConfig.easyServer.content || "",
-                functions: this.serverConfig.easyServer.functions || {},
+                content: easyServer.content || "",
+                functions,
                 // 通用模型定义（config.json 的 general 数组）：
                 // 每项 { name, title, description, param, result }，供工具
                 // "通用模型"渲染表单与展示结果（result 从 stdout 结果按 name 解析）

@@ -320,6 +320,30 @@ Token 在「设置 - API 服务 - 访问 Token」中配置。CLI 工具会自动
 
 ---
 
+### 文件下载
+
+#### POST /api/file/download
+
+下载模型产出的结果文件（如生成的图片 / 音频 / 视频）。仅允许访问数据目录与已安装模型目录下的文件。
+
+**请求体：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| path | string | 结果文件的绝对路径（模型返回的 `url` 字段） |
+
+**返回：** 文件二进制流（`Content-Type` 按扩展名推断）。
+
+**示例：**
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <Token>" \
+  -H "Content-Type: application/json" \
+  -d '{"path":"/path/to/result.png"}' \
+  http://127.0.0.1:端口/api/file/download -o result.png
+```
+
 ### 工具调用
 
 #### POST /api/tools/submit

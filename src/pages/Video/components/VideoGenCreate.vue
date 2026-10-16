@@ -27,11 +27,20 @@ const formData = ref({
 
 const videoTemplateRecords = ref<VideoTemplateRecord[]>([]);
 
-onMounted(() => {
+onMounted(async () => {
     const old = StorageUtil.getObject("VideoGenCreate.formData");
     formData.value.soundType = old.soundType || "soundGenerate";
     formData.value.soundGenerateId = old.soundGenerateId || 0;
     formData.value.soundCustomFile = old.soundCustomFile || "";
+    // A restored local file that no longer exists (deleted/moved) would only
+    // fail much later with a cryptic "文件不存在" from the model, so drop it now
+    // and make the user pick the file again.
+    if (
+        formData.value.soundCustomFile &&
+        !(await $mapi.file.exists(formData.value.soundCustomFile))
+    ) {
+        formData.value.soundCustomFile = "";
+    }
     
 });
 
@@ -70,6 +79,13 @@ const doSubmit = async () => {
         soundCustomFile = formData.value.soundCustomFile;
         if (!soundCustomFile) {
             Dialog.tipError(t("hint.selectVoice"));
+            return;
+        }
+        // Validate right away instead of dispatching a task that can only fail
+        // inside the model with "文件不存在".
+        if (!(await $mapi.file.exists(soundCustomFile))) {
+            Dialog.tipError(t("error.audioFileNotSelected"));
+            formData.value.soundCustomFile = "";
             return;
         }
     } else {

@@ -611,6 +611,67 @@ export const ffmpegVideoNormal = async (
     return output;
 };
 
+// Turn a still image into a fixed-duration video (default 5s) so that an
+// avatar can be created from a photo and reused by the existing video pipeline.
+export const ffmpegImageToVideo = async (
+    input: string,
+    option?: {
+        duration?: number;
+        fps?: number;
+        sizeMax?: number;
+    },
+): Promise<string> => {
+    option = Object.assign(
+        {
+            duration: 5,
+            fps: 25,
+            sizeMax: 1920,
+        },
+        option || {},
+    );
+    const output = await $mapi.file.temp("mp4");
+    // Fit the image into a sizeMax box keeping the aspect ratio, then force
+    // both dimensions to even numbers (required by H.264 yuv420p).
+    const scaleFilter = [
+        `scale='min(${option.sizeMax},iw)':'min(${option.sizeMax},ih)':force_original_aspect_ratio=decrease`,
+        `scale=trunc(iw/2)*2:trunc(ih/2)*2`,
+        `format=yuv420p`,
+    ].join(",");
+    const args = [
+        "-hide_banner",
+        "-y",
+        "-loop",
+        "1",
+        "-framerate",
+        option.fps!.toString(),
+        "-i",
+        input,
+        "-t",
+        option.duration!.toString(),
+        "-vf",
+        scaleFilter,
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "18",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        "-an",
+        "-r",
+        option.fps!.toString(),
+        output,
+    ];
+    await $mapi.app.spawnBinary("ffmpeg", args);
+    if (!(await $mapi.file.exists(output))) {
+        throw t("error.imageToVideoFailed");
+    }
+    return output;
+};
+
 export const ffmpegVideoPreview = async (input: string): Promise<string> => {
     const output = await $mapi.file.temp("mp4");
     const args = [

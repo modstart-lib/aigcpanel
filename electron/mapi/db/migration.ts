@@ -350,6 +350,71 @@ const versions = [
             await db.execute(`DROP TABLE IF EXISTS data_sound_clone`);
         },
     },
+    {
+        version: 15,
+        up: async (db: DB) => {
+            // Migrate the legacy clone voice library (data_storage biz "SoundPrompt",
+            // migrated from the old "soundClonePrompt" storage) into the new voice
+            // store ("SoundVoice"), so cloned voices saved before the voice refactor
+            // are visible again in the new voice management UI.
+            //
+            // Legacy records only carry the reference audio + text; they have no
+            // model binding, so serverKey is left empty and must be chosen by the
+            // user in the voice management page before the voice can be used.
+            // The original SoundPrompt rows are kept (still used by custom params).
+            const records = await db.select(
+                `SELECT * FROM data_storage WHERE biz = ?`,
+                ["SoundPrompt"],
+            );
+            // Idempotent guard: collect titles already present in SoundVoice so a
+            // re-run (or a manually recreated voice) does not insert duplicates.
+            // Titles are used instead of reference-audio paths because several
+            // voices may legitimately share the same reference file.
+            const existingTitles = new Set<string>();
+            const existing = await db.select(
+                `SELECT title FROM data_storage WHERE biz = ?`,
+                ["SoundVoice"],
+            );
+            for (const e of existing) {
+                if (e.title) {
+                    existingTitles.add(e.title);
+                }
+            }
+            for (const r of records) {
+                let content: any = {};
+                try {
+                    content = JSON.parse(r.content || "{}");
+                } catch (e) {
+                    content = {};
+                }
+                const url = (content && content.url) || "";
+                const title = r.title || "";
+                if (!url || existingTitles.has(title)) {
+                    continue;
+                }
+                existingTitles.add(title);
+                await db.insert(
+                    `INSERT INTO data_storage (biz, title, sort, content)
+                     VALUES (?, ?, ?, ?)`,
+                    [
+                        "SoundVoice",
+                        r.title,
+                        r.sort || 0,
+                        JSON.stringify({
+                            type: "clone",
+                            serverKey: "",
+                            serverName: "",
+                            serverTitle: "",
+                            serverVersion: "",
+                            param: {},
+                            promptUrl: url,
+                            promptText: (content && content.promptText) || "",
+                        }),
+                    ],
+                );
+            }
+        },
+    },
 ];
 
 export default {

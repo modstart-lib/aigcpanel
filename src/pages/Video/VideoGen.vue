@@ -9,6 +9,7 @@ import TaskBatchDeleteAction from "../../components/Server/TaskBatchDeleteAction
 import TaskBatchDownloadAction from "../../components/Server/TaskBatchDownloadAction.vue";
 import TaskCancelAction from "../../components/Server/TaskCancelAction.vue";
 import TaskDeleteAction from "../../components/Server/TaskDeleteAction.vue";
+import TaskRetryAction from "../../components/Server/TaskRetryAction.vue";
 import TaskDownloadAction from "../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../components/Server/TaskDuration.vue";
 import TaskTitleField from "../../components/Server/TaskTitleField.vue";
@@ -181,6 +182,10 @@ const doRefresh = async () => {
                             </div>
                             <div class="">
                                 <TaskDownloadAction :record="r" />
+                                <TaskRetryAction
+                                    :record="r"
+                                    @update="doRefresh"
+                                />
                                 <TaskDeleteAction
                                     :record="r"
                                     @update="doRefresh"

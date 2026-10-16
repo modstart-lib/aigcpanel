@@ -1,4 +1,5 @@
 import { TimeUtil } from "../lib/util";
+import { mapError } from "../lib/error";
 import { TaskChangeType, useTaskStore } from "../store/modules/task";
 import { groupThrottle } from "../lib/groupThrottle";
 import { t } from "../lang";
@@ -253,14 +254,26 @@ export const TaskService = {
              VALUES (${valuesPlaceholder.join(",")})`,
             values,
         );
-        await taskStore.dispatch(
-            record.biz,
-            id,
-            {},
-            {
-                queryInterval: 5 * 1000,
-            },
-        );
+        try {
+            await taskStore.dispatch(
+                record.biz,
+                id,
+                {},
+                {
+                    queryInterval: 5 * 1000,
+                },
+            );
+        } catch (e) {
+            // The row is already inserted: if it can never be dispatched (e.g.
+            // TaskBizNotFound) it would stay in "queue" forever and the list
+            // would show a task that never runs. Mark it failed instead.
+            await this.update(id, {
+                status: "fail",
+                statusMsg: mapError(e),
+                endTime: TimeUtil.timestampMS(),
+            }).catch(() => {});
+            throw e;
+        }
         return id;
     },
     updatePercent: groupThrottle(

@@ -26,10 +26,57 @@ const ttsParamForm = ref<InstanceType<typeof ParamForm>>();
 const ttsParam = ref([]);
 const ttsModelConfig = ref(null);
 const voiceEmpty = ref(false);
+/** Param definitions of the selected voice's model (voiceSelectOnly mode). */
+const voiceParamDef = ref<any[]>([]);
+const voiceParamForm = ref<InstanceType<typeof ParamForm>>();
+/** True when the selected voice has no model bound yet (e.g. migrated legacy voices). */
+const voiceModelNotSet = ref(false);
+/** Per-synthesis param editor visibility (collapsed by default). */
+const voiceParamExpanded = ref(false);
+/** Voice params to apply to the param form once it is ready. */
+const voiceParamPending = ref<Record<string, any> | null>(null);
 const onSoundTtsServerUpdate = async (config: any) => {
     ttsParam.value = config.functions.soundTts?.param || [];
     ttsModelConfig.value = config;
 };
+
+/**
+ * The selected voice resolved its model config: render the model's param form
+ * so the user can tweak params (speaker/speed/...) per synthesis, while the
+ * model itself stays bound to the voice. The params default to the voice's own
+ * saved params.
+ */
+const onVoiceModelConfig = async (payload: any) => {
+    const def = payload?.config?.functions?.[payload.functionName]?.param || [];
+    voiceParamDef.value = def;
+    if (!def.length) {
+        voiceParamPending.value = null;
+        return;
+    }
+    const voice = await SoundVoiceService.get(formData.value.voiceId);
+    voiceParamPending.value = (voice?.content?.param as any) || {};
+};
+
+// Apply the pending params once both the param definitions and the param form
+// are ready (post-flush so the form is mounted before setValue runs). The
+// pending value is set asynchronously (after fetching the voice), so it is a
+// watch source too.
+watch(
+    [voiceParamDef, voiceParamForm, voiceParamPending],
+    () => {
+        if (
+            !voiceParamPending.value ||
+            !voiceParamDef.value.length ||
+            !voiceParamForm.value
+        ) {
+            return;
+        }
+        const pending = voiceParamPending.value;
+        voiceParamPending.value = null;
+        voiceParamForm.value.setValue(pending);
+    },
+    { flush: "post" },
+);
 
 const refreshVoiceEmpty = async () => {
     voiceEmpty.value = (await SoundVoiceService.list()).length === 0;
@@ -53,11 +100,31 @@ watch(
     },
 );
 
+// Track whether the selected voice has a model bound; migrated legacy voices
+// have none and need the user to set one in the voice management page.
+watch(
+    () => formData.value.voiceId,
+    async (id) => {
+        voiceModelNotSet.value = false;
+        voiceParamExpanded.value = false;
+        if (!id) {
+            return;
+        }
+        const voice = await SoundVoiceService.get(id);
+        voiceModelNotSet.value =
+            !!voice && !!voice.content && !voice.content.serverKey;
+    },
+);
+
 const getValue = async (): Promise<SoundGenerateParamType | undefined> => {
     if (props.voiceSelectOnly) {
         const voice = await SoundVoiceService.get(formData.value.voiceId);
         if (!voice || !voice.content) {
             Dialog.tipError(t("soundVoice.selectRequired"));
+            return;
+        }
+        if (!voice.content.serverKey) {
+            Dialog.tipError(t("soundVoice.modelNotSetHint"));
             return;
         }
         const server = await serverStore.getByNameVersion(
@@ -82,8 +149,21 @@ const getValue = async (): Promise<SoundGenerateParamType | undefined> => {
                 return;
             }
         }
+        const config: any = SoundVoiceService.buildModelConfig(voice, "");
+        // Params can be tweaked per synthesis; the model stays bound to the voice.
+        if (voiceParamDef.value.length > 0 && voiceParamForm.value) {
+            if (!voiceParamForm.value.validate()) {
+                return;
+            }
+            const param = voiceParamForm.value.getValue();
+            if (config.type === "SoundClone") {
+                config.cloneParam = param;
+            } else {
+                config.ttsParam = param;
+            }
+        }
         return {
-            ...SoundVoiceService.buildModelConfig(voice, ""),
+            ...config,
             voiceId: voice.id as number,
             serverName: server.name,
             serverTitle: server.title,
@@ -207,10 +287,47 @@ defineExpose({
                         v-model="formData.voiceId"
                         :service="SoundVoiceService"
                         :placeholder="$t('soundVoice.select')"
-                    />
+                        @model-config="onVoiceModelConfig"
+                    >
+                        <template #actions>
+                            <a-button
+                                v-if="voiceParamDef.length > 0"
+                                :type="
+                                    voiceParamExpanded ? 'primary' : undefined
+                                "
+                                @click="
+                                    voiceParamExpanded = !voiceParamExpanded
+                                "
+                            >
+                                <template #icon>
+                                    <i-mdi-tune-variant />
+                                </template>
+                                {{ $t("voice.adjustParam") }}
+                            </a-button>
+                        </template>
+                    </VoiceSelector>
                     <div v-if="voiceEmpty" class="text-gray-400 text-sm">
                         {{ $t("soundVoice.empty") }}
                     </div>
+                    <div v-if="voiceModelNotSet" class="text-red-500 text-sm">
+                        {{ $t("soundVoice.modelNotSetHint") }}
+                    </div>
+                </div>
+            </div>
+            <!-- Params default to the voice's own params and are collapsed until
+                 the user clicks "Adjust Params". -->
+            <div
+                v-if="voiceParamDef.length > 0"
+                v-show="voiceParamExpanded"
+                class="flex items-start mt-2"
+            >
+                <div class="pt-3 w-5 flex-shrink-0">
+                    <a-tooltip :content="$t('voice.param')" mini>
+                        <i-mdi-tune-variant class="w-4 h-4" />
+                    </a-tooltip>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <ParamForm ref="voiceParamForm" :param="voiceParamDef" />
                 </div>
             </div>
             <div class="mt-2"><slot /></div>

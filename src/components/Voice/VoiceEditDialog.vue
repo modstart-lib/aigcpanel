@@ -71,13 +71,23 @@ const onTypeChange = () => {
     previewUrl.value = "";
 };
 
-watch(paramDef, async (def) => {
-    if (pendingParam.value && def) {
-        await nextTick();
-        paramForm.value?.setValue(pendingParam.value);
+// Apply the stored params once both the param definitions and the param form
+// are ready (use post-flush so the form is mounted before setValue runs).
+watch(
+    [paramDef, paramForm],
+    () => {
+        if (pendingParam.value === null) {
+            return;
+        }
+        if (!paramDef.value.length || !paramForm.value) {
+            return;
+        }
+        const pending = pendingParam.value;
         pendingParam.value = null;
-    }
-});
+        paramForm.value.setValue(pending);
+    },
+    { flush: "post" },
+);
 
 // Stop the preview / reference audio playback when the dialog is closed.
 watch(visible, (val) => {
@@ -117,8 +127,7 @@ const edit = async (record: VoiceRecord) => {
     formData.value.previewText =
         record.content?.previewText || t("voice.previewDefault");
     existingPromptUrl.value = record.content?.promptUrl || "";
-    pendingParam.value =
-        record.content?.type === "tts" ? record.content?.param || {} : null;
+    pendingParam.value = record.content?.param || {};
     visible.value = true;
 };
 
@@ -168,6 +177,9 @@ const buildContent = async (): Promise<VoiceContent | null> => {
         }
         if (!promptUrl) {
             Dialog.tipError(t("hint.recordVoice"));
+            return null;
+        }
+        if (paramForm.value && !paramForm.value.validate()) {
             return null;
         }
         return {
@@ -406,9 +418,7 @@ const emit = defineEmits({
                             />
                         </a-form-item>
                         <a-form-item
-                            v-if="
-                                formData.type === 'tts' && paramDef.length > 0
-                            "
+                            v-if="paramDef.length > 0"
                             :label="$t('voice.param')"
                         >
                             <ParamForm ref="paramForm" :param="paramDef" />

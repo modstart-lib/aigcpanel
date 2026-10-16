@@ -45,6 +45,11 @@ const ensurePreviews = () => {
         if (!id || record.content?.previewUrl) {
             continue;
         }
+        // Voices without a model cannot synthesize yet (e.g. migrated legacy
+        // voices), skip the auto preview so they are not marked as failed.
+        if (!record.content?.serverKey) {
+            continue;
+        }
         // 已有生成中 / 失败状态时不再自动触发（失败需手动重试）。
         if (props.service.previewStatus(id)) {
             continue;
@@ -173,6 +178,7 @@ const voiceTypeLabel = (record: VoiceRecord) => {
                             {{ voiceTypeLabel(r) }}
                         </div>
                         <div
+                            v-if="r.content?.serverKey"
                             class="inline-flex items-center bg-gray-100 rounded-lg px-2 leading-6 h-6 text-xs"
                         >
                             <i-mdi-server-outline
@@ -180,6 +186,16 @@ const voiceTypeLabel = (record: VoiceRecord) => {
                             />
                             {{ r.content?.serverTitle }}
                             v{{ r.content?.serverVersion }}
+                        </div>
+                        <div
+                            v-else
+                            class="inline-flex items-center bg-red-100 text-red-600 rounded-lg px-2 leading-6 h-6 text-xs"
+                            :title="$t('soundVoice.modelNotSetHint')"
+                        >
+                            <i-mdi-alert-circle-outline
+                                class="w-4 h-4 inline-block align-middle mr-1"
+                            />
+                            {{ $t("soundVoice.modelNotSet") }}
                         </div>
                         <div
                             v-if="

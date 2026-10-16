@@ -320,6 +320,32 @@ Uploaded files are saved to the temp directory. The returned `path` can be used 
 
 ---
 
+### File Download
+
+#### POST /api/file/download
+
+Download a result file produced by a model (generated image / audio / video). Only files under the data root and installed model directories are allowed.
+
+**Request body:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| path | string | Absolute path of the result file (the `url` field returned by a model) |
+
+**Response:** the file binary stream (`Content-Type` inferred from the extension).
+
+**Example:**
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <Token>" \
+  -H "Content-Type: application/json" \
+  -d '{"path":"/path/to/result.png"}' \
+  http://127.0.0.1:PORT/api/file/download -o result.png
+```
+
+---
+
 ### Tools
 
 #### POST /api/tools/submit

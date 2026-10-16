@@ -23,7 +23,7 @@ const props = withDefaults(
     },
 );
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "model-config"]);
 
 const goManage = () => {
     Router.push({
@@ -45,6 +45,7 @@ watch(
     async (voiceId, _, onCleanup) => {
         modelConfig.value = null;
         modelFunction.value = "";
+        emit("model-config", null);
         if (!voiceId) return;
         let stale = false;
         onCleanup(() => {
@@ -53,6 +54,7 @@ watch(
         try {
             const voice = await props.service.get(voiceId);
             if (!voice?.content || stale) return;
+            if (!voice.content.serverKey) return;
             const server = await serverStore.getByKey(voice.content.serverKey);
             if (!server || stale) return;
             let config: any = server;
@@ -70,6 +72,10 @@ watch(
             modelConfig.value = config;
             modelFunction.value =
                 voice.content.type === "clone" ? "soundClone" : "soundTts";
+            emit("model-config", {
+                config: modelConfig.value,
+                functionName: modelFunction.value,
+            });
         } catch {
             // 模型说明是附加信息，读取失败时仍允许选择音色。
         }
@@ -98,6 +104,7 @@ defineExpose({ refresh: doRefresh });
             </a-option>
         </a-select>
         <ServerContentInfoAction :config="modelConfig" :func="modelFunction" />
+        <slot name="actions" />
         <a-button @click="goManage">
             <template #icon>
                 <icon-settings />
