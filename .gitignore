@@ -2,5 +2,4 @@ dist/
 dist-*/
 .DS_Store
 node_modules/
-package-lock.json
 _temp/
