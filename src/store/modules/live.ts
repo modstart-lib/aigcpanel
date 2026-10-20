@@ -47,6 +47,12 @@ const EMPTY_LIVE_STATUS = {
     videoTitle: "",
     talkTitle: "",
     talkContent: "",
+    /** 手动输入（动态打字）播报的队列，由直播服务返回 */
+    talkQueue: [] as {
+        id: string;
+        content: string;
+        status: "synthesizing" | "waiting" | "playing" | "failed";
+    }[],
     avatarRtmp: "",
     avatarHls: "",
     videoRtmp: "",
@@ -278,6 +284,7 @@ export const liveStore = defineStore("live", {
                 this.liveStatus.videoTitle = data.videoTitle;
                 this.liveStatus.talkTitle = data.talkTitle;
                 this.liveStatus.talkContent = data.talkContent;
+                this.liveStatus.talkQueue = data.talkQueue || [];
                 this.liveStatus.avatarRtmp = data.avatarRtmp || "";
                 this.liveStatus.avatarHls = data.avatarHls || "";
                 this.liveStatus.videoRtmp = data.videoRtmp || "";
@@ -307,7 +314,10 @@ export const liveStore = defineStore("live", {
             } else if (this.liveStatus.status === "running") {
                 this.status = "running";
             }
-            this.liveStatusTimer = setTimeout(this.statusUpdate, 5000);
+            // 队列中有待合成/待播报的手动内容时加快轮询，让状态变化及时可见
+            const nextDelay =
+                this.liveStatus.talkQueue.length > 0 ? 1000 : 5000;
+            this.liveStatusTimer = setTimeout(this.statusUpdate, nextDelay);
         },
         async apiRequest(
             url: string,
@@ -550,16 +560,19 @@ export const liveStore = defineStore("live", {
             }
             this.statusMsg = "";
         },
-        async talk(text) {
+        /**
+         * 动态打字播报：把文字交给直播服务，服务端先合成语音再插入播报队列。
+         * 失败时抛出异常，由调用方展示错误。
+         */
+        async talk(text: string) {
             const res = await this.apiRequest("scene/talk", {
                 sceneId: SCENE_ID,
                 data: { text },
             });
             if (res.code) {
-                Dialog.tipError(t("common.sendFailed") + ":" + res.msg);
-                return;
+                throw new Error(res.msg || t("common.sendFailed"));
             }
-            Dialog.tipSuccess(t("common.sendSuccess"));
+            return res.data || {};
         },
         fireEvent(type, data) {
             this.apiRequest("scene/event", { sceneId: SCENE_ID, type, data });
