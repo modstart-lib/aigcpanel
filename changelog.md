@@ -1,3 +1,15 @@
+## [Unreleased]
+
+- 新增：音色试听按钮旁增加「查看日志」入口，试听生成失败时也可直接打开对应模型的运行日志，便于排查问题
+- 优化：音色试听音频生成期间禁止删除、重命名与编辑该音色，待生成结束（成功或失败）后自动恢复操作，避免与试听结果写回冲突
+- 优化：大模型「API地址」输入框显示默认地址占位，留空即使用默认值
+- 优化：更新 OpenAI、Gemini、Anthropic、硅基流动、MiniMax 的默认模型列表为当前可用模型
+- 修复：大模型供应商 API 地址拼接错误导致调用 404 的问题——填写带 `/v1` 的地址（如 `https://api.siliconflow.cn/v1`）会拼成 `/v1/v1/chat/completions`，带尾斜杠的地址会丢掉版本前缀；现在域名、带 `/v1`、带尾斜杠、以及完整 `.../chat/completions` 地址均可正确识别
+- 修复：Gemini、Anthropic、Perplexity、MiniMax 等供应商默认接口地址错误（Gemini 缺少 `/v1beta/openai` 兼容前缀、Anthropic 缺少 `/v1`、Perplexity 被错误追加 `/v1`、MiniMax 使用了旧域名）导致即使 Key 正确也无法调用的问题
+- 修复：阿里云百炼供应商模型列表为空的问题（模型配置 key 与供应商 id 不一致）
+- 修复：大模型列表中混入 embedding / rerank 模型、选中后对话必然失败的问题
+- 变更：移除已停止服务或无法使用普通 API Key 调用的供应商：GitHub Models（已退役）、GitHub Copilot（需 OAuth 令牌交换）、零一万物（已停止 API 服务）、Hyperbolic（推理服务已退役）、Jina / Voyage AI（仅提供 embedding/rerank）、Azure OpenAI（需 `api-key` 头与 `api-version` 参数）
+
 ## v2.6.0 支持图片生成视频，音色参数生成时可调，任务调度更稳定
 
 - 新增：数字人形象与直播形象支持「图片形象」，上传正脸照片即可自动生成 5 秒视频用于口型合成，无需录制形象视频

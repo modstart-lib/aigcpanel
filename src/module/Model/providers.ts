@@ -2,7 +2,6 @@ import { t } from "../../lang";
 
 import ZhinaoProviderLogo from "./assets/image/models/360.png";
 import HunyuanProviderLogo from "./assets/image/models/hunyuan.png";
-import AzureProviderLogo from "./assets/image/models/microsoft.png";
 import AiHubMixProviderLogo from "./assets/image/providers/aihubmix.jpg";
 import AlayaNewProviderLogo from "./assets/image/providers/alayanew.webp";
 import AnthropicProviderLogo from "./assets/image/providers/anthropic.png";
@@ -13,15 +12,12 @@ import DeepSeekProviderLogo from "./assets/image/providers/deepseek.png";
 import DmxapiProviderLogo from "./assets/image/providers/DMXAPI.png";
 import FireworksProviderLogo from "./assets/image/providers/fireworks.png";
 import GiteeAIProviderLogo from "./assets/image/providers/gitee-ai.png";
-import GithubProviderLogo from "./assets/image/providers/github.png";
 import GoogleProviderLogo from "./assets/image/providers/google.png";
 import GPUStackProviderLogo from "./assets/image/providers/gpustack.svg";
 import GraphRagProviderLogo from "./assets/image/providers/graph-rag.png";
 import GrokProviderLogo from "./assets/image/providers/grok.png";
 import GroqProviderLogo from "./assets/image/providers/groq.png";
-import HyperbolicProviderLogo from "./assets/image/providers/hyperbolic.png";
 import InfiniProviderLogo from "./assets/image/providers/infini.png";
-import JinaProviderLogo from "./assets/image/providers/jina.png";
 import LMStudioProviderLogo from "./assets/image/providers/lmstudio.png";
 import MinimaxProviderLogo from "./assets/image/providers/minimax.png";
 import MistralProviderLogo from "./assets/image/providers/mistral.png";
@@ -40,9 +36,7 @@ import StepProviderLogo from "./assets/image/providers/step.png";
 import TencentCloudProviderLogo from "./assets/image/providers/tencent-cloud-ti.png";
 import TogetherProviderLogo from "./assets/image/providers/together.png";
 import BytedanceProviderLogo from "./assets/image/providers/volcengine.png";
-import VoyageAIProviderLogo from "./assets/image/providers/voyageai.png";
 import XirangProviderLogo from "./assets/image/providers/xirang.png";
-import ZeroOneProviderLogo from "./assets/image/providers/zero-one.png";
 import ZhipuProviderLogo from "./assets/image/providers/zhipu.png";
 import { ModelProvider } from "./provider/provider";
 import { Provider } from "./types";
@@ -53,7 +47,6 @@ const ProviderLogoMap = {
     silicon: SiliconFlowProviderLogo,
     deepseek: DeepSeekProviderLogo,
     "gitee-ai": GiteeAIProviderLogo,
-    yi: ZeroOneProviderLogo,
     groq: GroqProviderLogo,
     zhipu: ZhipuProviderLogo,
     ollama: OllamaProviderLogo,
@@ -71,19 +64,14 @@ const ProviderLogoMap = {
     doubao: BytedanceProviderLogo,
     "graphrag-kylin-mountain": GraphRagProviderLogo,
     minimax: MinimaxProviderLogo,
-    github: GithubProviderLogo,
-    copilot: GithubProviderLogo,
     ocoolai: OcoolAiProviderLogo,
     together: TogetherProviderLogo,
     fireworks: FireworksProviderLogo,
     zhinao: ZhinaoProviderLogo,
     nvidia: NvidiaProviderLogo,
-    "azure-openai": AzureProviderLogo,
     hunyuan: HunyuanProviderLogo,
     grok: GrokProviderLogo,
-    hyperbolic: HyperbolicProviderLogo,
     mistral: MistralProviderLogo,
-    jina: JinaProviderLogo,
     ppio: PPIOProviderLogo,
     "baidu-cloud": BaiduCloudProviderLogo,
     dmxapi: DmxapiProviderLogo,
@@ -93,7 +81,6 @@ const ProviderLogoMap = {
     "tencent-cloud-ti": TencentCloudProviderLogo,
     gpustack: GPUStackProviderLogo,
     alayanew: AlayaNewProviderLogo,
-    voyageai: VoyageAIProviderLogo,
 } as const;
 
 export function getProviderLogo(providerId: string) {
@@ -105,6 +92,7 @@ export function getProviderUrl(provider: Provider) {
         provider.type,
         provider.apiUrl,
         provider.data.apiHost,
+        provider.apiPath,
     );
 }
 
@@ -114,10 +102,8 @@ export const getProviderTitle = (providerId: string) => {
         aihubmix: "AiHubMix",
         alayanew: "Alaya NeW",
         anthropic: "Anthropic",
-        "azure-openai": "Azure OpenAI",
         baichuan: t("provider.baichuan"),
         "baidu-cloud": t("provider.baiduCloud"),
-        copilot: "GitHub Copilot",
         dashscope: t("provider.dashscope"),
         deepseek: t("provider.deepseek"),
         dmxapi: "DMXAPI",
@@ -125,15 +111,12 @@ export const getProviderTitle = (providerId: string) => {
         fireworks: "Fireworks",
         gemini: "Gemini",
         "gitee-ai": "Gitee AI",
-        github: "GitHub Models",
         gpustack: "GPUStack",
         "graphrag-kylin-mountain": "GraphRAG",
         grok: "Grok",
         groq: "Groq",
         hunyuan: t("provider.hunyuan"),
-        hyperbolic: "Hyperbolic",
         infini: t("provider.infini"),
-        jina: "Jina",
         lmstudio: "LM Studio",
         minimax: "MiniMax",
         mistral: "Mistral",
@@ -153,15 +136,31 @@ export const getProviderTitle = (providerId: string) => {
         "tencent-cloud-ti": t("provider.tencentCloudTi"),
         together: "Together",
         xirang: t("provider.xirang"),
-        yi: t("provider.yi"),
         zhinao: t("provider.zhinao"),
         zhipu: t("provider.zhipu"),
-        voyageai: "Voyage AI",
     };
     return map[providerId as keyof typeof map] || providerId;
 };
 
-export const SystemProviders = {
+export type SystemProviderConfig = {
+    api: {
+        url: string;
+        /**
+         * Api version prefix appended to `url`, `/v1` by default.
+         * Use "" when the provider has no version prefix, or a provider specific
+         * OpenAI compatible prefix such as `/v1beta/openai`.
+         */
+        path?: string;
+    };
+    websites?: {
+        official?: string;
+        apiKey?: string;
+        docs?: string;
+        models?: string;
+    };
+};
+
+export const SystemProviders: Record<string, SystemProviderConfig> = {
     openai: {
         api: {
             url: "https://api.openai.com",
@@ -199,6 +198,8 @@ export const SystemProviders = {
     gemini: {
         api: {
             url: "https://generativelanguage.googleapis.com",
+            // Gemini exposes an OpenAI compatible layer under this prefix
+            path: "/v1beta/openai",
         },
         websites: {
             official: "https://gemini.google.com/",
@@ -215,7 +216,7 @@ export const SystemProviders = {
             official: "https://www.siliconflow.cn/",
             apiKey: "https://cloud.siliconflow.cn/account/ak?referrer=clxty1xuy0014lvqwh5z50i88",
             docs: "https://docs.siliconflow.cn/",
-            models: "https://docs.siliconflow.cn/docs/model-names",
+            models: "https://cloud.siliconflow.cn/models",
         },
     },
     "gitee-ai": {
@@ -275,7 +276,9 @@ export const SystemProviders = {
     },
     perplexity: {
         api: {
-            url: "https://api.perplexity.ai/",
+            url: "https://api.perplexity.ai",
+            // Perplexity does not use a version prefix
+            path: "",
         },
         websites: {
             official: "https://perplexity.ai/",
@@ -293,33 +296,6 @@ export const SystemProviders = {
             apiKey: "https://cloud.infini-ai.com/iam/secret/key",
             docs: "https://docs.infini-ai.com/gen-studio/api/maas.html#/operations/chatCompletions",
             models: "https://cloud.infini-ai.com/genstudio/model",
-        },
-    },
-    github: {
-        api: {
-            url: "https://models.inference.ai.azure.com/",
-        },
-        websites: {
-            official: "https://github.com/marketplace/models",
-            apiKey: "https://github.com/settings/tokens",
-            docs: "https://docs.github.com/en/github-models",
-            models: "https://github.com/marketplace/models",
-        },
-    },
-    copilot: {
-        api: {
-            url: "https://api.githubcopilot.com/",
-        },
-    },
-    yi: {
-        api: {
-            url: "https://api.lingyiwanwu.com",
-        },
-        websites: {
-            official: "https://platform.lingyiwanwu.com/",
-            apiKey: "https://platform.lingyiwanwu.com/apikeys",
-            docs: "https://platform.lingyiwanwu.com/docs",
-            models: "https://platform.lingyiwanwu.com/docs#%E6%A8%A1%E5%9E%8B",
         },
     },
     zhipu: {
@@ -357,7 +333,7 @@ export const SystemProviders = {
     },
     modelscope: {
         api: {
-            url: "https://api-inference.modelscope.cn/v1/",
+            url: "https://api-inference.modelscope.cn/v1",
         },
         websites: {
             official: "https://modelscope.cn",
@@ -412,7 +388,7 @@ export const SystemProviders = {
     },
     minimax: {
         api: {
-            url: "https://api.minimax.chat/v1/",
+            url: "https://api.minimaxi.com",
         },
         websites: {
             official: "https://platform.minimaxi.com/",
@@ -477,7 +453,7 @@ export const SystemProviders = {
     },
     anthropic: {
         api: {
-            url: "https://api.anthropic.com/",
+            url: "https://api.anthropic.com",
         },
         websites: {
             official: "https://anthropic.com/",
@@ -496,17 +472,6 @@ export const SystemProviders = {
             models: "https://docs.x.ai/docs#getting-started",
         },
     },
-    hyperbolic: {
-        api: {
-            url: "https://api.hyperbolic.xyz",
-        },
-        websites: {
-            official: "https://app.hyperbolic.xyz",
-            apiKey: "https://app.hyperbolic.xyz/settings",
-            docs: "https://docs.hyperbolic.xyz",
-            models: "https://app.hyperbolic.xyz/models",
-        },
-    },
     mistral: {
         api: {
             url: "https://api.mistral.ai",
@@ -516,17 +481,6 @@ export const SystemProviders = {
             apiKey: "https://console.mistral.ai/api-keys/",
             docs: "https://docs.mistral.ai",
             models: "https://docs.mistral.ai/getting-started/models/models_overview",
-        },
-    },
-    jina: {
-        api: {
-            url: "https://api.jina.ai",
-        },
-        websites: {
-            official: "https://jina.ai",
-            apiKey: "https://jina.ai/",
-            docs: "https://jina.ai",
-            models: "https://jina.ai",
         },
     },
     aihubmix: {
@@ -584,18 +538,6 @@ export const SystemProviders = {
             models: "https://build.nvidia.com/nim",
         },
     },
-    "azure-openai": {
-        api: {
-            url: "",
-        },
-        websites: {
-            official:
-                "https://azure.microsoft.com/en-us/products/ai-services/openai-service",
-            apiKey: "https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/OpenAI",
-            docs: "https://learn.microsoft.com/en-us/azure/ai-services/openai/",
-            models: "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models",
-        },
-    },
     "baidu-cloud": {
         api: {
             url: "https://qianfan.baidubce.com/v2/",
@@ -621,22 +563,13 @@ export const SystemProviders = {
     gpustack: {
         api: {
             url: "",
+            // GPUStack serves an OpenAI compatible endpoint such as `/v1-openai`
+            path: "",
         },
         websites: {
             official: "https://gpustack.ai/",
             docs: "https://docs.gpustack.ai/latest/",
             models: "https://docs.gpustack.ai/latest/overview/#supported-models",
-        },
-    },
-    voyageai: {
-        api: {
-            url: "https://api.voyageai.com",
-        },
-        websites: {
-            official: "https://www.voyageai.com/",
-            apiKey: "https://dashboard.voyageai.com/organization/api-keys",
-            docs: "https://docs.voyageai.com/docs",
-            models: "https://docs.voyageai.com/docs",
         },
     },
 };

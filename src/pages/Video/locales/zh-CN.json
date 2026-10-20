@@ -92,6 +92,7 @@
     "voice.previewGenerating": "试听语音生成中",
     "voice.previewFailed": "试听语音生成失败",
     "voice.previewRetry": "重新生成",
+    "voice.previewBusyHint": "试听语音生成中，请等待生成完成后再操作",
     "voice.previewSuccess": "试听生成成功",
     "voice.saveSuccess": "音色已保存",
     "soundVoice.title": "语音音色",

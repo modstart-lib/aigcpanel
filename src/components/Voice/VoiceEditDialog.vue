@@ -4,6 +4,7 @@ import AudioPlayer from "../common/AudioPlayer.vue";
 import ParamForm from "../common/ParamForm.vue";
 import ServerSelector from "../Server/ServerSelector.vue";
 import ServerContentInfoAction from "../Server/ServerContentInfoAction.vue";
+import ModelLogAction from "../Server/ModelLogAction.vue";
 import WebFileSelectButton from "../common/WebFileSelectButton.vue";
 import { Dialog } from "../../lib/dialog";
 import { t } from "../../lang";
@@ -243,6 +244,11 @@ const doPreview = async () => {
 };
 
 const doSave = async () => {
+    // 试听音频仍在生成：等生成结束（成功或失败）后再保存，避免丢失试听结果。
+    if (previewLoading.value) {
+        Dialog.tipError(t("voice.previewBusyHint"));
+        return false;
+    }
     if (!formData.value.title) {
         Dialog.tipError(t("hint.inputName"));
         return false;
@@ -314,7 +320,13 @@ const emit = defineEmits({
             <a-button @click="visible = false">
                 {{ $t("common.cancel") }}
             </a-button>
-            <a-button type="primary" :loading="saving" @click="doSave">
+            <a-button
+                type="primary"
+                :loading="saving"
+                :disabled="previewLoading"
+                :title="previewLoading ? $t('voice.previewBusyHint') : ''"
+                @click="doSave"
+            >
                 {{ $t("common.save") }}
             </a-button>
         </template>
@@ -441,6 +453,10 @@ const emit = defineEmits({
                                     </template>
                                     {{ $t("voice.preview") }}
                                 </a-button>
+                                <ModelLogAction
+                                    class="ml-2"
+                                    :server-key="formData.serverKey"
+                                />
                             </div>
                         </a-form-item>
                         <a-form-item v-if="previewUrl">

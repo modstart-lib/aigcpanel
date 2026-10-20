@@ -282,6 +282,7 @@
     "intro.voiceClone": "支持内置声音合成，5秒音频声音复刻",
     "log.autoScroll": "自动滚动",
     "log.view": "日志查看",
+    "log.viewModelLog": "查看日志",
     "monitor.debug": "调试",
     "monitor.refresh": "刷新",
     "error.urlRequired": "请输入远程地址",

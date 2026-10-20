@@ -52,6 +52,13 @@ export type Provider = {
     title: string;
     isSystem: boolean;
     apiUrl: string;
+    /**
+     * Api version prefix appended to `apiUrl`, `/v1` by default.
+     * Use an empty string for providers whose endpoint has no version prefix,
+     * and a custom value such as `/v1beta/openai` for providers with a
+     * dedicated OpenAI compatible prefix.
+     */
+    apiPath?: string;
     websites: {
         official: string;
         docs: string;

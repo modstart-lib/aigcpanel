@@ -92,6 +92,7 @@
     "voice.previewGenerating": "Generating preview audio",
     "voice.previewFailed": "Failed to generate preview audio",
     "voice.previewRetry": "Regenerate",
+    "voice.previewBusyHint": "Preview audio is generating, please wait until it finishes",
     "voice.previewSuccess": "Preview generated",
     "voice.saveSuccess": "Voice saved",
     "soundVoice.title": "Voice",

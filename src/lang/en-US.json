@@ -282,6 +282,7 @@
     "intro.voiceClone": "Supports built-in voice synthesis, 5-second audio voice cloning",
     "log.autoScroll": "Auto Scroll",
     "log.view": "Log View",
+    "log.viewModelLog": "View Log",
     "monitor.debug": "Debug",
     "monitor.refresh": "Refresh",
     "error.urlRequired": "Please enter remote URL",

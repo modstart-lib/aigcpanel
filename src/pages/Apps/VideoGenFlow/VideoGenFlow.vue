@@ -136,15 +136,24 @@ onMounted(() => {
                                         :text="r.modelConfig.text"
                                     />
                                 </div>
+                                <!-- The sound is generated before the video, so show it as
+                                     soon as it exists: if the video step fails the sound
+                                     is still a valid result the user can keep. -->
                                 <div
-                                    v-if="
-                                        r.status === 'success' &&
-                                        r.result.urlSound
-                                    "
+                                    v-if="r.result && r.result.urlSound"
+                                    class="flex items-center gap-2"
                                 >
-                                    <AudioPlayer
-                                        show-wave
-                                        :url="'file://' + r.result.urlSound"
+                                    <div class="flex-grow min-w-0">
+                                        <AudioPlayer
+                                            show-wave
+                                            :url="'file://' + r.result.urlSound"
+                                        />
+                                    </div>
+                                    <TaskDownloadAction
+                                        :record="r"
+                                        name="urlSound"
+                                        :title="$t('download.audio')"
+                                        allow-partial
                                     />
                                 </div>
                             </div>

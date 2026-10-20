@@ -6,6 +6,7 @@ import ListerTop from "../common/ListerTop.vue";
 import MEmpty from "../common/MEmpty.vue";
 import MLoading from "../common/MLoading.vue";
 import PageHeader from "../PageHeader.vue";
+import ModelLogAction from "../Server/ModelLogAction.vue";
 import { Dialog } from "../../lib/dialog";
 import { t } from "../../lang";
 import { VoiceRecord, VoiceServiceType } from "../../service/VoiceService";
@@ -64,6 +65,23 @@ const ensurePreviews = () => {
     }
 };
 
+/**
+ * 试听音频生成中：该音色暂不允许删除 / 修改（重命名、编辑），
+ * 需等待生成结束（成功或失败）后再操作，避免与试听结果的写回相互覆盖。
+ */
+const isPreviewBusy = (record: VoiceRecord) => {
+    return props.service.previewStatus(record.id as number) === "generating";
+};
+
+/** 试听生成中时提示并拦截操作，返回 true 表示已拦截 */
+const guardPreviewBusy = (record: VoiceRecord) => {
+    if (!isPreviewBusy(record)) {
+        return false;
+    }
+    Dialog.tipError(t("voice.previewBusyHint"));
+    return true;
+};
+
 const doRetryPreview = async (record: VoiceRecord) => {
     await props.service.generatePreview(record, previewTextOf(record), () => {
         void loadRecords();
@@ -93,11 +111,24 @@ onUnmounted(() => {
 });
 
 const onChangeTitle = async (record: VoiceRecord, value: string) => {
+    if (guardPreviewBusy(record)) {
+        return;
+    }
     await props.service.update(record.id as number, { title: value });
     await doRefresh();
 };
 
+const doEdit = (record: VoiceRecord) => {
+    if (guardPreviewBusy(record)) {
+        return;
+    }
+    editDialog.value?.edit(record);
+};
+
 const doDelete = async (record: VoiceRecord) => {
+    if (guardPreviewBusy(record)) {
+        return;
+    }
     await Dialog.confirm(t("common.deleteConfirm"));
     await props.service.delete(record);
     await doRefresh();
@@ -144,10 +175,21 @@ const voiceTypeLabel = (record: VoiceRecord) => {
                                 </div>
                                 <InputInlineEditor
                                     :value="r.title"
+                                    :disabled="isPreviewBusy(r)"
                                     @change="onChangeTitle(r, $event)"
                                 >
                                     <a
-                                        class="ml-1 text-gray-400 flex-shrink-0 whitespace-nowrap block"
+                                        class="ml-1 flex-shrink-0 whitespace-nowrap block"
+                                        :class="
+                                            isPreviewBusy(r)
+                                                ? 'text-gray-300 cursor-not-allowed'
+                                                : 'text-gray-400'
+                                        "
+                                        :title="
+                                            isPreviewBusy(r)
+                                                ? $t('voice.previewBusyHint')
+                                                : ''
+                                        "
                                         href="javascript:;"
                                     >
                                         <icon-pen />
@@ -156,12 +198,30 @@ const voiceTypeLabel = (record: VoiceRecord) => {
                             </div>
                         </div>
                         <div>
-                            <a-button class="mr-2" @click="editDialog?.edit(r)">
+                            <a-button
+                                class="mr-2"
+                                :disabled="isPreviewBusy(r)"
+                                :title="
+                                    isPreviewBusy(r)
+                                        ? $t('voice.previewBusyHint')
+                                        : ''
+                                "
+                                @click="doEdit(r)"
+                            >
                                 <template #icon>
                                     <icon-edit />
                                 </template>
                             </a-button>
-                            <a-button @click="doDelete(r)" status="danger">
+                            <a-button
+                                :disabled="isPreviewBusy(r)"
+                                :title="
+                                    isPreviewBusy(r)
+                                        ? $t('voice.previewBusyHint')
+                                        : ''
+                                "
+                                status="danger"
+                                @click="doDelete(r)"
+                            >
                                 <template #icon>
                                     <icon-delete />
                                 </template>
@@ -214,12 +274,15 @@ const voiceTypeLabel = (record: VoiceRecord) => {
                                 r.content?.type === 'clone' &&
                                 r.content?.promptText
                             "
-                            class="inline-flex items-center bg-gray-100 rounded-lg px-2 leading-6 h-6 text-xs"
+                            class="inline-flex items-center bg-gray-100 rounded-lg px-2 leading-6 h-6 text-xs max-w-full min-w-0"
+                            :title="r.content.promptText"
                         >
                             <i-mdi-comment-text-outline
-                                class="w-4 h-4 inline-block align-middle mr-1"
+                                class="w-4 h-4 inline-block align-middle mr-1 flex-shrink-0"
                             />
-                            {{ r.content.promptText }}
+                            <span class="truncate min-w-0">
+                                {{ r.content.promptText }}
+                            </span>
                         </div>
                     </div>
                     <div v-if="r.content?.previewUrl" class="pt-3">
@@ -258,6 +321,11 @@ const voiceTypeLabel = (record: VoiceRecord) => {
                         >
                             {{ $t("voice.previewRetry") }}
                         </a>
+                        <ModelLogAction
+                            class="ml-2"
+                            :server-key="r.content?.serverKey || ''"
+                            variant="link"
+                        />
                     </div>
                 </div>
             </div>
