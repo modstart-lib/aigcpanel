@@ -31,6 +31,7 @@ func init() {
 	rootCmd.AddCommand(serverCallCmd)
 	rootCmd.AddCommand(toolsCmd)
 	rootCmd.AddCommand(serverInstallCmd)
+	rootCmd.AddCommand(serverPrepareCmd)
 	rootCmd.AddCommand(serverRemoveCmd)
 	rootCmd.AddCommand(serverLogCmd)
 	rootCmd.AddCommand(serverSettingCmd)

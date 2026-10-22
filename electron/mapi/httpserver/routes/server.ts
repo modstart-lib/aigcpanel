@@ -156,6 +156,20 @@ const resolveServerRecord = async (serverKey: string) => {
     return matched[0];
 };
 
+/**
+ * 由 server record 构造主进程 ServerInfo（HTTP 路由触发 prepare 时使用）。
+ */
+const buildServerInfo = (record: any) => ({
+    name: record.name,
+    version: record.version,
+    type: record.type || "localDir",
+    localPath: record.localPath || "",
+    setting: record.setting || {},
+    logFile: "",
+    eventChannelName: "",
+    config: record.config || {},
+});
+
 const buildModelConfig = (
     funcName: string,
     serverName: string,
@@ -563,7 +577,7 @@ router.post(
 );
 
 // ── POST /api/server/log ─────────────────────────────────────────────────
-// 查看模型服务日志（logs 目录中 {name}_{version}_*.log 最新文件，最多返回后 100KB）
+// 查看模型服务日志（logs 目录中 {name}_{version}_*.log 最新文件，最多返回后 512KB）
 router.post(
     "/log",
     asyncHandler(async (req: Request, res: Response) => {
@@ -607,8 +621,9 @@ router.post(
         let content = "";
         try {
             content = fs.readFileSync(path.join(logDir, latest), "utf-8");
-            if (content.length > 100 * 1024) {
-                content = content.slice(-100 * 1024);
+            // 权重下载日志可能较长（prepare 阶段逐条输出进度），保留更多尾部内容
+            if (content.length > 512 * 1024) {
+                content = content.slice(-512 * 1024);
             }
         } catch (e) {
             Log.error("httpserver.serverLog.read.error", String(e));
@@ -786,18 +801,85 @@ router.post(
     }),
 );
 
+// ── POST /api/server/prepare ─────────────────────────────────────────────
+// 权重按需下载：确保模型权重就绪（未配置 prepare 的模型直接返回 ready）。
+// body: { server: "name|version", wait?: boolean }
+//   wait=true（默认）等待下载完成；wait=false 只返回当前状态（供轮询）
+router.post(
+    "/prepare",
+    asyncHandler(async (req: Request, res: Response) => {
+        const { server, wait } = req.body || {};
+        let serverRecord: any;
+        try {
+            serverRecord = await resolveServerRecord(String(server || ""));
+        } catch (e) {
+            sendJson(res, 400, { code: -1, msg: String(e) });
+            return;
+        }
+        const serverInfo = buildServerInfo(serverRecord);
+        try {
+            const data =
+                wait === false
+                    ? await ServerMain.prepareStatus(serverInfo as any)
+                    : await ServerMain.prepare(serverInfo as any);
+            sendJson(res, 200, { code: 0, data });
+        } catch (e) {
+            sendJson(res, 200, { code: -1, msg: String(e) });
+        }
+    }),
+);
+
+// ── POST /api/server/preparePause ────────────────────────────────────────
+// 暂停权重下载（保留已下载文件与 .part 并写暂停标记，稍后「继续下载」可续传）
+// 兼容旧名 /api/server/prepareCancel
+router.post(
+    ["/preparePause", "/prepareCancel"],
+    asyncHandler(async (req: Request, res: Response) => {
+        const { server } = req.body || {};
+        let serverRecord: any;
+        try {
+            serverRecord = await resolveServerRecord(String(server || ""));
+        } catch (e) {
+            sendJson(res, 400, { code: -1, msg: String(e) });
+            return;
+        }
+        const paused = await ServerMain.pausePrepare(
+            buildServerInfo(serverRecord) as any,
+        );
+        sendJson(res, 200, { code: 0, data: { paused, cancelled: paused } });
+    }),
+);
+
 // ── POST /api/server/remove ──────────────────────────────────────────────
 // Remove an installed server record.
 // Body: { server: "name" or "name|version" }  version 可省略（按名称匹配唯一记录）
 router.post(
     "/remove",
     asyncHandler(async (req: Request, res: Response) => {
-        const { server } = req.body || {};
+        const { server, force } = req.body || {};
         if (!server) {
             sendJson(res, 400, { code: -1, msg: "Missing server" });
             return;
         }
         const [name, version = ""] = String(server).split("|");
+        // 权重下载中禁止删除：提示先暂停下载（force=true 可强制）
+        if (!force) {
+            try {
+                const _record = await resolveServerRecord(String(server));
+                const _status: any = await ServerMain.prepareStatus(
+                    buildServerInfo(_record) as any,
+                );
+                if (_status && _status.running) {
+                    sendJson(res, 200, {
+                        code: -1,
+                        msg: "模型权重正在下载，请先暂停下载后再删除",
+                    });
+                    return;
+                }
+            } catch (e) {
+                // 状态查询失败不阻断删除
+            }
+        }
         const storageData = (await StorageMain.read("server", null)) || {};
         const records = Array.isArray(storageData.records)
             ? storageData.records

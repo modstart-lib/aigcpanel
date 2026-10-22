@@ -38,16 +38,13 @@ const getServerRuntimeComputedValue = (
     record: ServerRecord,
 ): ComputedRef<ServerRuntime> => {
     return computed(() => {
-        let defaultStatus = EnumServerStatus.STOPPED;
-        if (record.type === EnumServerType.CLOUD || record.autoStart) {
-            defaultStatus = EnumServerStatus.RUNNING;
+        const existing = serverRuntime.value?.get(record.key);
+        if (existing) {
+            return existing;
         }
-        return (
-            serverRuntime.value?.get(record.key) ||
-            ({
-                status: defaultStatus,
-            } as ServerRuntime)
-        );
+        // 首次访问时创建运行时对象（含 logFile、自启动模型的事件通道），
+        // 保证模型导入后「查看日志」等入口立即可用
+        return getOrCreateServerRuntime(record);
     });
 };
 const getOrCreateServerRuntime = (record: ServerRecord): ServerRuntime => {
@@ -98,7 +95,44 @@ const createEventChannel = (
                 window.__page.destroyChannel(eventChannel);
                 updateRunningServerCount().then();
                 break;
+            case "preparing":
+                // 权重按需下载（config.json 的 prepare）：展示下载进度
+                // 已暂停/已就绪时忽略迟到的进度事件（进程被杀后 stdout 可能还会到达），
+                // 否则界面会被拨回「正在下载」，看起来像自动恢复下载
+                if (
+                    data &&
+                    data.phase !== "paused" &&
+                    data.phase !== "error" &&
+                    data.phase !== "done" &&
+                    (serverRuntime.status === EnumServerStatus.PAUSED ||
+                        serverRuntime.prepareReady === true)
+                ) {
+                    break;
+                }
+                if (data && data.phase === "done") {
+                    // 下载完成：标记就绪（避免被后续事件/刷新回退为「未就绪」）
+                    serverRuntime.prepare = null;
+                    serverRuntime.prepareReady = true;
+                    serverRuntime.prepareError = null;
+                    serverRuntime.status = EnumServerStatus.STOPPED;
+                    break;
+                }
+                serverRuntime.prepare = data || null;
+                serverRuntime.prepareReady = false;
+                if (data && data.phase === "error") {
+                    serverRuntime.status = EnumServerStatus.ERROR;
+                    serverRuntime.prepareError = data.error || null;
+                } else if (data && data.phase === "paused") {
+                    serverRuntime.status = EnumServerStatus.PAUSED;
+                } else {
+                    serverRuntime.status = EnumServerStatus.PREPARING;
+                    serverRuntime.prepareError = null;
+                }
+                break;
             case "starting":
+                serverRuntime.prepare = null;
+                serverRuntime.status = EnumServerStatus.STARTING;
+                break;
             case "stopping":
             case "stopped":
                 break;
@@ -212,6 +246,134 @@ export const serverStore = defineStore("server", {
             });
             await this.refresh();
             this.isReady = true;
+            this.autoPrepare().then();
+        },
+        // 权重按需下载：应用启动后自动补齐未就绪的模型权重（串行执行，避免并发占满带宽）
+        async autoPrepare() {
+            const records = this.records.filter(
+                (record) => !!record.config?.prepare,
+            );
+            for (const record of records) {
+                try {
+                    const serverInfo = await this.serverInfo(record);
+                    const status: any =
+                        await $mapi.server.prepareStatus(serverInfo);
+                    this.applyPrepareStatus(record, status);
+                    if (!status || status.ready === true) {
+                        continue;
+                    }
+                    // 用户主动暂停过的模型不自动续传（等用户点「继续下载」）
+                    if (status.paused) {
+                        continue;
+                    }
+                    await this.prepare(record);
+                } catch (e) {
+                    console.error("server.autoPrepare", record.key, e);
+                }
+            }
+        },
+        // 把主进程返回的 prepare 状态同步到界面（就绪/暂停/失败/未开始）
+        applyPrepareStatus(record: ServerRecord, status: any) {
+            if (!status || status.required === false) {
+                return;
+            }
+            const serverRuntime = getOrCreateServerRuntime(record);
+            serverRuntime.prepareReady = !!status.ready;
+            serverRuntime.prepareTotalSize = status.size || 0;
+            serverRuntime.prepareError = status.error || null;
+            if (status.ready) {
+                serverRuntime.prepare = null;
+                return;
+            }
+            const percent = status.percent || 0;
+            if (status.running) {
+                serverRuntime.prepare = {
+                    phase: "download",
+                    percent,
+                    totalSize: status.size || 0,
+                };
+                serverRuntime.status = EnumServerStatus.PREPARING;
+            } else if (status.paused) {
+                serverRuntime.prepare = {
+                    phase: "paused",
+                    percent,
+                    totalSize: status.size || 0,
+                };
+                serverRuntime.status = EnumServerStatus.PAUSED;
+            } else if (status.error) {
+                serverRuntime.prepare = {
+                    phase: "error",
+                    percent,
+                    totalSize: status.size || 0,
+                    error: status.error,
+                };
+                serverRuntime.status = EnumServerStatus.ERROR;
+            } else {
+                serverRuntime.prepare = {
+                    phase: "idle",
+                    percent: 0,
+                    totalSize: status.size || 0,
+                };
+            }
+        },
+        // 触发权重下载（已在下载中则复用主进程的同一个任务）
+        async prepare(server: ServerRecord) {
+            const record = this.findRecord(server) || server;
+            const serverRuntime = getOrCreateServerRuntime(record);
+            if (serverRuntime.status === EnumServerStatus.PREPARING) {
+                return;
+            }
+            // 下载日志写入与运行日志相同的文件（客户端「查看日志」可直接查看）
+            if (!serverRuntime.logFile) {
+                serverRuntime.logFile = `logs/${record.name}_${record.version}_${TimeUtil.dateString()}.log`;
+            }
+            serverRuntime.status = EnumServerStatus.PREPARING;
+            serverRuntime.prepare = { phase: "start", percent: 0 };
+            serverRuntime.eventChannelName = createEventChannel(record);
+            const serverInfo = await this.serverInfo(record);
+            try {
+                const status: any = await $mapi.server.prepare(serverInfo);
+                if (status && status.ready === false) {
+                    // 用户暂停：保持 PAUSED，不当作失败
+                    if (status.paused) {
+                        serverRuntime.prepare = {
+                            phase: "paused",
+                            percent: status.percent || 0,
+                            totalSize: status.size || 0,
+                        };
+                        serverRuntime.status = EnumServerStatus.PAUSED;
+                        return;
+                    }
+                    throw new Error(status.error || "prepare failed");
+                }
+                serverRuntime.prepareReady = true;
+                serverRuntime.prepare = null;
+                serverRuntime.status = EnumServerStatus.STOPPED;
+            } catch (e) {
+                if (serverRuntime.status !== EnumServerStatus.PAUSED) {
+                    serverRuntime.status = EnumServerStatus.ERROR;
+                }
+                throw e;
+            }
+        },
+        // 暂停权重下载（保留已下载文件与 .part，写暂停标记；「继续下载」可续传）
+        async pausePrepare(server: ServerRecord) {
+            const record = this.findRecord(server) || server;
+            const serverRuntime = getOrCreateServerRuntime(record);
+            // 已就绪的模型无需暂停
+            if (serverRuntime.prepareReady === true) {
+                return;
+            }
+            const serverInfo = await this.serverInfo(record);
+            const percent =
+                (serverRuntime.prepare && serverRuntime.prepare.percent) || 0;
+            await $mapi.server.pausePrepare(serverInfo);
+            serverRuntime.prepare = {
+                phase: "paused",
+                percent,
+                totalSize: serverRuntime.prepareTotalSize || 0,
+            };
+            serverRuntime.status = EnumServerStatus.PAUSED;
         },
         // 从 storage 重新加载 server records（CLI 安装/卸载模型后由页面事件触发），
         // 不会重复注册任务取消监听。
@@ -226,6 +388,7 @@ export const serverStore = defineStore("server", {
                 });
             });
             await this.refresh();
+            this.autoPrepare().then();
         },
         async refresh() {
             const dirs = await $mapi.file.list("model", {
@@ -309,6 +472,8 @@ export const serverStore = defineStore("server", {
             }
             if (changed) {
                 await this.sync();
+                // 新发现的本地模型同样按需补齐权重
+                this.autoPrepare().then();
             }
         },
         async prepareForTask(bizId: string, bizParam: any) {
@@ -378,7 +543,15 @@ export const serverStore = defineStore("server", {
             }.log`;
             serverRuntime.eventChannelName = createEventChannel(server);
             const serverInfo = await this.serverInfo(server);
-            await $mapi.server.start(serverInfo);
+            try {
+                await $mapi.server.start(serverInfo);
+            } catch (e) {
+                // 权重准备失败等启动前置错误：标记 ERROR（用户主动停止时不覆盖 STOPPED）
+                if (serverRuntime.status !== EnumServerStatus.STOPPED) {
+                    serverRuntime.status = EnumServerStatus.ERROR;
+                }
+                throw e;
+            }
             let pingTimeout = 60 * 5 * 1000;
             let pingStart = TimeUtil.timestampMS();
             const pingCheck = () => {
@@ -454,10 +627,32 @@ export const serverStore = defineStore("server", {
                 return;
             }
             const record = this.records[index];
+            // 权重下载中禁止删除（先暂停下载）。
+            // 注意：autoStart 模型的 record.status 恒为 RUNNING，必须看 runtime 状态，
+            // 并以主进程实际运行状态为准，避免「正在下载还能删掉」。
+            if (record.runtime?.status === EnumServerStatus.PREPARING) {
+                Dialog.tipError(t("error.serverPreparingDelete"));
+                throw new Error("PreparingStatusError");
+            }
+            const recordInfo = await this.serverInfo(record);
+            try {
+                const prepareStatus: any =
+                    await $mapi.server.prepareStatus(recordInfo);
+                if (prepareStatus && prepareStatus.running) {
+                    Dialog.tipError(t("error.serverPreparingDelete"));
+                    throw new Error("PreparingStatusError");
+                }
+            } catch (e: any) {
+                if (e?.message === "PreparingStatusError") {
+                    throw e;
+                }
+                // 状态查询失败不阻断删除
+            }
             if (
                 record.autoStart ||
                 record.status === EnumServerStatus.STOPPED ||
-                record.status === EnumServerStatus.ERROR
+                record.status === EnumServerStatus.ERROR ||
+                record.status === EnumServerStatus.PAUSED
             ) {
             } else {
                 if (record.type === EnumServerType.LOCAL_DIR) {
@@ -486,6 +681,8 @@ export const serverStore = defineStore("server", {
             server.runtime = getServerRuntimeComputedValue(server);
             this.records.unshift(server);
             await this.sync();
+            // 新增模型后按需补齐权重（配置了 prepare 且未就绪的模型自动开始下载）
+            this.autoPrepare().then();
         },
         async sync() {
             const savedRecords = toRaw(cloneDeep(this.records));
@@ -517,12 +714,61 @@ export const serverStore = defineStore("server", {
         generateServerKey(server: ServerRecord) {
             return `${server.name}|${server.version}`;
         },
+        // 模型是否可用：配置了 prepare 但权重未就绪时不可用（下拉置灰 / 提交前校验）
+        serverAvailability(server: ServerRecord): {
+            available: boolean;
+            reason: string;
+        } {
+            const config: any = server.config || {};
+            if (!config.prepare) {
+                return { available: true, reason: "" };
+            }
+            const runtime: any = server.runtime || {};
+            if (runtime.prepareReady !== false) {
+                // true=已就绪；undefined=状态尚未同步（不阻断，调用时仍会兜底校验）
+                return { available: true, reason: "" };
+            }
+            const percent = Math.round(runtime.prepare?.percent || 0);
+            const phase = runtime.prepare?.phase;
+            if (phase === "error") {
+                return { available: false, reason: t("status.prepareFailed") };
+            }
+            if (phase === "paused") {
+                return {
+                    available: false,
+                    reason: `${t("status.pausedWeights")} ${percent}%`,
+                };
+            }
+            if (runtime.status === EnumServerStatus.PREPARING) {
+                return {
+                    available: false,
+                    reason: `${t("status.preparingWeights")} ${percent}%`,
+                };
+            }
+            return { available: false, reason: t("model.weightsNotReady") };
+        },
         async call(
             serverInfo: ServerInfo,
             method: string,
             data: ServerCallFunctionData,
             option?: ServerCallFunctionOption,
         ): Promise<ServerCallFunctionResult> {
+            // 提交前校验：权重未就绪的模型直接提示，不再创建必失败的任务
+            const callRecord = await this.getByNameVersion(
+                serverInfo.name,
+                serverInfo.version,
+            );
+            if (callRecord) {
+                const availability = this.serverAvailability(callRecord);
+                if (!availability.available) {
+                    Dialog.tipError(
+                        t("error.serverWeightsNotReady", {
+                            reason: availability.reason,
+                        }),
+                    );
+                    throw new Error(availability.reason);
+                }
+            }
             await this.callStart(serverInfo);
             try {
                 // comfyui 类型服务：自启动（任务触发自动拉起、空闲自动退出）

@@ -8,6 +8,7 @@ import {
 } from "../mapi/server/type";
 import { AigcServerUtil } from "./util";
 import { t } from "../config/lang";
+import { TimeUtil } from "../lib/util";
 
 type LauncherResultType = {
     result: {
@@ -19,6 +20,11 @@ type LauncherResultType = {
 export const EasyServer = function (config: any) {
     const me = this;
     let controller: any = null;
+    // 权重按需下载（prepare）：进度进程与并发去重
+    let prepareProcess: any = null;
+    let preparePromise: Promise<void> | null = null;
+    // 用户主动暂停：进程退出回调按「已暂停」处理，而不是失败
+    let preparePausedByUser = false;
     let controllerWatching = {
         id: null as string | null,
         launcherResult: null as LauncherResultType | null,
@@ -27,6 +33,13 @@ export const EasyServer = function (config: any) {
         promiseResolved: false,
     };
     this.serverConfig = config as {
+        // 权重按需下载配置（config.json 的 prepare；存在即表示权重不随包分发）
+        // 只允许三个字段：entry / entryArgs / size
+        prepare?: {
+            size?: number;
+            entry?: string;
+            entryArgs?: string[];
+        } | null;
         easyServer: {
             entry: string;
             entryArgs: string[];
@@ -80,9 +93,380 @@ export const EasyServer = function (config: any) {
             },
         };
     };
+    // ── 权重按需下载（prepare）────────────────────────────────────────
+    // config.json 的 prepare 字段声明下载入口与产物：
+    //   { entry, entryArgs, size }（清单/标记/进度文件名为固定约定）
+    // 未生成 flag 时说明权重尚未就绪：先运行 entry（aigcpanelprepare.py），
+    // 其 stdout 输出 `Prepare[<json>]` 进度行，转发给页面展示下载百分比。
+    this.prepareConfig = this.serverConfig.prepare || null;
+    this.prepareProgress = null as any;
+    // prepare 日志与模型运行日志同文件：客户端「查看日志」直接可读
+    this.prepareLogFile = function () {
+        if (this.ServerInfo.logFile) {
+            return this.ServerInfo.logFile;
+        }
+        const file = `logs/${this.ServerInfo.name}_${this.ServerInfo.version}_${TimeUtil.dateString()}.log`;
+        this.ServerInfo.logFile = file;
+        return file;
+    };
+    this.prepareFilePaths = function () {
+        const root = (this.ServerInfo && this.ServerInfo.localPath) || "";
+        // 清单与标记文件为固定约定（config.json 的 prepare 只声明 entry/entryArgs/size）
+        return {
+            flag: `${root}/.aigcpanel-prepared`,
+            state: `${root}/_prepare/state.json`,
+            paused: `${root}/_prepare/paused`,
+            manifest: `${root}/prepare-manifest.json`,
+        };
+    };
+    this.isPrepareRequired = function () {
+        // 以 config.json 是否存在 prepare 字段为准（无 prepare = 权重随包分发）
+        return !!this.prepareConfig;
+    };
+    this.prepareStatus = async function () {
+        if (!this.isPrepareRequired()) {
+            return {
+                required: false,
+                ready: true,
+                percent: 100,
+                progress: null,
+            };
+        }
+        const filePaths = this.prepareFilePaths();
+        const ready = await Files.exists(filePaths.flag, {
+            isDataPath: false,
+        });
+        let state: any = null;
+        try {
+            if (await Files.exists(filePaths.state, { isDataPath: false })) {
+                state = JSON.parse(
+                    await Files.read(filePaths.state, { isDataPath: false }),
+                );
+            }
+        } catch (e) {
+            state = null;
+        }
+        const paused = await Files.exists(filePaths.paused, {
+            isDataPath: false,
+        });
+        const progress = state || this.prepareProgress || null;
+        return {
+            required: true,
+            ready,
+            paused,
+            size: this.prepareConfig.size || 0,
+            manifest: "prepare-manifest.json",
+            percent: ready ? 100 : (progress && progress.percent) || 0,
+            progress,
+            error: (progress && progress.error) || null,
+            logFile: this.prepareLogFile(),
+            running: !!preparePromise,
+        };
+    };
+    this.prepare = async function () {
+        if (preparePromise) {
+            return preparePromise;
+        }
+        const task = (async () => {
+            const cfg = this.prepareConfig;
+            if (!this.isPrepareRequired() || !cfg) {
+                return;
+            }
+            if (await this.prepareStatus().then((s: any) => s.ready)) {
+                return;
+            }
+            // 开始（或继续）下载：清除暂停标记，App 重启后才会自动续传
+            await Files.deletes(this.prepareFilePaths().paused, {
+                isDataPath: false,
+            });
+            const root = this.ServerInfo.localPath;
+            const entry = cfg.entry || "_aienv/bin/python";
+            const entryArgs = cfg.entryArgs || ["-u", "aigcpanelprepare.py"];
+            const command = [entry].concat(entryArgs);
+            const envMap: Record<string, string> = {
+                PATH: this.ServerApi.getPathEnv([root, `${root}/binary`]),
+                PYTHONIOENCODING: "utf-8",
+                AIGCPANEL_SERVER_PLACEHOLDER_ROOT: root,
+                AIGCPANEL_SERVER_ROOT: root,
+            };
+            Log.info("easyServer.prepare.start", {
+                command,
+                root,
+                size: cfg.size || 0,
+            });
+            Log.info("easyServer.prepare.channel", {
+                channel: this.ServerInfo.eventChannelName,
+                root,
+            });
+            const logFile = this.prepareLogFile();
+            const appendLog = (text: string) => {
+                if (!text) {
+                    return;
+                }
+                this.ServerApi.file
+                    .appendText(logFile, text, {
+                        isDataPath: true,
+                    })
+                    .catch(() => {});
+            };
+            appendLog(
+                [
+                    "",
+                    "========== prepare start ==========",
+                    `time: ${TimeUtil.format(Date.now())}`,
+                    `command: ${command.join(" ")}`,
+                    `cwd: ${root}`,
+                    `expectSize: ${cfg.size || 0} bytes`,
+                    "",
+                ].join("\n") + "\n",
+            );
+            this.send("preparing", {
+                phase: "start",
+                percent: 0,
+                totalSize: cfg.size || 0,
+            });
+            await new Promise<void>((resolve, reject) => {
+                let buffer = "";
+                let stderrTail = "";
+                const onStdout = (data: string) => {
+                    appendLog(data);
+                    buffer += data;
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop() || "";
+                    for (const line of lines) {
+                        const text = line.trim();
+                        if (
+                            !text.startsWith("Prepare[") ||
+                            !text.endsWith("]")
+                        ) {
+                            continue;
+                        }
+                        let info: any = null;
+                        try {
+                            info = JSON.parse(
+                                text.slice("Prepare[".length, -1),
+                            );
+                        } catch (e) {
+                            continue;
+                        }
+                        this.prepareProgress = info;
+                        // 用户暂停后，进程退出前的残余输出不再上报（避免界面被拨回下载中）
+                        if (preparePausedByUser) {
+                            continue;
+                        }
+                        this.send("preparing", info);
+                    }
+                };
+                const onExit = async (ok: boolean, message?: string) => {
+                    prepareProcess = null;
+                    if (preparePausedByUser) {
+                        // 用户主动暂停：保留已完成文件与 .part，按「已暂停」处理
+                        preparePausedByUser = false;
+                        appendLog("\n========== prepare paused ==========\n");
+                        this.send("preparing", {
+                            phase: "paused",
+                            percent:
+                                (this.prepareProgress &&
+                                    this.prepareProgress.percent) ||
+                                0,
+                        });
+                        resolve();
+                        return;
+                    }
+                    if (!ok) {
+                        appendLog(
+                            "\n========== prepare failed ==========\n" +
+                                (message || "") +
+                                "\n",
+                        );
+                        this.send("preparing", {
+                            phase: "error",
+                            error: message || "prepare failed",
+                        });
+                        reject(new Error(message || "prepare failed"));
+                        return;
+                    }
+                    // 进程退出后以标记文件为准（防止脚本异常退出但 exit code 为 0）
+                    const filePaths = this.prepareFilePaths();
+                    if (
+                        await Files.exists(filePaths.flag, {
+                            isDataPath: false,
+                        })
+                    ) {
+                        appendLog("\n========== prepare finished ==========\n");
+                        this.send("preparing", {
+                            phase: "done",
+                            percent: 100,
+                        });
+                        resolve();
+                    } else {
+                        appendLog(
+                            "\n========== prepare failed: ready flag missing ==========\n",
+                        );
+                        this.send("preparing", {
+                            phase: "error",
+                            error: "prepare finished without ready flag",
+                        });
+                        reject(
+                            new Error("prepare finished without ready flag"),
+                        );
+                    }
+                };
+                this.ServerApi.app
+                    .spawnShell(command, {
+                        env: envMap,
+                        cwd: root,
+                        // 直接 exec（不经 shell）：取消下载时 SIGINT/taskkill 能命中真实进程，
+                        // 避免 kill 到外层 shell 后 python 继续跑
+                        shell: false,
+                        stdout: onStdout,
+                        stderr: (data: string) => {
+                            stderrTail = (stderrTail + data).slice(-4000);
+                            appendLog(data);
+                        },
+                        success: () => {
+                            onExit(true).catch(() => {});
+                        },
+                        error: (msg: string) => {
+                            onExit(false, stderrTail || msg).catch(() => {});
+                        },
+                    })
+                    .then((process: any) => {
+                        prepareProcess = process;
+                    })
+                    .catch((e: any) => {
+                        onExit(false, String(e)).catch(() => {});
+                    });
+            });
+            Log.info("easyServer.prepare.done", { root });
+        })();
+        preparePromise = task;
+        try {
+            await preparePromise;
+        } finally {
+            preparePromise = null;
+        }
+    };
+    // 暂停下载：终止进程、保留已完成文件与 .part，并写入暂停标记
+    // （App 重启/自动准备不会自动续传，需用户点击「继续下载」）
+    this.pausePrepare = async function () {
+        if (!this.isPrepareRequired()) {
+            return false;
+        }
+        // 已就绪时无需暂停（避免误写暂停标记）
+        const status: any = await this.prepareStatus();
+        if (status.ready) {
+            return false;
+        }
+        const percent =
+            (this.prepareProgress && this.prepareProgress.percent) || 0;
+        const sleep = (ms: number) =>
+            new Promise((resolve) => setTimeout(resolve, ms));
+        // 进程句柄可能还没就绪（prepare 刚启动），最多等 1 秒
+        for (let i = 0; i < 20 && !prepareProcess && preparePromise; i++) {
+            await sleep(50);
+        }
+        let wasRunning = !!prepareProcess;
+        if (prepareProcess) {
+            preparePausedByUser = true;
+            try {
+                prepareProcess.stop();
+            } catch (e) {
+                Log.error("easyServer.prepare.pause.error", e);
+            }
+            // 等待进程退出（最多 0.8 秒）；仍在运行说明 SIGINT 被忽略，强制结束
+            for (let i = 0; i < 16 && prepareProcess; i++) {
+                await sleep(50);
+            }
+            if (prepareProcess) {
+                try {
+                    if (typeof prepareProcess.kill === "function") {
+                        prepareProcess.kill();
+                    }
+                } catch (e) {
+                    Log.error("easyServer.prepare.pause.kill.error", e);
+                }
+                prepareProcess = null;
+            }
+        }
+        const filePaths = this.prepareFilePaths();
+        try {
+            await this.ServerApi.file.write(
+                filePaths.paused,
+                JSON.stringify(
+                    {
+                        pausedAt: TimeUtil.format(Date.now()),
+                        percent,
+                    },
+                    null,
+                    2,
+                ),
+                { isDataPath: false },
+            );
+        } catch (e) {
+            Log.error("easyServer.prepare.pause.marker.error", e);
+        }
+        // 保留 prepareProgress：进程退出回调按「已暂停」上报时仍能带上最后的百分比
+        this.ServerApi.file
+            .appendText(
+                this.prepareLogFile(),
+                `\n========== prepare pause requested (${percent}%) ==========\n`,
+                { isDataPath: true },
+            )
+            .catch(() => {});
+        Log.info("easyServer.prepare.paused", {
+            root: this.ServerInfo.localPath,
+            percent,
+            wasRunning,
+        });
+        this.send("preparing", {
+            phase: "paused",
+            percent,
+        });
+        return wasRunning;
+    };
+    this.ensurePrepared = async function () {
+        if (!this.isPrepareRequired()) {
+            return;
+        }
+        const status = await this.prepareStatus();
+        if (status.ready) {
+            return;
+        }
+        await this.prepare();
+    };
+    // 调用模型前的前置校验：未就绪直接抛错（不阻塞等待下载）
+    this.ensurePreparedOrThrow = async function () {
+        if (!this.isPrepareRequired()) {
+            return;
+        }
+        const status: any = await this.prepareStatus();
+        if (status.ready) {
+            return;
+        }
+        const percent = Math.round(status.percent || 0);
+        if (status.running) {
+            throw new Error(
+                `模型权重正在下载（${percent}%），请等待下载完成后再调用`,
+            );
+        }
+        if (status.paused) {
+            throw new Error(
+                `模型权重下载已暂停（${percent}%），请在模型卡片点击「继续下载」后重试`,
+            );
+        }
+        if (status.error) {
+            throw new Error(
+                `模型权重下载失败：${status.error}，请在模型卡片点击「重试下载」`,
+            );
+        }
+        throw new Error("模型权重尚未下载，请先在模型卡片点击「下载权重」");
+    };
     this.start = async function () {
         // console.log('start', this.ServerInfo)
         this.serverRuntime.startTime = Date.now();
+        // 权重未就绪时直接报错（下载由「下载/继续下载」按钮或导入后自动触发）
+        await this.ensurePreparedOrThrow();
         this.send("starting", this.ServerInfo);
     };
     this.ping = async function (): Promise<boolean> {
@@ -92,6 +476,14 @@ export const EasyServer = function (config: any) {
     };
     this.stop = async function () {
         // console.log('stop', this.ServerInfo)
+        if (prepareProcess) {
+            try {
+                prepareProcess.stop();
+            } catch (e) {
+                Log.error("easyServer.prepare.stop.error", e);
+            }
+            prepareProcess = null;
+        }
         this.send("stopping", this.ServerInfo);
         this.serverRuntime.startTime = 0;
         this.send("stopped", this.ServerInfo);
@@ -380,6 +772,8 @@ export const EasyServer = function (config: any) {
         let configJsonPath = null;
         try {
             this.send("taskRunning", { id: data.id });
+            // 权重未就绪直接抛错（提示等待下载完成），不阻塞调用
+            await this.ensurePreparedOrThrow();
             const configData = await configCalculator(data);
             configData.setting = this.ServerInfo.setting;
             configJsonPath =

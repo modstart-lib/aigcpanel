@@ -348,6 +348,7 @@
     "status.loading": "正在加载",
     "status.manuallyCompleted": "已手动完成",
     "status.notRunning": "暂未运行",
+    "status.preparingWeights": "正在下载权重文件",
     "status.queuing": "排队中",
     "status.resuming": "正在继续",
     "status.retrying": "正在重试",
@@ -516,5 +517,17 @@
     "home.workflowCountValue": "共{count}个",
     "home.avatar": "形象",
     "home.knowledgeBase": "知识库",
-    "home.openSource": "开源地址"
+    "home.openSource": "开源地址",
+    "service.stopPrepare": "停止下载",
+    "service.retryPrepare": "重试下载",
+    "status.pausedWeights": "权重下载已暂停",
+    "status.prepareFailed": "权重下载失败",
+    "service.downloadWeights": "下载权重",
+    "service.pauseDownload": "暂停下载",
+    "service.resumeDownload": "继续下载",
+    "service.retryDownload": "重试下载",
+    "error.serverPreparingDelete": "模型权重正在下载，请先暂停下载后再删除",
+    "status.weightsReady": "权重文件已就绪",
+    "model.weightsNotReady": "权重未就绪",
+    "error.serverWeightsNotReady": "模型权重未就绪（{reason}），请等待下载完成后再使用"
 }

@@ -22,6 +22,8 @@ type ApiProviderPreset = {
     defaultTitle: string;
     /** 默认音色（写入 config，不在界面中填写） */
     defaultVoice: string;
+    /** 默认接口地址（写入 config，用户可修改） */
+    defaultApiUrl: string;
     /** 支持的模型能力 */
     functions: string[];
     fields: ApiProviderField[];
@@ -34,6 +36,8 @@ const PROVIDERS: ApiProviderPreset[] = [
         docs: "https://www.volcengine.com/docs/6561/1598757",
         defaultTitle: "火山引擎语音合成",
         defaultVoice: "zh_female_vv_uranus_bigtts",
+        defaultApiUrl:
+            "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
         functions: ["soundTts"],
         fields: [
             {
@@ -43,14 +47,22 @@ const PROVIDERS: ApiProviderPreset[] = [
                 secret: true,
                 placeholder: "豆包语音控制台 API Key（与火山方舟 Key 不通用）",
             },
+            {
+                name: "apiUrl",
+                title: t("model.apiVoiceApiUrl"),
+                placeholder:
+                    "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
+            },
         ],
     },
     {
         id: "aliyun",
         title: "阿里云百炼（DashScope）",
-        docs: "https://help.aliyun.com/zh/model-studio/qwen-tts-api",
+        docs: "https://help.aliyun.com/zh/model-studio/qwen-tts-non-realtime-api",
         defaultTitle: "阿里云百炼语音合成",
         defaultVoice: "Cherry",
+        defaultApiUrl:
+            "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
         functions: ["soundTts"],
         fields: [
             {
@@ -63,8 +75,14 @@ const PROVIDERS: ApiProviderPreset[] = [
             {
                 name: "model",
                 title: "模型",
-                defaultValue: "qwen-tts",
-                placeholder: "qwen-tts",
+                defaultValue: "qwen3-tts-flash",
+                placeholder: "qwen3-tts-flash",
+            },
+            {
+                name: "apiUrl",
+                title: t("model.apiVoiceApiUrl"),
+                placeholder:
+                    "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
             },
         ],
     },
@@ -86,7 +104,11 @@ const provider = computed(() => {
 const resetValues = () => {
     const v: Record<string, string> = {};
     for (const f of provider.value.fields) {
-        v[f.name] = f.defaultValue || "";
+        if (f.name === "apiUrl") {
+            v[f.name] = provider.value.defaultApiUrl;
+        } else {
+            v[f.name] = f.defaultValue || "";
+        }
     }
     values.value = v;
 };
@@ -115,13 +137,19 @@ const buildConfig = (): any | null => {
             return null;
         }
     }
-    return Object.assign(
+    const config: any = Object.assign(
         {
             provider: providerId.value,
             defaultVoice: provider.value.defaultVoice,
+            apiUrl: provider.value.defaultApiUrl,
         },
         values.value,
     );
+    // 留空时由服务端回退到厂商默认地址
+    if (!config.apiUrl) {
+        delete config.apiUrl;
+    }
+    return config;
 };
 
 const doSubmit = async () => {
@@ -282,6 +310,12 @@ const emit = defineEmits({
                         :disabled="loading"
                         allow-clear
                     />
+                    <div
+                        v-if="f.name === 'apiUrl'"
+                        class="text-gray-400 text-xs mt-1"
+                    >
+                        {{ $t("model.apiVoiceApiUrlTip") }}
+                    </div>
                 </a-form-item>
                 <div class="text-gray-400 text-sm">
                     <a href="javascript:;" class="text-link" @click="openDocs">

@@ -29,12 +29,27 @@ const doDelete = async () => {
     );
     Dialog.loadingOn(t("status.deleting"));
     await sleep(500);
-    await serverStore.delete(record);
+    try {
+        await serverStore.delete(record);
+    } catch (e: any) {
+        Dialog.loadingOff();
+        const msg = String(e?.message || e);
+        Dialog.tipError(
+            msg === "PreparingStatusError"
+                ? t("error.serverPreparingDelete")
+                : msg,
+        );
+        return;
+    }
     Dialog.loadingOff();
     emit("update");
 };
 
 const disabled = computed(() => {
+    // 权重下载中禁止删除（autoStart 模型 record.status 恒为 RUNNING，需看 runtime 状态）
+    if (props.record.runtime?.status === EnumServerStatus.PREPARING) {
+        return true;
+    }
     if (props.record.autoStart) {
         return false;
     }

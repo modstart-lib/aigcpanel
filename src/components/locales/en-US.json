@@ -159,6 +159,8 @@
     "model.apiVoiceTestSuccess": "Preview generated",
     "model.apiVoiceSaveSuccess": "Cloud voice model added",
     "model.apiVoiceDocs": "View API key documentation",
+    "model.apiVoiceApiUrl": "API endpoint URL",
+    "model.apiVoiceApiUrlTip": "Leave empty to use the default; change it for another region or a proxy",
     "model.apiVoiceRequired": "Please fill in {title}",
     "model.otherModel": "Other Models",
     "model.apiVoiceCheckFailed": "API check failed: {msg}"

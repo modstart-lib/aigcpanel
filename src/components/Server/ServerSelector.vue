@@ -10,6 +10,29 @@ const serverStore = useServerStore();
 
 
 const select = ref<any>(null);
+// 权重未就绪的模型在下拉中置灰且不可选中
+const availability = (server: any) => serverStore.serverAvailability(server);
+const dotClass = (server: any) => {
+    if (!availability(server).available) {
+        return "bg-gray-400";
+    }
+    if (
+        server.autoStart &&
+        server.runtime?.autoStartStatus === EnumServerStatus.RUNNING
+    ) {
+        return "bg-green-500";
+    }
+    if (
+        server.autoStart &&
+        server.runtime?.autoStartStatus !== EnumServerStatus.RUNNING
+    ) {
+        return "bg-blue-500";
+    }
+    if (server.status === EnumServerStatus.RUNNING) {
+        return "bg-blue-500 animate-pulse";
+    }
+    return "bg-red-700";
+};
 const props = defineProps<{
     functionName: string;
 }>();
@@ -90,37 +113,31 @@ watch(
                 v-for="server in recordsFilter"
                 :key="server.key"
                 :value="server.key"
+                :disabled="!availability(server).available"
             >
                 <div
                     class="flex items-center py-2 flex-nowrap truncate no-wrap"
                 >
                     <div
-                        v-if="
-                            server.autoStart &&
-                            server.runtime.autoStartStatus ===
-                                EnumServerStatus.RUNNING
+                        class="w-2 h-2 rounded-full mr-1 flex-shrink-0"
+                        :class="dotClass(server)"
+                    ></div>
+                    <div
+                        class="text-xs flex-grow"
+                        :class="
+                            availability(server).available
+                                ? ''
+                                : 'text-gray-400'
                         "
-                        class="w-2 h-2 bg-green-500 rounded-full mr-1 flex-shrink-0"
-                    ></div>
-                    <div
-                        v-else-if="
-                            server.autoStart &&
-                            server.runtime.autoStartStatus !==
-                                EnumServerStatus.RUNNING
-                        "
-                        class="w-2 h-2 bg-blue-500 rounded-full mr-1 flex-shrink-0"
-                    ></div>
-                    <div
-                        v-else-if="server.status === EnumServerStatus.RUNNING"
-                        class="w-2 h-2 bg-blue-500 rounded-full mr-1 flex-shrink-0 animate-pulse"
-                    ></div>
-                    <div
-                        v-else
-                        class="w-2 h-2 bg-red-700 rounded-full mr-1 flex-shrink-0"
-                    ></div>
-                    <div class="text-xs flex-grow">
+                    >
                         {{ server.title }}
                         v{{ server.version }}
+                    </div>
+                    <div
+                        v-if="!availability(server).available"
+                        class="text-xs text-gray-400 ml-2 flex-shrink-0"
+                    >
+                        {{ availability(server).reason }}
                     </div>
                 </div>
             </a-option>

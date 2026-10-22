@@ -95,11 +95,26 @@ export const ModelProvider = {
             url,
         });
         try {
-            return provider.chat(prompt, chatParam);
+            return await provider.chat(prompt, chatParam);
         } catch (e) {
+            const msg = mapError(e);
+            // 第三方模型接口失败时留下地址与模型信息，便于用户上报后排查
+            try {
+                $mapi.log.error("modelProvider.chat.error", {
+                    type: config.type,
+                    url,
+                    apiUrl: config.apiUrl,
+                    apiHost: config.apiHost,
+                    modelId: config.modelId,
+                    promptLength: (prompt || "").length,
+                    error: msg,
+                });
+            } catch {
+                /* logging must never break the call */
+            }
             return {
                 code: -1,
-                msg: `Request failed: ${mapError(e)}`,
+                msg: `Request failed: ${msg}`,
             };
         }
     },

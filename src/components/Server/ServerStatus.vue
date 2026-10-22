@@ -15,6 +15,8 @@ const statusColor = computed(() => {
     const colorMap = {
         [EnumServerStatus.STOPPED]: "bg-gray-400",
         [EnumServerStatus.STARTING]: "bg-yellow-500",
+        [EnumServerStatus.PREPARING]: "bg-yellow-500",
+        [EnumServerStatus.PAUSED]: "bg-amber-400",
         [EnumServerStatus.RUNNING]: "bg-green-500",
         [EnumServerStatus.STOPPING]: "bg-yellow-400",
         [EnumServerStatus.ERROR]: "bg-red-500",
@@ -32,6 +34,8 @@ const statusText = computed(() => {
     const textMap = {
         [EnumServerStatus.STOPPED]: t("status.stopped"),
         [EnumServerStatus.STARTING]: t("service.starting"),
+        [EnumServerStatus.PREPARING]: t("service.starting"),
+        [EnumServerStatus.PAUSED]: t("status.pausedWeights"),
         [EnumServerStatus.RUNNING]: t("status.running"),
         [EnumServerStatus.STOPPING]: t("common.stopping"),
         [EnumServerStatus.ERROR]: t("common.error"),

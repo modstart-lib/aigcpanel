@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import ServerActionInfo from "../components/Server/ServerActionInfo.vue";
 import ServerActionLog from "../components/Server/ServerActionLog.vue";
+import ServerPrepareStatus from "../components/Server/ServerPrepareStatus.vue";
 import ServerActionMore from "../components/Server/ServerActionMore.vue";
 import ServerActionSetting from "../components/Server/ServerActionSetting.vue";
 import ServerActionStartStop from "../components/Server/ServerActionStartStop.vue";
@@ -113,6 +114,22 @@ onMounted(() => {
         await serverStore.stop(record);
         return { ok: true };
     });
+    // 权重按需下载：暂停 / 继续（供测试与外部调用）
+    const findByName = (name?: string) => {
+        const record = serverStore.records.find(
+            (r) => r.name === (name || "server-IndexTTS25"),
+        );
+        if (!record) throw new Error(`server not found: ${name}`);
+        return record;
+    };
+    testActionSet("Server.prepare.pause", async (params: any) => {
+        await serverStore.pausePrepare(findByName(params?.name));
+        return { ok: true };
+    });
+    testActionSet("Server.prepare.resume", async (params: any) => {
+        await serverStore.prepare(findByName(params?.name));
+        return { ok: true };
+    });
     
 });
 
@@ -122,6 +139,8 @@ onUnmounted(() => {
         "Server.modelSetting.show",
         "Server.comfyui.start",
         "Server.comfyui.stop",
+        "Server.prepare.pause",
+        "Server.prepare.resume",
         "Server.addLocal.show",
         "Server.addLocal.fill",
         "Server.addLocal.resolve",
@@ -315,9 +334,11 @@ onUnmounted(() => {
                             </div>
                         </div>
                         <div class="pt-4 flex items-center">
-                            <div class="flex-grow">
+                            <div class="flex-grow flex items-center min-w-0">
+                                <!-- 普通模型：启动/停止按钮保持原位置（最左） -->
                                 <ServerActionStartStop
                                     v-if="
+                                        !record.config?.prepare &&
                                         !record.autoStart &&
                                         (record.type ===
                                             EnumServerType.LOCAL_DIR ||
@@ -328,6 +349,15 @@ onUnmounted(() => {
                                 <ServerActionComfyUIView :record="record" />
                                 <ServerActionLog :record="record" />
                                 <ServerActionInfo :record="record" />
+                                <!-- 权重按需下载：状态描述在左，下载/暂停/重试按钮紧随其右 -->
+                                <ServerPrepareStatus :record="record" />
+                                <ServerActionStartStop
+                                    v-if="
+                                        !!record.config?.prepare &&
+                                        record.runtime?.prepareReady === false
+                                    "
+                                    :record="record"
+                                />
                                 <ServerActionSetting
                                     v-if="
                                         record.settings &&

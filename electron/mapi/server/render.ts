@@ -17,6 +17,18 @@ const start = async (serverInfo: ServerInfo) => {
     return ipcRenderer.invoke("server:start", serverInfo);
 };
 
+const prepare = async (serverInfo: ServerInfo) => {
+    return ipcRenderer.invoke("server:prepare", serverInfo);
+};
+
+const prepareStatus = async (serverInfo: ServerInfo) => {
+    return ipcRenderer.invoke("server:prepareStatus", serverInfo);
+};
+
+const pausePrepare = async (serverInfo: ServerInfo) => {
+    return ipcRenderer.invoke("server:pausePrepare", serverInfo);
+};
+
 const ping = async (serverInfo: ServerInfo) => {
     return ipcRenderer.invoke("server:ping", serverInfo);
 };
@@ -83,6 +95,9 @@ export default {
     runningServerCount,
     isSupport,
     start,
+    prepare,
+    prepareStatus,
+    pausePrepare,
     ping,
     stop,
     cancel,

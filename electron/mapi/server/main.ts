@@ -3,7 +3,7 @@ import { ipcMain } from "electron";
 import { Log } from "../log/main";
 import { mapError } from "./error";
 import { AigcServer } from "../../aigcserver";
-import { voiceApiTest } from "../../aigcserver/voiceapi";
+import { voiceApiTest, maskVoiceApiConfig } from "../../aigcserver/VoiceApi";
 import { SendType, ServerContext, ServerInfo } from "./type";
 import { Files } from "../file/main";
 import { getGpuInfo } from "../../lib/env-main";
@@ -148,8 +148,17 @@ const getModule = async (
         }
     }
     // console.log('getModule', serverInfo, serverModule[serverInfo.localPath])
-    serverModule[serverInfo.localPath].ServerInfo = serverInfo;
-    return serverModule[serverInfo.localPath];
+    // 保留上一次的事件通道/日志文件：状态查询等调用传入的 ServerInfo 可能不含
+    // eventChannelName，直接覆盖会导致进行中的 prepare 进度事件丢失
+    const module = serverModule[serverInfo.localPath];
+    const previous = module.ServerInfo;
+    module.ServerInfo = {
+        ...serverInfo,
+        eventChannelName:
+            serverInfo.eventChannelName || previous?.eventChannelName || "",
+        logFile: serverInfo.logFile || previous?.logFile || "",
+    };
+    return module;
 };
 
 ipcMain.handle("server:isSupport", async (event, serverInfo: ServerInfo) => {
@@ -172,6 +181,52 @@ ipcMain.handle("server:start", async (event, serverInfo: ServerInfo) => {
         Log.error("mapi.server.start.error", error);
         throw error;
     }
+});
+
+// 权重按需下载（prepare）：未就绪时先完成下载，进度通过 eventChannel 的
+// "preparing" 事件推送；对未配置 prepare 的服务等同于无操作。
+ipcMain.handle("server:prepare", async (event, serverInfo: ServerInfo) => {
+    const module = await getModule(serverInfo);
+    try {
+        if (typeof module.prepare !== "function") {
+            return { required: false, ready: true, percent: 100 };
+        }
+        await module.prepare();
+        return await module.prepareStatus();
+    } catch (e) {
+        const error = mapError(e);
+        Log.error("mapi.server.prepare.error", error);
+        throw error;
+    }
+});
+
+ipcMain.handle(
+    "server:prepareStatus",
+    async (event, serverInfo: ServerInfo) => {
+        const module = await getModule(serverInfo, {
+            throwException: false,
+        });
+        if (!module || typeof module.prepareStatus !== "function") {
+            return { required: false, ready: true, percent: 100 };
+        }
+        try {
+            return await module.prepareStatus();
+        } catch (e) {
+            Log.error("mapi.server.prepareStatus.error", mapError(e));
+            return { required: true, ready: false, percent: 0 };
+        }
+    },
+);
+
+// 暂停权重下载（保留已下载文件与 .part，并写暂停标记；稍后「继续下载」可续传）
+ipcMain.handle("server:pausePrepare", async (event, serverInfo: ServerInfo) => {
+    const module = await getModule(serverInfo, {
+        throwException: false,
+    });
+    if (!module || typeof module.pausePrepare !== "function") {
+        return false;
+    }
+    return await module.pausePrepare();
 });
 
 ipcMain.handle("server:ping", async (event, serverInfo: ServerInfo) => {
@@ -218,6 +273,8 @@ ipcMain.handle("server:deletes", async (event, serverInfo: ServerInfo) => {
 ipcMain.handle(
     "server:apiVoiceTest",
     async (event, config: any, text: string) => {
+        // 试听校验发生在模型落库之前，没有 server 记录也没有本地模型日志，
+        // 必须在主进程日志里留下厂商请求/响应信息，否则用户上报时无从排查。
         try {
             const url = await voiceApiTest(
                 config,
@@ -225,7 +282,13 @@ ipcMain.handle(
             );
             return { code: 0, msg: "ok", data: { url } };
         } catch (e: any) {
-            return { code: -1, msg: (e && e.message) || String(e) };
+            const msg = (e && e.message) || String(e);
+            Log.error("mapi.server.apiVoiceTest.error", {
+                config: maskVoiceApiConfig(config),
+                text,
+                error: msg,
+            });
+            return { code: -1, msg };
         }
     },
 );
@@ -284,6 +347,35 @@ export default {
 export const ServerMain = {
     getRunningServerCount,
     getModule,
+    // 权重按需下载：确保权重就绪（未配置 prepare 的服务直接返回）
+    prepare: async (serverInfo: ServerInfo) => {
+        const module = await getModule(serverInfo, {
+            throwException: false,
+        });
+        if (!module || typeof module.prepare !== "function") {
+            return { required: false, ready: true, percent: 100 };
+        }
+        await module.prepare();
+        return await module.prepareStatus();
+    },
+    pausePrepare: async (serverInfo: ServerInfo) => {
+        const module = await getModule(serverInfo, {
+            throwException: false,
+        });
+        if (!module || typeof module.pausePrepare !== "function") {
+            return false;
+        }
+        return await module.pausePrepare();
+    },
+    prepareStatus: async (serverInfo: ServerInfo) => {
+        const module = await getModule(serverInfo, {
+            throwException: false,
+        });
+        if (!module || typeof module.prepareStatus !== "function") {
+            return { required: false, ready: true, percent: 100 };
+        }
+        return await module.prepareStatus();
+    },
     // 停止运行中的服务并清理模块缓存（HTTP 路由删除模型时使用，
     // 避免删除记录后服务进程残留）
     stopServer: async (serverInfo: ServerInfo) => {

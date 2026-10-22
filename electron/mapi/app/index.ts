@@ -177,6 +177,7 @@ const spawnShell = async (
         end = true;
     });
     return {
+        pid: spawnProcess.pid,
         stop: () => {
             Log.info("App.spawnShell.stop");
             if (isWin) {
@@ -205,7 +206,28 @@ const spawnShell = async (
                     },
                 );
             } else {
-                spawnProcess.kill("SIGINT");
+                try {
+                    spawnProcess.kill("SIGINT");
+                } catch (e) {
+                    Log.error("App.spawnShell.stop.error", e);
+                }
+            }
+        },
+        // 强制结束（SIGINT 无效时兜底）
+        kill: () => {
+            Log.info("App.spawnShell.kill");
+            if (isWin) {
+                _exec(
+                    `taskkill /pid ${spawnProcess.pid} /T /F`,
+                    { encoding: "binary" },
+                    () => {},
+                );
+            } else {
+                try {
+                    spawnProcess.kill("SIGKILL");
+                } catch (e) {
+                    Log.error("App.spawnShell.kill.error", e);
+                }
             }
         },
         send: (data) => {

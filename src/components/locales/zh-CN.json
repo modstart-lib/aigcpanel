@@ -159,6 +159,8 @@
     "model.apiVoiceTestSuccess": "试听生成成功",
     "model.apiVoiceSaveSuccess": "云端语音模型已添加",
     "model.apiVoiceDocs": "查看密钥申请文档",
+    "model.apiVoiceApiUrl": "API 接口地址",
+    "model.apiVoiceApiUrlTip": "留空则使用默认地址；海外地域或代理可在此修改",
     "model.apiVoiceRequired": "请填写 {title}",
     "model.otherModel": "其他模型",
     "model.apiVoiceCheckFailed": "接口校验失败：{msg}"

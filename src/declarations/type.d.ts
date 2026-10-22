@@ -21,6 +21,28 @@ type DefsPage = {
     ipcSendToHost: (channel: string, type: string, data?: any) => void;
     ipcSend: (channel: string, type: string, data?: any) => void;
 };
+type ServerPrepareStatus = {
+    required: boolean;
+    ready: boolean;
+    percent?: number;
+    size?: number;
+    manifest?: string;
+    running?: boolean;
+    paused?: boolean;
+    error?: string | null;
+    logFile?: string;
+    progress?: {
+        phase?: string;
+        percent?: number;
+        doneSize?: number;
+        totalSize?: number;
+        doneFiles?: number;
+        files?: number;
+        file?: string;
+        error?: string | null;
+    } | null;
+};
+
 type DefsMapi = {
     app: {
         getPreload: () => Promise<string>;
@@ -472,6 +494,9 @@ type DefsMapi = {
         runningServerCount: (count: number | null) => Promise<number>;
         isSupport: (serverInfo: ServerInfo) => Promise<boolean>;
         start: (serverInfo: ServerInfo) => Promise<void>;
+        prepare: (serverInfo: ServerInfo) => Promise<ServerPrepareStatus>;
+        prepareStatus: (serverInfo: ServerInfo) => Promise<ServerPrepareStatus>;
+        pausePrepare: (serverInfo: ServerInfo) => Promise<boolean>;
         stop: (serverInfo: ServerInfo) => Promise<void>;
         cancel: (serverInfo: ServerInfo) => Promise<void>;
         deletes: (serverInfo: ServerInfo) => Promise<void>;

@@ -21,12 +21,21 @@ const props = withDefaults(
     },
 );
 
+// The first scroll (initial log load) jumps to the bottom directly. Animating
+// it with smooth behavior made the viewer visibly scroll from the top down.
+let isFirstScroll = true;
+
 const scrollToBottom = () => {
     nextTick(() => {
-        logContainer.value?.scrollTo({
-            top: logContainer.value?.scrollHeight,
-            behavior: "smooth",
+        const container = logContainer.value;
+        if (!container) {
+            return;
+        }
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: isFirstScroll ? "auto" : "smooth",
         });
+        isFirstScroll = false;
     });
 };
 
@@ -35,7 +44,7 @@ watch(
         return props.logs;
     },
     () => {
-        if (props.autoScroll) {
+        if (props.autoScroll && props.logs.length) {
             scrollToBottom();
         }
     },
