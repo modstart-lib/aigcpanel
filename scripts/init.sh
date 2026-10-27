@@ -345,21 +345,36 @@ apply_sparse() {
     done
 
     if [ "$SPARSE_CLI_OK" = 1 ]; then
-        log "\$ git -C $REPO_DIR sparse-checkout set --no-cone ${PATTERNS[*]}"
+        # The patterns go in over stdin, never as argv: on Windows the MSYS
+        # runtime of Git Bash rewrites arguments that start with "/" into
+        # Windows paths before git sees them ("/win-x86/ffmpeg.exe" arrives as
+        # "C:/Program Files/Git/win-x86/ffmpeg.exe"). Such a pattern matches
+        # nothing, `set` still exits 0, the worktree is emptied, and the error
+        # only shows up later as "pathspec ... did not match any file(s)".
+        log "\$ git -C $REPO_DIR sparse-checkout set --no-cone --stdin  # ${PATTERNS[*]}"
         log "这一步按需下载所需 blob（网络慢时会停留在这里，属正常）"
-        git -C "$REPO_DIR" sparse-checkout set --no-cone "${PATTERNS[@]}" ||
-            die "sparse-checkout 失败（见上方 git 输出）：网络/代理中断、--offline 下缺少所需 blob，或代理不支持 partial clone"
+        if ! printf '%s\n' "${PATTERNS[@]}" |
+            git -C "$REPO_DIR" sparse-checkout set --no-cone --stdin; then
+            warn "sparse-checkout set --stdin 失败（git < 2.26 无此参数，或网络/代理中断），改用 .git/info/sparse-checkout 兜底"
+            manual_sparse
+            log "\$ git -C $REPO_DIR read-tree -mu HEAD"
+            git -C "$REPO_DIR" read-tree -mu HEAD ||
+                die "sparse-checkout 失败（见上方 git 输出）：网络/代理中断、--offline 下缺少所需 blob，或代理不支持 partial clone"
+        fi
     else
         manual_sparse
         log "\$ git -C $REPO_DIR read-tree -mu HEAD"
-        git -C "$REPO_DIR" read-tree -mu HEAD >/dev/null
+        git -C "$REPO_DIR" read-tree -mu HEAD >/dev/null ||
+            die "sparse-checkout 失败（见上方 git 输出）：网络/代理中断、--offline 下缺少所需 blob，或代理不支持 partial clone"
     fi
 
     # A previously failed run can leave these paths deleted from the worktree
     # while the index still considers them up to date; force them out again.
     log "\$ git -C $REPO_DIR checkout -f HEAD -- ${file_paths[*]}"
-    git -C "$REPO_DIR" checkout -f HEAD -- "${file_paths[@]}" ||
-        die "检出 ${file_paths[*]} 失败（网络/代理中断，或 --offline 下缺少所需 blob）"
+    if ! git -C "$REPO_DIR" checkout -f HEAD -- "${file_paths[@]}"; then
+        warn "当前 sparse 规则: $(git -C "$REPO_DIR" sparse-checkout list 2>/dev/null | tr '\n' ' ')"
+        die "检出 ${file_paths[*]} 失败（网络/代理中断、sparse 规则未覆盖这些文件，或 --offline 下缺少所需 blob）"
+    fi
 
     log "已检出文件数: $(find "$REPO_DIR" -type f -not -path "$REPO_DIR/.git/*" | wc -l | tr -d ' ')"
     if have du; then
