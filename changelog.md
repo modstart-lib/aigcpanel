@@ -12,8 +12,6 @@
 - 优化：更新 OpenAI、Gemini、Anthropic、硅基流动、MiniMax 的默认模型列表为当前可用模型
 - 修复：大模型供应商 API 地址拼接错误导致调用 404 的问题——填写带 `/v1` 的地址（如 `https://api.siliconflow.cn/v1`）会拼成 `/v1/v1/chat/completions`，带尾斜杠的地址会丢掉版本前缀；现在域名、带 `/v1`、带尾斜杠、以及完整 `.../chat/completions` 地址均可正确识别
 - 修复：Gemini、Anthropic、Perplexity、MiniMax 等供应商默认接口地址错误（Gemini 缺少 `/v1beta/openai` 兼容前缀、Anthropic 缺少 `/v1`、Perplexity 被错误追加 `/v1`、MiniMax 使用了旧域名）导致即使 Key 正确也无法调用的问题
-- 修复：阿里云百炼供应商模型列表为空的问题（模型配置 key 与供应商 id 不一致）
-- 修复：大模型列表中混入 embedding / rerank 模型、选中后对话必然失败的问题
 - 修复：阿里云百炼语音合成失败的问题——默认模型 `qwen-tts` 已不在官方支持列表（现改用 `qwen3-tts-flash`，旧配置自动迁移），且返回的音频是 OSS 预签名链接，原实现在下载时额外携带 `Authorization` 会被 OSS 拒绝（InvalidArgument，表现为「链接有问题」）；现在下载不再携带鉴权头，失败时回退到 base64 音频数据
 - 修复：查看日志（日志弹窗与日志页面）每次打开都会从顶部一路滚动到底部的问题——首次打开直接定位到日志末尾，后续新增日志仍保持平滑滚动
 - 变更：移除已停止服务或无法使用普通 API Key 调用的供应商：GitHub Models（已退役）、GitHub Copilot（需 OAuth 令牌交换）、零一万物（已停止 API 服务）、Hyperbolic（推理服务已退役）、Jina / Voyage AI（仅提供 embedding/rerank）、Azure OpenAI（需 `api-key` 头与 `api-version` 参数）

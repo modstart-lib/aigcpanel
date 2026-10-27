@@ -89,6 +89,8 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
     // 启动中标志：多个任务并发触发懒启动时只启动一次，
     // 其余调用等待 ping 就绪即可（避免多个服务进程互杀）
     let starting = false;
+    // 离线授权：标记出现后保持待授权状态，写入 auth.json 后重新启动。
+    let offlineAuthPending = false;
     // 任务结果缓存：taskId -> result（从 launcher stdout 标准输出解析）
     const taskResults: {
         [taskId: string]: {
@@ -191,6 +193,16 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
                             isDataPath: true,
                         },
                     );
+                    // 离线授权未激活：输出标记并通知页面弹窗，进程退出后不报错
+                    const offlineAuth =
+                        this.ServerApi.extractOfflineAuthRequired(data);
+                    if (offlineAuth && !offlineAuthPending) {
+                        offlineAuthPending = true;
+                        this.send("action", {
+                            type: "OfflineAuthRequired",
+                            ...offlineAuth,
+                        });
+                    }
                     // 从 stdout 标准输出解析任务结果
                     extractResultFromStdout(data);
                     const result = this.ServerApi.extractResultFromLogs(
@@ -229,6 +241,10 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
                             isDataPath: true,
                         },
                     );
+                    if (offlineAuthPending) {
+                        // 等待用户输入离线授权码，不向前端报错
+                        return;
+                    }
                     this.send("error", this.ServerInfo);
                 },
                 env,
@@ -264,6 +280,47 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
         },
         async cancel() {
             await this.ServerApi.launcherCancel(this);
+        },
+        async submitOfflineAuth(token: string) {
+            const authFile = `${this.ServerInfo.localPath}/auth.json`;
+            await Files.write(
+                authFile,
+                JSON.stringify({ token: token }),
+                { isDataPath: false },
+            );
+            offlineAuthPending = false;
+            await this.start();
+            return { code: 0, msg: "ok" };
+        },
+        async offlineAuthMachineId() {
+            try {
+                const env = await this.ServerApi.env();
+                env["PATH"] = this.ServerApi.getPathEnv([
+                    `${this.ServerInfo.localPath}`,
+                    `${this.ServerInfo.localPath}/binary`,
+                ]);
+                const controller = await this.ServerApi.app.spawnShell(
+                    [`"${this.ServerInfo.localPath}/launcher"`, "uuid"],
+                    {
+                        cwd: this.ServerInfo.localPath,
+                        env: env,
+                        outputEncoding: "utf8",
+                    },
+                );
+                const output = await controller.result();
+                const match = String(output || "").match(
+                    /[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){4}/,
+                );
+                return match ? match[0] : "";
+            } catch (e) {
+                Log.error("comfyui.offlineAuth.machineId.error", e);
+                return "";
+            }
+        },
+        async cancelOfflineAuth() {
+            offlineAuthPending = false;
+            this.send("error", this.ServerInfo);
+            return { code: 0, msg: "ok" };
         },
         async config() {
             // 读取服务端 workflows/*/meta.json，收集全部工作流

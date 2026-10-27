@@ -499,6 +499,26 @@ type DefsMapi = {
         pausePrepare: (serverInfo: ServerInfo) => Promise<boolean>;
         stop: (serverInfo: ServerInfo) => Promise<void>;
         cancel: (serverInfo: ServerInfo) => Promise<void>;
+        submitOfflineAuth: (
+            serverInfo: ServerInfo,
+            token: string,
+        ) => Promise<{ code: number; msg?: string }>;
+        cancelOfflineAuth: (
+            serverInfo: ServerInfo,
+        ) => Promise<{ code: number; msg?: string }>;
+        offlineAuthInfo: (
+            serverInfo: ServerInfo,
+        ) => Promise<{
+            code: number;
+            data?: { token: string; machineId?: string };
+        }>;
+        saveOfflineAuth: (
+            serverInfo: ServerInfo,
+            token: string,
+        ) => Promise<{ code: number; msg?: string }>;
+        revokeOfflineAuth: (
+            serverInfo: ServerInfo,
+        ) => Promise<{ code: number; msg?: string }>;
         deletes: (serverInfo: ServerInfo) => Promise<void>;
         ping: (serverInfo: ServerInfo) => Promise<boolean>;
         config: (serverInfo: ServerInfo) => Promise<any>;

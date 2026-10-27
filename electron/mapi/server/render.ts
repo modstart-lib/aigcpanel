@@ -41,6 +41,26 @@ const cancel = async (serverInfo: ServerInfo) => {
     return ipcRenderer.invoke("server:cancel", serverInfo);
 };
 
+const submitOfflineAuth = async (serverInfo: ServerInfo, token: string) => {
+    return ipcRenderer.invoke("server:submitOfflineAuth", serverInfo, token);
+};
+
+const cancelOfflineAuth = async (serverInfo: ServerInfo) => {
+    return ipcRenderer.invoke("server:cancelOfflineAuth", serverInfo);
+};
+
+const offlineAuthInfo = async (serverInfo: ServerInfo) => {
+    return ipcRenderer.invoke("server:offlineAuthInfo", serverInfo);
+};
+
+const saveOfflineAuth = async (serverInfo: ServerInfo, token: string) => {
+    return ipcRenderer.invoke("server:saveOfflineAuth", serverInfo, token);
+};
+
+const revokeOfflineAuth = async (serverInfo: ServerInfo) => {
+    return ipcRenderer.invoke("server:revokeOfflineAuth", serverInfo);
+};
+
 const deletes = async (serverInfo: ServerInfo) => {
     return ipcRenderer.invoke("server:deletes", serverInfo);
 };
@@ -101,6 +121,11 @@ export default {
     ping,
     stop,
     cancel,
+    submitOfflineAuth,
+    cancelOfflineAuth,
+    offlineAuthInfo,
+    saveOfflineAuth,
+    revokeOfflineAuth,
     deletes,
     config,
     apiVoiceTest,

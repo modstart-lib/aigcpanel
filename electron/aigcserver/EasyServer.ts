@@ -32,6 +32,13 @@ export const EasyServer = function (config: any) {
         reject: null as ((reason?: any) => void) | null,
         promiseResolved: false,
     };
+    // 离线授权未激活时：保持当前任务挂起（不 reject），等客户端写入 auth.json
+    // 后再用同样的 config.json 重新拉起启动器，任务无缝继续。
+    this.offlineAuthPending = false;
+    this.offlineAuthPendingRun = null as {
+        configJsonPath: string;
+        option: { timeout: number };
+    } | null;
     this.serverConfig = config as {
         // 权重按需下载配置（config.json 的 prepare；存在即表示权重不随包分发）
         // 只允许三个字段：entry / entryArgs / size
@@ -492,6 +499,79 @@ export const EasyServer = function (config: any) {
     this.cancel = async function () {
         controller.stop();
     };
+    // 写入离线授权码（auth.json）并重新拉起被挂起的任务。
+    // token 由 Web 后台按「授权名称 + 机器码 + 过期时间」签发，启动器负责验签。
+    this.submitOfflineAuth = async function (token: string) {
+        if (!this.offlineAuthPending) {
+            return { code: -1, msg: "offline auth is not pending" };
+        }
+        const authFile = `${this.ServerInfo.localPath}/auth.json`;
+        await Files.write(
+            authFile,
+            JSON.stringify({ token: token }),
+            { isDataPath: false },
+        );
+        this.ServerApi.file.appendText(
+            this.ServerInfo.logFile,
+            "offline auth saved, restarting launcher",
+            { isDataPath: true },
+        );
+        const pending = this.offlineAuthPendingRun;
+        this.offlineAuthPending = false;
+        this.offlineAuthPendingRun = null;
+        if (pending) {
+            me._controllerRunIfNeeded(
+                pending.configJsonPath,
+                pending.option,
+            ).catch((e) => {
+                Log.error("easyServer.offlineAuth.restart.error", e);
+            });
+        }
+        return { code: 0, msg: "ok" };
+    };
+    // 读取本机设备码（供「AI模型」管理里的离线授权弹窗展示/复制）
+    this.offlineAuthMachineId = async function () {
+        try {
+            const env = await this.ServerApi.env();
+            env["PATH"] = this.ServerApi.getPathEnv([
+                this.ServerInfo.localPath,
+                `${this.ServerInfo.localPath}/binary`,
+            ]);
+            const entry = (this.serverConfig.easyServer || {}).entry;
+            if (!entry) {
+                return "";
+            }
+            const controller = await this.ServerApi.app.spawnShell(
+                [entry, "uuid"],
+                {
+                    cwd: this.ServerInfo.localPath,
+                    env: env,
+                    outputEncoding: "utf8",
+                },
+            );
+            const output = await controller.result();
+            const match = String(output || "").match(
+                /[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){4}/,
+            );
+            return match ? match[0] : "";
+        } catch (e) {
+            Log.error("easyServer.offlineAuth.machineId.error", e);
+            return "";
+        }
+    };
+    // 用户取消输入离线授权码：按任务失败处理，避免任务一直挂起。
+    this.cancelOfflineAuth = function () {
+        if (!this.offlineAuthPending) {
+            return { code: 0, msg: "ok" };
+        }
+        this.offlineAuthPending = false;
+        this.offlineAuthPendingRun = null;
+        if (controllerWatching.reject && !controllerWatching.promiseResolved) {
+            controllerWatching.promiseResolved = true;
+            controllerWatching.reject(undefined);
+        }
+        return { code: 0, msg: "ok" };
+    };
     this._controllerRunIfNeeded = async function (
         configJsonPath: string | null,
         option: {
@@ -605,6 +685,23 @@ export const EasyServer = function (config: any) {
                         _data,
                         { isDataPath: true },
                     );
+                    // 离线授权未激活：启动器会输出 AigcPanelOfflineAuth[...] 标记，
+                    // 通知页面弹窗输入授权码，并挂起当前任务等待重试。
+                    const offlineAuth =
+                        this.ServerApi.extractOfflineAuthRequired(
+                            lines.join("\n") + "\n",
+                        );
+                    if (offlineAuth && !this.offlineAuthPending) {
+                        this.offlineAuthPending = true;
+                        this.offlineAuthPendingRun = {
+                            configJsonPath,
+                            option,
+                        };
+                        this.send("action", {
+                            type: "OfflineAuthRequired",
+                            ...offlineAuth,
+                        });
+                    }
                     const result = this.ServerApi.extractResultFromLogs(
                         controllerWatching.id,
                         lines.join("\n") + "\n",
@@ -696,6 +793,11 @@ export const EasyServer = function (config: any) {
                     );
                     clearTimeout(timer);
                     controller = null;
+                    if (this.offlineAuthPending) {
+                        // 离线授权未激活：保留当前任务等待用户输入授权码，
+                        // 写入 auth.json 后由 submitOfflineAuth 重新拉起。
+                        return;
+                    }
                     // 与 success 同理：进程异常退出时若队列中仍有任务，先重新拉起该
                     // 任务并继续等待其结果，避免把未执行的任务直接判为失败。
                     hasMoreQueue()

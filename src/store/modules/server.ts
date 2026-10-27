@@ -1,9 +1,9 @@
-import { ComputedRef } from "@vue/reactivity";
 import { cloneDeep } from "lodash-es";
 import { defineStore } from "pinia";
-import { computed, ref, toRaw } from "vue";
+import { computed, ref, toRaw, ComputedRef } from "vue";
 import { t } from "../../lang";
 import { Dialog } from "../../lib/dialog";
+import { OfflineAuth } from "../../lib/offlineAuth";
 import { TimeUtil, wait } from "../../lib/util";
 import { StorageService } from "../../service/StorageService";
 import { TaskService } from "../../service/TaskService";
@@ -145,6 +145,56 @@ const createEventChannel = (
                         }, 2000);
                         break;
                     
+                    // 离线授权未激活：弹窗输入授权码，写入 auth.json 后继续启动
+                    case "OfflineAuthRequired": {
+                        (async () => {
+                            const token = await OfflineAuth.require({
+                                machineId: data.machineId,
+                                packageName: data.packageName,
+                                version: data.version,
+                                reason: data.reason,
+                            });
+                            const serverInfo =
+                                await serverStoreInstance.serverInfo(server);
+                            if (!token) {
+                                await $mapi.server.cancelOfflineAuth(
+                                    serverInfo,
+                                );
+                                return;
+                            }
+                            const res = await $mapi.server.submitOfflineAuth(
+                                serverInfo,
+                                token,
+                            );
+                            if (res && res.code) {
+                                // 保存失败：结束挂起任务，避免一直「运行中」
+                                await $mapi.server.cancelOfflineAuth(
+                                    serverInfo,
+                                );
+                                Dialog.tipError(
+                                    res.msg || t("offlineAuth.saveFailed"),
+                                );
+                                serverRuntime.status = EnumServerStatus.ERROR;
+                                return;
+                            }
+                            window.$mapi.app.toast(t("offlineAuth.saved"), {
+                                status: "success",
+                            });
+                        })().catch(async (e) => {
+                            // 兜底：任何异常都要结束挂起任务，避免任务一直显示「运行中」
+                            try {
+                                const info =
+                                    await serverStoreInstance.serverInfo(
+                                        server,
+                                    );
+                                await $mapi.server.cancelOfflineAuth(info);
+                            } catch (cancelError) {
+                                // ignore
+                            }
+                            Dialog.tipError(String(e));
+                        });
+                        break;
+                    }
                 }
                 break;
             case "liveTalk":
@@ -866,6 +916,18 @@ export const serverStore = defineStore("server", {
             }
         },
         async serverInfo(server: ServerRecord) {
+            // 只序列化纯数据字段：record 上的 status/runtime 可能包含 ComputedRef，
+            // 直接 JSON.stringify(server) 会因循环引用抛
+            // 「TypeError: Converting circular structure to JSON」，导致离线授权等
+            // IPC 调用在序列化阶段就失败、任务一直挂在「运行中」。
+            const raw: any = toRaw(server);
+            const configSource: any = {};
+            Object.keys(raw).forEach((key) => {
+                if (key === "status" || key === "runtime") return;
+                const value = raw[key];
+                if (typeof value === "function") return;
+                configSource[key] = toRaw(value);
+            });
             const result = {
                 localPath: "",
                 name: server.name,
@@ -874,7 +936,7 @@ export const serverStore = defineStore("server", {
                 setting: toRaw(server.setting),
                 logFile: "",
                 eventChannelName: "",
-                config: JSON.parse(JSON.stringify(server)),
+                config: JSON.parse(JSON.stringify(configSource)),
             };
             if (server.type === EnumServerType.LOCAL) {
                 result.localPath = await $mapi.file.fullPath(

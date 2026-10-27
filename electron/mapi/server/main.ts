@@ -263,6 +263,105 @@ ipcMain.handle("server:cancel", async (event, serverInfo: ServerInfo) => {
     }
 });
 
+// 离线授权：写入 auth.json 并让对应服务继续启动/重试
+ipcMain.handle(
+    "server:submitOfflineAuth",
+    async (event, serverInfo: ServerInfo, token: string) => {
+        const module = await getModule(serverInfo);
+        if (typeof module.submitOfflineAuth !== "function") {
+            return { code: -1, msg: "OfflineAuthNotSupported" };
+        }
+        try {
+            return await module.submitOfflineAuth(token);
+        } catch (e) {
+            const error = mapError(e);
+            Log.error("mapi.server.submitOfflineAuth.error", error);
+            return { code: -1, msg: error };
+        }
+    },
+);
+
+// 「AI模型」管理：读取当前 auth.json（查看/修改离线授权）
+ipcMain.handle(
+    "server:offlineAuthInfo",
+    async (event, serverInfo: ServerInfo) => {
+        let token = "";
+        try {
+            const content = await Files.read(
+                serverInfo.localPath + "/auth.json",
+            );
+            const data = content ? JSON.parse(content) : {};
+            token = (data && data.token) || "";
+        } catch (e) {
+            token = "";
+        }
+        // 设备码由模型内的 launcher `uuid` 输出（与授权失败标记里的 machineId 一致）
+        let machineId = "";
+        try {
+            const module: any = await getModule(serverInfo);
+            if (module && typeof module.offlineAuthMachineId === "function") {
+                machineId = (await module.offlineAuthMachineId()) || "";
+            }
+        } catch (e) {
+            machineId = "";
+        }
+        return { code: 0, data: { token, machineId } };
+    },
+);
+
+// 「AI模型」管理：直接保存授权码（不依赖挂起的任务，重启模型后生效）
+ipcMain.handle(
+    "server:saveOfflineAuth",
+    async (event, serverInfo: ServerInfo, token: string) => {
+        try {
+            const value = String(token || "").trim();
+            if (!value || 2 !== value.split(".").length) {
+                return { code: -1, msg: "OfflineAuthInvalidToken" };
+            }
+            await Files.write(
+                serverInfo.localPath + "/auth.json",
+                JSON.stringify({ token: value }),
+                { isDataPath: false },
+            );
+            return { code: 0, msg: "ok" };
+        } catch (e) {
+            return { code: -1, msg: mapError(e) };
+        }
+    },
+);
+
+// 「AI模型」管理：撤销离线授权（删除 auth.json，重启模型后生效）
+ipcMain.handle(
+    "server:revokeOfflineAuth",
+    async (event, serverInfo: ServerInfo) => {
+        try {
+            await Files.deletes(serverInfo.localPath + "/auth.json", {
+                isDataPath: false,
+            });
+            return { code: 0, msg: "ok" };
+        } catch (e) {
+            return { code: -1, msg: mapError(e) };
+        }
+    },
+);
+
+ipcMain.handle(
+    "server:cancelOfflineAuth",
+    async (event, serverInfo: ServerInfo) => {
+        const module = await getModule(serverInfo);
+        if (typeof module.cancelOfflineAuth !== "function") {
+            return { code: -1, msg: "OfflineAuthNotSupported" };
+        }
+        try {
+            return await module.cancelOfflineAuth();
+        } catch (e) {
+            const error = mapError(e);
+            Log.error("mapi.server.cancelOfflineAuth.error", error);
+            return { code: -1, msg: error };
+        }
+    },
+);
+
 ipcMain.handle("server:deletes", async (event, serverInfo: ServerInfo) => {
     if (serverModule[serverInfo.localPath]) {
         delete serverModule[serverInfo.localPath];
