@@ -226,12 +226,6 @@ onUnmounted(() => {
                             
                         </template>
                     </a-dropdown>
-                    <a-button v-if="0" class="ml-1">
-                        <template #icon>
-                            <icon-apps />
-                        </template>
-                        {{ $t("model.addCloud") }}
-                    </a-button>
                     <a-button class="mx-1" @click="helpShow = true">
                         <template #icon>
                             <icon-book class="mr-1" />
@@ -262,6 +256,7 @@ onUnmounted(() => {
             <div v-else class="flex flex-wrap -mx-2">
                 <div
                     v-for="record in serverStore.records"
+                    :key="record.key"
                     class="w-full lg:w-1/2 2xl:w-1/3 p-2 mb-1"
                 >
                     <div class="rounded-xl shadow border p-4">
@@ -327,6 +322,7 @@ onUnmounted(() => {
                                     v-for="label in functionToLabels(
                                         record.functions,
                                     )"
+                                    :key="label"
                                     class="mr-1 rounded-lg"
                                 >
                                     {{ label }}

@@ -100,7 +100,7 @@ defineExpose({
                                 "
                             >
                                 <icon-cloud class="mr-1"></icon-cloud>
-                                {{ $t("model.cloudModel") }}
+                                {{ $t("model.remoteModel") }}
                             </div>
                         </div>
                         <div
@@ -120,6 +120,7 @@ defineExpose({
                     <div>
                         <a-tag
                             v-for="label in functionToLabels(record.functions)"
+                            :key="label"
                             class="mr-1 rounded-lg"
                         >
                             {{ label }}

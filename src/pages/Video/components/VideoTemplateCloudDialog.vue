@@ -19,6 +19,8 @@ const serverCloudStore = useServerCloudStore();
 
 const visible = ref(false);
 const loading = ref(true);
+/** Whether a successful load already happened, so failures retry on reopen. */
+const loaded = ref(false);
 const records = ref<VideoTemplateCloudRecord[]>([]);
 const selectedTags = ref<string[]>([]);
 
@@ -46,14 +48,22 @@ const toggleTag = (tag: string) => {
 
 const doLoad = async () => {
     loading.value = true;
-    await serverCloudStore.listVideoTemplates();
-    records.value = serverCloudStore.videoTemplateRecords;
-    loading.value = false;
+    try {
+        await serverCloudStore.listVideoTemplates();
+        records.value = serverCloudStore.videoTemplateRecords;
+        loaded.value = true;
+    } catch (e) {
+        // Keep the dialog usable: show the empty state and let the user reopen.
+        console.error(e);
+        Dialog.tipError(t("model.cloudLoadFailed"));
+    } finally {
+        loading.value = false;
+    }
 };
 
 const show = () => {
     visible.value = true;
-    if (loading.value) {
+    if (!loaded.value) {
         doLoad();
     }
 };
@@ -105,6 +115,11 @@ const emit = defineEmits({
     >
         <template #title>
             {{ $t("model.cloudVideoAvatar") }}
+            <span
+                class="ml-2 rounded bg-amber-50 px-1 align-middle text-xs font-normal leading-5 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+            >
+                {{ $t("model.cloudNeedDownloadTag") }}
+            </span>
         </template>
         <div>
             <div>
