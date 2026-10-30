@@ -9,8 +9,12 @@ export type OfflineAuthRequest = {
     reason?: string;
     /** 已有授权码（「AI模型」管理里查看/修改时预填） */
     token?: string;
-    /** 授权归属的模型信息（撤销授权时需要） */
-    serverInfo?: any;
+    /** 保存授权码（由调用方实现：调用 launcher 校验并保存，失败返回错误） */
+    onSave?: (token: string) => Promise<{ code: number; msg?: string }>;
+    /** 撤销授权（由调用方实现：删除 auth.json 并返回结果） */
+    onRevoke?: () => Promise<{ code: number; msg?: string }>;
+    /** 撤销成功后的回调（用于刷新模型卡片上的授权标签） */
+    onRevoked?: () => void;
 };
 
 // 全局离线授权弹窗状态：主进程检测到 launcher 的 AigcPanelOfflineAuth[...] 标记后，

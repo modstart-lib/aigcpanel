@@ -505,12 +505,11 @@ export const EasyServer = function (config: any) {
         if (!this.offlineAuthPending) {
             return { code: -1, msg: "offline auth is not pending" };
         }
-        const authFile = `${this.ServerInfo.localPath}/auth.json`;
-        await Files.write(
-            authFile,
-            JSON.stringify({ token: token }),
-            { isDataPath: false },
-        );
+        // 先用 launcher 二进制真实校验（签名/包名/设备码/有效期），通过后由 launcher 写入 auth.json
+        const saveRet = await this.offlineAuthSave(token);
+        if (saveRet.code !== 0) {
+            return saveRet;
+        }
         this.ServerApi.file.appendText(
             this.ServerInfo.logFile,
             "offline auth saved, restarting launcher",
@@ -528,6 +527,47 @@ export const EasyServer = function (config: any) {
             });
         }
         return { code: 0, msg: "ok" };
+    };
+    // 调用 launcher 二进制真实校验并保存授权码（无效/过期/包名或设备码不匹配时返回错误）
+    this.offlineAuthSave = async function (token: string) {
+        try {
+            const env = await this.ServerApi.env();
+            env["PATH"] = this.ServerApi.getPathEnv([
+                this.ServerInfo.localPath,
+                `${this.ServerInfo.localPath}/binary`,
+            ]);
+            env["AIGCPANEL_SERVER_ROOT"] = this.ServerInfo.localPath;
+            const entry = (this.serverConfig.easyServer || {}).entry;
+            if (!entry) {
+                return { code: -1, msg: "LauncherNotFound" };
+            }
+            const controller = await this.ServerApi.app.spawnShell(
+                [entry, "auth", token],
+                {
+                    cwd: this.ServerInfo.localPath,
+                    env: env,
+                    outputEncoding: "utf8",
+                },
+            );
+            let output = "";
+            try {
+                output = await controller.result();
+            } catch (e) {
+                output = String(e);
+            }
+            if (String(output).indexOf("授权码已保存") !== -1) {
+                return { code: 0, msg: "ok" };
+            }
+            const matched = String(output).match(/Error:\s*([^\r\n]+)/);
+            const msg = matched
+                ? matched[1].trim()
+                : (String(output).trim().split("\n").pop() ||
+                  "OfflineAuthInvalidToken");
+            return { code: -1, msg: msg };
+        } catch (e) {
+            Log.error("easyServer.offlineAuth.save.error", e);
+            return { code: -1, msg: String(e) };
+        }
     };
     // 读取本机设备码（供「AI模型」管理里的离线授权弹窗展示/复制）
     this.offlineAuthMachineId = async function () {
@@ -568,7 +608,7 @@ export const EasyServer = function (config: any) {
         this.offlineAuthPendingRun = null;
         if (controllerWatching.reject && !controllerWatching.promiseResolved) {
             controllerWatching.promiseResolved = true;
-            controllerWatching.reject(undefined);
+            controllerWatching.reject(new Error("已取消离线授权"));
         }
         return { code: 0, msg: "ok" };
     };

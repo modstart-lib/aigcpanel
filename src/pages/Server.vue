@@ -4,6 +4,7 @@ import ServerActionInfo from "../components/Server/ServerActionInfo.vue";
 import ServerActionLog from "../components/Server/ServerActionLog.vue";
 import ServerPrepareStatus from "../components/Server/ServerPrepareStatus.vue";
 import ServerActionMore from "../components/Server/ServerActionMore.vue";
+import ServerOfflineAuthTag from "../components/Server/ServerOfflineAuthTag.vue";
 import ServerActionSetting from "../components/Server/ServerActionSetting.vue";
 import ServerActionStartStop from "../components/Server/ServerActionStartStop.vue";
 import ServerActionComfyUIView from "../components/Server/ServerActionComfyUIView.vue";
@@ -298,6 +299,7 @@ onUnmounted(() => {
                                     >
                                         v{{ record.version }}
                                     </div>
+                                    <ServerOfflineAuthTag :record="record" />
                                 </div>
                             </div>
                             <div class="flex items-center gap-1">

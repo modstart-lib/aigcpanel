@@ -72,20 +72,20 @@ const doOfflineAuth = async () => {
         packageName: props.record.name,
         machineId: machineId,
         token: token,
-        serverInfo: serverInfo,
+        onSave: async (value: string) => {
+            return await $mapi.server.saveOfflineAuth(serverInfo, value);
+        },
+        onRevoke: async () => {
+            return await $mapi.server.revokeOfflineAuth(serverInfo);
+        },
+        onRevoked: () => {
+            serverStore.bumpOfflineAuth();
+        },
     });
     if (!value) {
         return;
     }
-    const res: any = await $mapi.server.saveOfflineAuth(serverInfo, value);
-    if (res && res.code) {
-        Dialog.tipError(
-            res.msg === "OfflineAuthInvalidToken"
-                ? t("offlineAuth.invalidToken")
-                : res.msg || t("offlineAuth.saveFailed"),
-        );
-        return;
-    }
+    serverStore.bumpOfflineAuth();
     Message.success(t("offlineAuth.savedShort"));
 };
 

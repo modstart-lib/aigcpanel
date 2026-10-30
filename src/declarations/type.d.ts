@@ -506,6 +506,9 @@ type DefsMapi = {
         cancelOfflineAuth: (
             serverInfo: ServerInfo,
         ) => Promise<{ code: number; msg?: string }>;
+        offlineAuthToken: (
+            serverInfo: ServerInfo,
+        ) => Promise<{ code: number; data?: { token: string } }>;
         offlineAuthInfo: (
             serverInfo: ServerInfo,
         ) => Promise<{

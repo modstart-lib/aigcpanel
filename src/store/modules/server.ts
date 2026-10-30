@@ -148,14 +148,21 @@ const createEventChannel = (
                     // 离线授权未激活：弹窗输入授权码，写入 auth.json 后继续启动
                     case "OfflineAuthRequired": {
                         (async () => {
+                            const serverInfo =
+                                await serverStoreInstance.serverInfo(server);
+                            // 弹窗内直接调用 launcher 真实校验，无效时保持弹窗并提示
                             const token = await OfflineAuth.require({
                                 machineId: data.machineId,
                                 packageName: data.packageName,
                                 version: data.version,
                                 reason: data.reason,
+                                onSave: async (value: string) => {
+                                    return await $mapi.server.saveOfflineAuth(
+                                        serverInfo,
+                                        value,
+                                    );
+                                },
                             });
-                            const serverInfo =
-                                await serverStoreInstance.serverInfo(server);
                             if (!token) {
                                 await $mapi.server.cancelOfflineAuth(
                                     serverInfo,
@@ -177,6 +184,7 @@ const createEventChannel = (
                                 serverRuntime.status = EnumServerStatus.ERROR;
                                 return;
                             }
+                            serverStoreInstance.bumpOfflineAuth();
                             window.$mapi.app.toast(t("offlineAuth.saved"), {
                                 status: "success",
                             });
@@ -262,8 +270,13 @@ export const serverStore = defineStore("server", {
     state: () => ({
         isReady: false,
         records: [] as ServerRecord[],
+        // 离线授权变更版本号：保存/撤销后 +1，模型卡片上的授权标签据此刷新
+        offlineAuthVersion: 0,
     }),
     actions: {
+        bumpOfflineAuth() {
+            this.offlineAuthVersion += 1;
+        },
         async waitReady() {
             await wait(() => this.isReady);
             

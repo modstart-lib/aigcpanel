@@ -3,7 +3,7 @@ export const mapError = (e) => {
     if (e instanceof Error) {
         msg = [e.message, e.stack].join("\n");
     } else if (typeof e !== "string") {
-        msg = e.toString();
+        msg = e === null || e === undefined ? "UnknownError" : e.toString();
     }
     const map = {
         // 'fetch error': '网络错误',

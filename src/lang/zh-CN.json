@@ -553,5 +553,18 @@
     "offlineAuth.revoke": "撤销授权",
     "offlineAuth.revokeConfirm": "撤销后该模型将无法离线运行，确定撤销授权吗？",
     "offlineAuth.revoked": "授权已撤销，重启模型后生效",
-    "offlineAuth.revokeFailed": "撤销授权失败"
+    "offlineAuth.revokeFailed": "撤销授权失败",
+    "offlineAuth.info": "授权信息",
+    "offlineAuth.expireAt": "到期时间",
+    "offlineAuth.issuedAt": "签发时间",
+    "offlineAuth.permanent": "永久",
+    "offlineAuth.statusValid": "有效",
+    "offlineAuth.statusExpired": "已过期",
+    "offlineAuth.statusVersion": "版本不支持",
+    "offlineAuth.statusNameMismatch": "包名不匹配",
+    "offlineAuth.statusMachineMismatch": "设备码不匹配",
+    "model.offlineAuthExpire": "授权至 {date}",
+    "model.offlineAuthExpired": "授权已过期",
+    "model.offlineAuthPermanent": "永久",
+    "model.offlineAuthPermanentLabel": "已授权（永久）"
 }

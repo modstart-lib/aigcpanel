@@ -49,6 +49,10 @@ const cancelOfflineAuth = async (serverInfo: ServerInfo) => {
     return ipcRenderer.invoke("server:cancelOfflineAuth", serverInfo);
 };
 
+const offlineAuthToken = async (serverInfo: ServerInfo) => {
+    return ipcRenderer.invoke("server:offlineAuthToken", serverInfo);
+};
+
 const offlineAuthInfo = async (serverInfo: ServerInfo) => {
     return ipcRenderer.invoke("server:offlineAuthInfo", serverInfo);
 };
@@ -123,6 +127,7 @@ export default {
     cancel,
     submitOfflineAuth,
     cancelOfflineAuth,
+    offlineAuthToken,
     offlineAuthInfo,
     saveOfflineAuth,
     revokeOfflineAuth,

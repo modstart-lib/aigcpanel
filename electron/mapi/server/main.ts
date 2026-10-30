@@ -281,6 +281,22 @@ ipcMain.handle(
     },
 );
 
+// 模型卡片展示授权到期时间：只读 auth.json（不启动 launcher）
+ipcMain.handle(
+    "server:offlineAuthToken",
+    async (event, serverInfo: ServerInfo) => {
+        try {
+            const content = await Files.read(
+                serverInfo.localPath + "/auth.json",
+            );
+            const data = content ? JSON.parse(content) : {};
+            return { code: 0, data: { token: (data && data.token) || "" } };
+        } catch (e) {
+            return { code: 0, data: { token: "" } };
+        }
+    },
+);
+
 // 「AI模型」管理：读取当前 auth.json（查看/修改离线授权）
 ipcMain.handle(
     "server:offlineAuthInfo",
@@ -315,15 +331,15 @@ ipcMain.handle(
     async (event, serverInfo: ServerInfo, token: string) => {
         try {
             const value = String(token || "").trim();
-            if (!value || 2 !== value.split(".").length) {
+            if (!value) {
                 return { code: -1, msg: "OfflineAuthInvalidToken" };
             }
-            await Files.write(
-                serverInfo.localPath + "/auth.json",
-                JSON.stringify({ token: value }),
-                { isDataPath: false },
-            );
-            return { code: 0, msg: "ok" };
+            // 必须调用 launcher 二进制真实校验（签名/包名/设备码/有效期）后再保存
+            const module: any = await getModule(serverInfo);
+            if (!module || typeof module.offlineAuthSave !== "function") {
+                return { code: -1, msg: "OfflineAuthNotSupported" };
+            }
+            return await module.offlineAuthSave(value);
         } catch (e) {
             return { code: -1, msg: mapError(e) };
         }

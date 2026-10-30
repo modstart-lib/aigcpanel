@@ -282,15 +282,50 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
             await this.ServerApi.launcherCancel(this);
         },
         async submitOfflineAuth(token: string) {
-            const authFile = `${this.ServerInfo.localPath}/auth.json`;
-            await Files.write(
-                authFile,
-                JSON.stringify({ token: token }),
-                { isDataPath: false },
-            );
+            // 先用 launcher 二进制真实校验（签名/包名/设备码/有效期），通过后由 launcher 写入 auth.json
+            const saveRet = await this.offlineAuthSave(token);
+            if (saveRet.code !== 0) {
+                return saveRet;
+            }
             offlineAuthPending = false;
             await this.start();
             return { code: 0, msg: "ok" };
+        },
+        async offlineAuthSave(token: string) {
+            try {
+                const env = await this.ServerApi.env();
+                env["PATH"] = this.ServerApi.getPathEnv([
+                    `${this.ServerInfo.localPath}`,
+                    `${this.ServerInfo.localPath}/binary`,
+                ]);
+                env["AIGCPANEL_SERVER_ROOT"] = this.ServerInfo.localPath;
+                const controller = await this.ServerApi.app.spawnShell(
+                    [`"${this.ServerInfo.localPath}/launcher"`, "auth", token],
+                    {
+                        cwd: this.ServerInfo.localPath,
+                        env: env,
+                        outputEncoding: "utf8",
+                    },
+                );
+                let output = "";
+                try {
+                    output = await controller.result();
+                } catch (e) {
+                    output = String(e);
+                }
+                if (String(output).indexOf("授权码已保存") !== -1) {
+                    return { code: 0, msg: "ok" };
+                }
+                const matched = String(output).match(/Error:\s*([^\r\n]+)/);
+                const msg = matched
+                    ? matched[1].trim()
+                    : (String(output).trim().split("\n").pop() ||
+                      "OfflineAuthInvalidToken");
+                return { code: -1, msg: msg };
+            } catch (e) {
+                Log.error("comfyui.offlineAuth.save.error", e);
+                return { code: -1, msg: String(e) };
+            }
         },
         async offlineAuthMachineId() {
             try {

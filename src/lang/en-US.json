@@ -553,5 +553,18 @@
     "offlineAuth.revoke": "Revoke license",
     "offlineAuth.revokeConfirm": "The model cannot run offline after revoking. Continue?",
     "offlineAuth.revoked": "License revoked. Restart the model to apply.",
-    "offlineAuth.revokeFailed": "Failed to revoke license"
+    "offlineAuth.revokeFailed": "Failed to revoke license",
+    "offlineAuth.info": "License info",
+    "offlineAuth.expireAt": "Expires",
+    "offlineAuth.issuedAt": "Issued",
+    "offlineAuth.permanent": "Never",
+    "offlineAuth.statusValid": "Valid",
+    "offlineAuth.statusExpired": "Expired",
+    "offlineAuth.statusVersion": "Unsupported version",
+    "offlineAuth.statusNameMismatch": "Package mismatch",
+    "offlineAuth.statusMachineMismatch": "Device mismatch",
+    "model.offlineAuthExpire": "Licensed to {date}",
+    "model.offlineAuthExpired": "License expired",
+    "model.offlineAuthPermanent": "Never",
+    "model.offlineAuthPermanentLabel": "Licensed (never expires)"
 }

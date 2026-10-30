@@ -7,6 +7,7 @@ import { t } from "../lang";
 
 const token = ref("");
 const softwareName = ref("");
+const saving = ref(false);
 const request = computed(() => OfflineAuth.state.request || {});
 
 /** 解析授权码 payload（仅用于本地提前校验，最终以启动器验签为准） */
@@ -36,6 +37,55 @@ const machineMismatch = computed(() => {
     if (!payload?.machineId || !request.value.machineId) return false;
     return payload.machineId !== request.value.machineId;
 });
+
+const formatTime = (timestamp: number) => {
+    if (!timestamp) return t("offlineAuth.permanent");
+    const d = new Date(timestamp * 1000);
+    const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
+        d.getHours(),
+    )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+/** 授权到期时间文案（0 表示永久） */
+const expireText = computed(() => {
+    const payload = tokenPayload.value;
+    if (!payload) return "";
+    return formatTime(Number(payload.expireAt || 0));
+});
+
+/** 签发时间文案 */
+const issuedText = computed(() => {
+    const payload = tokenPayload.value;
+    if (!payload) return "";
+    return payload.issuedAt ? formatTime(Number(payload.issuedAt)) : "-";
+});
+
+const expired = computed(() => {
+    const payload = tokenPayload.value;
+    if (!payload) return false;
+    const expireAt = Number(payload.expireAt || 0);
+    return expireAt > 0 && Date.now() / 1000 > expireAt;
+});
+
+const versionMismatch = computed(() => {
+    const payload = tokenPayload.value;
+    return !!payload && Number(payload.v || 0) !== 1;
+});
+
+/** 授权状态（版本 > 过期 > 包名 > 设备码 > 有效） */
+const statusText = computed(() => {
+    if (!tokenPayload.value) return "";
+    if (versionMismatch.value) return t("offlineAuth.statusVersion");
+    if (expired.value) return t("offlineAuth.statusExpired");
+    if (nameMismatch.value) return t("offlineAuth.statusNameMismatch");
+    if (machineMismatch.value) return t("offlineAuth.statusMachineMismatch");
+    return t("offlineAuth.statusValid");
+});
+
+const statusValid = computed(
+    () => !!tokenPayload.value && statusText.value === t("offlineAuth.statusValid"),
+);
 
 const isEdit = computed(() => !!request.value.token);
 
@@ -73,14 +123,17 @@ const doRevoke = async () => {
         t("offlineAuth.revoke"),
     );
     try {
-        const res: any = await $mapi.server.revokeOfflineAuth(
-            request.value.serverInfo,
-        );
+        const onRevoke = request.value.onRevoke;
+        if (!onRevoke) {
+            return;
+        }
+        const res: any = await onRevoke();
         if (res && res.code) {
             Dialog.tipError(res.msg || t("offlineAuth.revokeFailed"));
             return;
         }
         Message.success(t("offlineAuth.revoked"));
+        request.value.onRevoked?.();
         OfflineAuth.resolve(null);
     } catch (e) {
         Dialog.tipError(String(e));
@@ -104,6 +157,25 @@ const doOk = () => {
     }
     if (machineMismatch.value) {
         Message.warning(t("offlineAuth.machineMismatch"));
+        return;
+    }
+    const onSave = request.value.onSave;
+    if (onSave) {
+        // 由调用方调用 launcher 真实校验，失败时保持弹窗并提示具体原因
+        saving.value = true;
+        onSave(value)
+            .then((res) => {
+                saving.value = false;
+                if (res && res.code) {
+                    Message.error(res.msg || t("offlineAuth.saveFailed"));
+                    return;
+                }
+                OfflineAuth.resolve(value);
+            })
+            .catch((e) => {
+                saving.value = false;
+                Message.error(String(e));
+            });
         return;
     }
     OfflineAuth.resolve(value);
@@ -165,6 +237,36 @@ const doOk = () => {
             <div v-if="machineMismatch" class="text-xs text-red-500 mt-1">
                 {{ t("offlineAuth.machineMismatch") }}
             </div>
+            <!-- 授权信息：粘贴/已有授权码后展示到期时间与状态 -->
+            <div
+                v-if="tokenPayload"
+                class="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs leading-6 text-gray-600"
+            >
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400">{{ t("offlineAuth.info") }}</span>
+                    <span
+                        :class="
+                            statusValid ? 'text-green-600' : 'text-red-500'
+                        "
+                    >
+                        {{ statusText }}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400">
+                        {{ t("offlineAuth.expireAt") }}
+                    </span>
+                    <span :class="expired ? 'text-red-500' : ''">
+                        {{ expireText }}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400">
+                        {{ t("offlineAuth.issuedAt") }}
+                    </span>
+                    <span>{{ issuedText }}</span>
+                </div>
+            </div>
         </div>
         <template #footer>
             <a-button
@@ -179,7 +281,7 @@ const doOk = () => {
             <a-button @click="visible = false">
                 {{ t("common.cancel") }}
             </a-button>
-            <a-button type="primary" @click="doOk">
+            <a-button type="primary" :loading="saving" @click="doOk">
                 {{ t("common.confirm") }}
             </a-button>
         </template>
