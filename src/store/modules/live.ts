@@ -8,6 +8,7 @@ import { LiveAvatarService } from "../../service/LiveAvatarService";
 import { liveVoiceProviderName } from "../../service/VoiceService";
 import { StorageService } from "../../service/StorageService";
 import { LiveStatusType } from "../../types/Live";
+import type { LiveMaterialProblemType } from "../../types/Live";
 import { EnumServerStatus, ServerRecord } from "../../types/Server";
 import store from "../index";
 import { useServerStore } from "./server";
@@ -385,6 +386,59 @@ export const liveStore = defineStore("live", {
             // console.log('ttsProviders', ttsProviders)
             this.serverConfig.ttsProviders = ttsProviders;
         },
+        /**
+         * 统计已启用的循环素材数量。
+         * 用于开始直播前的校验，以及配置页里「循环口播 / 循环内容视频」的状态提示。
+         */
+        async knowledgeMaterialCounts() {
+            const list = await StorageService.list("LiveKnowledge");
+            const counts = {
+                flowTalk: 0,
+                flowVideo: 0,
+            };
+            for (const record of list) {
+                if (!record.content.enable) {
+                    continue;
+                }
+                if (record.content.type === "flowTalk") {
+                    counts.flowTalk++;
+                } else if (record.content.type === "flowVideo") {
+                    counts.flowVideo++;
+                }
+            }
+            return counts;
+        },
+        /**
+         * 检查开始直播所需的素材，按缺失项返回，顺序即处理优先级。
+         * 启动前用它给出具体提示和跳转入口，而不是用一句含糊的报错打断用户。
+         */
+        async materialCheck(): Promise<{
+            counts: { flowTalk: number; flowVideo: number };
+            problems: LiveMaterialProblemType[];
+        }> {
+            const problems: LiveMaterialProblemType[] = [];
+            if (!this.localConfig.config.voiceId) {
+                problems.push("voice");
+            }
+            if (this.localConfig.mode === "avatar") {
+                const liveAvatar = this.localConfig.avatar.avatarId
+                    ? await LiveAvatarService.get(
+                          this.localConfig.avatar.avatarId,
+                      )
+                    : null;
+                if (!liveAvatar) {
+                    problems.push("avatar");
+                }
+            }
+            const counts = await this.knowledgeMaterialCounts();
+            if (!counts.flowTalk) {
+                problems.push("flowTalk");
+            }
+            if (this.localConfig.video.enable && !counts.flowVideo) {
+                problems.push("flowVideo");
+            }
+            return { counts, problems };
+        },
         async buildData() {
             const avatars: any[] = [];
             if (this.localConfig.mode === "avatar") {
@@ -392,7 +446,7 @@ export const liveStore = defineStore("live", {
                     this.localConfig.avatar.avatarId,
                 );
                 if (!liveAvatar) {
-                    throw t("live.noAvatarSelected");
+                    throw new Error(t("live.noAvatarSelected"));
                 }
                 avatars.push({
                     id: "Avatar" + liveAvatar.id,
@@ -400,34 +454,33 @@ export const liveStore = defineStore("live", {
                     url: liveAvatar.video,
                 });
             }
+            // 只读取一次知识库，避免多次读取之间数据不一致
+            const knowledgeList = (
+                await StorageService.list("LiveKnowledge")
+            ).filter((s) => {
+                return s.content.enable;
+            });
             const flowVideos: any[] = [];
             if (this.localConfig.video.enable) {
-                const storageFlowVideos = (
-                    await StorageService.list("LiveKnowledge")
-                ).filter((s) => {
-                    return s.content.type === "flowVideo" && s.content.enable;
-                });
-                if (!(storageFlowVideos && storageFlowVideos.length > 0)) {
-                    throw t("live.noLoopMaterialSelected");
-                }
-                for (const s of storageFlowVideos) {
+                for (const s of knowledgeList) {
+                    if (s.content.type !== "flowVideo") {
+                        continue;
+                    }
                     flowVideos.push({
                         id: "FlowVideo" + s.id,
                         title: s.title,
                         video: s.content.url,
                     });
                 }
+                if (flowVideos.length === 0) {
+                    throw new Error(t("live.materialMissingFlowVideo"));
+                }
             }
             const flowTalks: any[] = [];
-            const storageFlowTalks = (
-                await StorageService.list("LiveKnowledge")
-            ).filter((s) => {
-                return s.content.type === "flowTalk" && s.content.enable;
-            });
-            if (!(storageFlowTalks && storageFlowTalks.length > 0)) {
-                throw t("live.noLoopMaterialSelected");
-            }
-            for (const s of storageFlowTalks) {
+            for (const s of knowledgeList) {
+                if (s.content.type !== "flowTalk") {
+                    continue;
+                }
                 s.content.replies = s.content.replies.map((r) => {
                     return {
                         value: r.value,
@@ -440,13 +493,12 @@ export const liveStore = defineStore("live", {
                     video: s.content.url,
                 });
             }
+            if (flowTalks.length === 0) {
+                throw new Error(t("live.materialMissingFlowTalk"));
+            }
             const users: any[] = [];
             const systems: any[] = [];
-            const storageUsers = await StorageService.list("LiveKnowledge");
-            for (const s of storageUsers) {
-                if (!s.content.enable) {
-                    continue;
-                }
+            for (const s of knowledgeList) {
                 s.content.replies = s.content.replies.map((r) => {
                     return {
                         value: r.value,
@@ -479,6 +531,19 @@ export const liveStore = defineStore("live", {
             return { avatars, flowVideos, flowTalks, users, systems };
         },
         async update() {
+            // 直播进行中素材可能被清空（例如停用了全部循环口播），
+            // 此时保留直播继续运行，只提示哪类素材缺失，避免静默失败。
+            let data: any = null;
+            try {
+                data = await this.buildData();
+            } catch (e) {
+                Dialog.tipError(
+                    t("live.knowledgeUpdateSkipped", {
+                        reason: mapError(e),
+                    }),
+                );
+                return;
+            }
             const configPost = {
                 id: SCENE_ID,
                 config: {
@@ -487,7 +552,7 @@ export const liveStore = defineStore("live", {
                     flowTalkDelayMin: this.localConfig.config.flowTalkDelayMin,
                     flowTalkDelayMax: this.localConfig.config.flowTalkDelayMax,
                 },
-                data: await this.buildData(),
+                data,
             };
             const res = await this.apiRequest("scene/update", {
                 scene: ObjectUtil.clone(configPost),

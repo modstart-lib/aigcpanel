@@ -34,6 +34,38 @@ export const Dialog = {
             });
         });
     },
+    /**
+     * 带自定义主操作按钮的确认框（例如「去添加素材」）。
+     * 返回 true 表示用户点了主操作按钮。
+     */
+    confirmAction: (
+        content: any,
+        actionText: string,
+        title: string | null = null,
+    ): Promise<boolean> => {
+        title = title || t("common.tip");
+        return new Promise((resolve) => {
+            Modal.confirm({
+                title,
+                content,
+                titleAlign: "start",
+                simple: false,
+                width: "28rem",
+                modalClass: "arco-modal-confirm",
+                okText: actionText,
+                cancelText: t("common.cancel"),
+                onOk: () => {
+                    resolve(true);
+                },
+                onCancel: () => {
+                    resolve(false);
+                },
+                onClose: () => {
+                    resolve(false);
+                },
+            });
+        });
+    },
     alertSuccess: (
         content: string,
         title: string | null = null,

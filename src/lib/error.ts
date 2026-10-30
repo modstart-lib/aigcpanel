@@ -1,6 +1,9 @@
 import { t } from "../lang";
 
 export function mapError(msg: any) {
+    if (msg instanceof Error) {
+        msg = msg.message;
+    }
     if (typeof msg !== "string") {
         msg = msg.toString();
     }
