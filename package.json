@@ -40,7 +40,8 @@
     "dev:seed": "tsx test/dev-seed.ts",
     "screenshot": "tsx test/screenshot/index.ts",
     "auto-serve": "tsx test/auto-serve/index.ts",
-    "test:updater-e2e": "node test/e2e/updater.mjs"
+    "test:updater-e2e": "node test/e2e/updater.mjs",
+    "test:updater-e2e:real": "node test/e2e/updater-real.mjs"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",

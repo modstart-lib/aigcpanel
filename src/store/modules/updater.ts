@@ -26,6 +26,7 @@ const emptyState = (): UpdaterState => ({
     progress: 0,
     downloaded: 0,
     total: 0,
+    resumedBytes: 0,
     speed: 0,
     filePath: "",
     error: "",
@@ -73,6 +74,9 @@ export const updaterStore = defineStore("updater", {
         },
         sizeText(): string {
             return formatBytes(this.state.total || 0);
+        },
+        resumedText(): string {
+            return formatBytes(this.state.resumedBytes || 0);
         },
         downloadedText(): string {
             return formatBytes(this.state.downloaded || 0);

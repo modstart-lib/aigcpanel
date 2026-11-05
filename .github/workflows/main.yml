@@ -308,6 +308,8 @@ jobs:
     needs: [build]
     if: success()
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
       - name: Download Build Artifacts
@@ -329,16 +331,20 @@ jobs:
           echo "=== Checking for existing vsnapshot release ==="
           if gh release view vsnapshot --json id 2>/dev/null; then
             echo "Deleting old vsnapshot release..."
-            gh release delete vsnapshot --yes 2>/dev/null || true
+            # 同时删除 vsnapshot tag，下次创建时 tag/Release 的创建时间会更新，
+            # 从而在 GitHub Releases 历史列表中排到最前。
+            gh release delete vsnapshot --yes --cleanup-tag 2>/dev/null || true
             echo "Old release deleted."
           else
             echo "No existing vsnapshot release found."
           fi
           # Create fresh vsnapshot release
+          # snapshot 需要显示为 GitHub 最新版本：GitHub 不允许 prerelease 设为 latest，
+          # 因此这里创建为普通 Release 并显式 --latest。
           gh release create vsnapshot \
             --title "$RELEASE_TITLE" \
             --notes "Latest build from main branch (${VERSION})" \
-            --prerelease
+            --latest
           # Copy artifacts to temp dir with version replaced by "snapshot"
           tmpdir=$(mktemp -d)
           echo "=== Downloaded artifacts ==="

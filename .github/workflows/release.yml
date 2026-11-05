@@ -331,8 +331,10 @@ jobs:
               --notes "" \
               2>/dev/null || true
           else
+            # 正式版本显式设为 latest；预发布版本不能设为 latest
             gh release create "$TAG" \
               --title "$TAG" \
+              --latest \
               --notes "" \
               2>/dev/null || true
           fi

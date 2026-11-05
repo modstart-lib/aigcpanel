@@ -49,6 +49,7 @@ const initialState = (): UpdaterState => ({
     progress: 0,
     downloaded: 0,
     total: 0,
+    resumedBytes: 0,
     speed: 0,
     filePath: "",
     error: "",
@@ -112,6 +113,7 @@ const check = async (): Promise<UpdaterState> => {
         progress: 0,
         downloaded: 0,
         total: 0,
+        resumedBytes: 0,
         speed: 0,
         filePath: previous.phase === "ready" ? previous.filePath : "",
         channel: null,
@@ -176,6 +178,7 @@ const check = async (): Promise<UpdaterState> => {
             progress: keepReady ? 100 : 0,
             downloaded: keepReady ? previous.downloaded : 0,
             total: keepReady ? previous.total : 0,
+            resumedBytes: keepReady ? previous.resumedBytes : 0,
             speed: 0,
         });
     } catch (e: any) {
@@ -189,10 +192,12 @@ const check = async (): Promise<UpdaterState> => {
 };
 
 /**
- * 让 http(s) 请求跟随重定向
+ * 让 http(s) 请求跟随重定向。
+ * headers 会透传给重定向后的请求（Range 续传需要）。
  */
 const requestStream = (
     url: string,
+    headers: Record<string, string> = {},
     redirects = 0,
 ): Promise<http.IncomingMessage> => {
     return new Promise((resolve, reject) => {
@@ -209,6 +214,8 @@ const requestStream = (
             {
                 headers: {
                     "User-Agent": Apps.getUserAgent(),
+                    "Accept-Encoding": "identity",
+                    ...headers,
                 },
             },
             (res) => {
@@ -222,12 +229,13 @@ const requestStream = (
                     resolve(
                         requestStream(
                             new URL(res.headers.location, url).toString(),
+                            headers,
                             redirects + 1,
                         ),
                     );
                     return;
                 }
-                if (status !== 200 && status !== 206) {
+                if (status !== 200 && status !== 206 && status !== 416) {
                     res.resume();
                     reject(new Error(`HTTP ${status}`));
                     return;
@@ -247,27 +255,132 @@ const requestStream = (
     });
 };
 
+const sha256FileHex = (filePath: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const hash = crypto.createHash("sha256");
+        const stream = fs.createReadStream(filePath);
+        stream.on("data", (chunk) => hash.update(chunk));
+        stream.on("end", () => resolve(hash.digest("hex")));
+        stream.on("error", reject);
+    });
+};
+
+/**
+ * 校验并激活 .part 文件。
+ * 尺寸不足时保留 .part 供后续续传；哈希不匹配时删除损坏文件。
+ */
+const finalizePart = async (
+    part: string,
+    dest: string,
+    asset: UpdaterAsset,
+    downloaded: number,
+    url: string,
+): Promise<string> => {
+    if (asset.size > 0 && downloaded !== asset.size) {
+        if (downloaded > asset.size) {
+            fs.rmSync(part, { force: true });
+        }
+        throw new Error(`SIZE_MISMATCH:${downloaded}:${asset.size}`);
+    }
+    if (asset.sha256) {
+        const got = (await sha256FileHex(part)).toLowerCase();
+        if (got !== asset.sha256.toLowerCase()) {
+            fs.rmSync(part, { force: true });
+            throw new Error(`SHA256_MISMATCH:${got}:${asset.sha256}`);
+        }
+    } else {
+        // 没有哈希时不允许自动安装，但下载仍可用于手动安装
+        Log.info("updater.download.unverified", { url, name: asset.name });
+    }
+    if (fs.existsSync(dest)) {
+        fs.rmSync(dest, { force: true });
+    }
+    fs.renameSync(part, dest);
+    return dest;
+};
+
+/**
+ * 下载单个 URL，支持 HTTP Range 断点续传。
+ *
+ * - .part 已存在时从已有字节继续（Range: bytes=N-）
+ * - 镜像忽略 Range 返回 200 时自动从头覆盖
+ * - 网络中断保留 .part，下一次下载/下一个通道继续续传
+ * - 校验通过后改名到最终文件
+ */
 const downloadOnce = async (
     url: string,
     dest: string,
     asset: UpdaterAsset,
-): Promise<string> => {
+): Promise<{ path: string; resumed: number }> => {
     const part = dest + ".part";
-    if (fs.existsSync(part)) {
-        fs.rmSync(part, { force: true });
+    let existing = 0;
+    try {
+        if (fs.existsSync(part)) {
+            existing = fs.statSync(part).size;
+        }
+    } catch (e) {
+        existing = 0;
     }
-    const res = await requestStream(url);
-    const total = Number(res.headers["content-length"] || asset.size || 0);
-    const file = fs.createWriteStream(part);
-    const hash = crypto.createHash("sha256");
-    let downloaded = 0;
-    lastProgressBytes = 0;
+    if (asset.size > 0 && existing > asset.size) {
+        fs.rmSync(part, { force: true });
+        existing = 0;
+    }
+    if (asset.size > 0 && existing === asset.size) {
+        try {
+            const path = await finalizePart(part, dest, asset, existing, url);
+            return { path, resumed: existing };
+        } catch (e) {
+            existing = 0;
+        }
+    }
+
+    const headers: Record<string, string> = {};
+    if (existing > 0) {
+        headers["Range"] = `bytes=${existing}-`;
+    }
+    const res = await requestStream(url, headers);
+    let start = existing;
+    const status = res.statusCode || 200;
+
+    if (status === 416) {
+        res.resume();
+        activeRequest = null;
+        activeResponse = null;
+        try {
+            const path = await finalizePart(part, dest, asset, existing, url);
+            return { path, resumed: existing };
+        } catch (e) {
+            fs.rmSync(part, { force: true });
+            throw new Error("RANGE_NOT_SATISFIABLE");
+        }
+    }
+    if (status === 200 && existing > 0) {
+        // 镜像忽略了 Range，只能从头开始
+        start = 0;
+    }
+    if (start > 0) {
+        const contentRange = String(res.headers["content-range"] || "");
+        const match = /^bytes\s+(\d+)-/i.exec(contentRange);
+        if (match && parseInt(match[1], 10) !== start) {
+            start = 0;
+        }
+    }
+    const contentLength = Number(res.headers["content-length"] || 0);
+    const total = asset.size || (contentLength ? contentLength + start : 0);
+    const file = fs.createWriteStream(part, {
+        flags: start > 0 ? "a" : "w",
+    });
+    let downloaded = start;
+    lastProgressAt = 0;
+    lastProgressBytes = start;
     lastProgressTime = Date.now();
     setState({
         phase: "downloading",
-        progress: 0,
-        downloaded: 0,
+        progress:
+            total > 0 ? Math.min(99, Math.floor((start * 100) / total)) : 0,
+        downloaded: start,
         total,
+        resumedBytes: start,
         speed: 0,
         filePath: "",
         channel: { url },
@@ -279,7 +392,6 @@ const downloadOnce = async (
             }
             const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
             downloaded += buffer.length;
-            hash.update(buffer);
             if (!file.write(buffer)) {
                 await new Promise((resolve) => file.once("drain", resolve));
             }
@@ -316,29 +428,14 @@ const downloadOnce = async (
         } catch (e2) {}
         activeRequest = null;
         activeResponse = null;
+        // 保留 .part，下一次下载可以继续续传
         throw e;
     }
     activeRequest = null;
     activeResponse = null;
 
-    const got = hash.digest("hex");
-    if (asset.size > 0 && downloaded !== asset.size) {
-        fs.rmSync(part, { force: true });
-        throw new Error(`SIZE_MISMATCH:${downloaded}:${asset.size}`);
-    }
-    if (asset.sha256 && got.toLowerCase() !== asset.sha256.toLowerCase()) {
-        fs.rmSync(part, { force: true });
-        throw new Error(`SHA256_MISMATCH:${got}:${asset.sha256}`);
-    }
-    if (!asset.sha256) {
-        // 没有哈希时不允许自动安装，但下载仍可用于手动安装
-        Log.info("updater.download.unverified", { url, name: asset.name });
-    }
-    if (fs.existsSync(dest)) {
-        fs.rmSync(dest, { force: true });
-    }
-    fs.renameSync(part, dest);
-    return dest;
+    const path = await finalizePart(part, dest, asset, downloaded, url);
+    return { path, resumed: start };
 };
 
 const safeFileName = (name: string) => {
@@ -367,14 +464,15 @@ const doDownload = async (asset: UpdaterAsset, preferredUrl: string | null) => {
             break;
         }
         try {
-            const filePath = await downloadOnce(url, dest, asset);
+            const result = await downloadOnce(url, dest, asset);
             setState({
                 phase: "ready",
                 progress: 100,
                 downloaded: asset.size || state.downloaded,
                 total: asset.size || state.total,
+                resumedBytes: result.resumed,
                 speed: 0,
-                filePath,
+                filePath: result.path,
                 error: "",
             });
             return;
@@ -384,6 +482,7 @@ const doDownload = async (asset: UpdaterAsset, preferredUrl: string | null) => {
                     phase: "available",
                     progress: 0,
                     downloaded: 0,
+                    resumedBytes: 0,
                     speed: 0,
                     error: "",
                 });

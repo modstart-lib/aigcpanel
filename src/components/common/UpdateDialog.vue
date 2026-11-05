@@ -208,6 +208,16 @@ const errorText = () => {
                         </span>
                         <span>{{ store.progressPercent }}%</span>
                     </div>
+                    <div
+                        v-if="store.state.resumedBytes > 0"
+                        class="text-[11px] text-blue-500"
+                    >
+                        {{
+                            t("update.resumeFrom", {
+                                size: store.resumedText,
+                            })
+                        }}
+                    </div>
                 </div>
 
                 <div

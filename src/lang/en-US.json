@@ -419,6 +419,7 @@
     "update.cancelDownload": "Cancel download",
     "update.downloadUpdate": "Download update",
     "update.restartUpdate": "Restart to update",
+    "update.resumeFrom": "Resuming from {size}",
     "update.stopAndRestart": "Stop and update",
     "update.openDownloadedFile": "Open installer",
     "update.checkAgain": "Check again",

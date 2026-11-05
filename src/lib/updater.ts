@@ -76,6 +76,8 @@ export type UpdaterState = {
     progress: number;
     downloaded: number;
     total: number;
+    /** 本次下载开始时从 .part 文件续传的字节数 */
+    resumedBytes: number;
     /** bytes per second */
     speed: number;
     filePath: string;

@@ -419,6 +419,7 @@
     "update.cancelDownload": "取消下载",
     "update.downloadUpdate": "下载更新",
     "update.restartUpdate": "重启更新",
+    "update.resumeFrom": "已从 {size} 处继续下载",
     "update.stopAndRestart": "停止并继续更新",
     "update.openDownloadedFile": "打开安装包",
     "update.checkAgain": "重新检测",
