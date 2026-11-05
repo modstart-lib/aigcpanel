@@ -340,11 +340,21 @@ jobs:
           fi
           # 保留完整版本号（含 beta.1 等预发布信息）作为资产文件名
           find _artifacts/ -type f | while read f; do
-            echo "Uploading: $(basename "$f")"
+            base=$(basename "$f")
+            # Windows portable 不支持 electron-builder 自动更新（官方仅支持 NSIS）。
+            # 不放进 GitHub 更新通道，客户端就会选择 NSIS setup 资产。
+            # portable 仍会通过 OSS 下载页分发。
+            case "$base" in
+              *win-portable*.exe)
+                echo "Skip portable (manual install only): $base"
+                continue
+                ;;
+            esac
+            echo "Uploading: $base"
             gh release upload "$TAG" "$f" --clobber
           done
           # 生成校验文件，客户端在没有 GitHub digest 时也能校验 sha256
-          (cd _artifacts && find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) -print0 | xargs -0 sha256sum | sed 's#  .*/#  #' > checksums.txt)
+          (cd _artifacts && find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) ! -name '*win-portable*.exe' -print0 | xargs -0 sha256sum | sed 's#  .*/#  #' > checksums.txt)
           gh release upload "$TAG" _artifacts/checksums.txt --clobber
 
   # ── Notify ────────────────────────────────────────────────────────────────────

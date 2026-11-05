@@ -353,6 +353,16 @@ jobs:
           find _artifacts/ -type f | while read f; do
             base=$(basename "$f")
             clean=$(echo "$base" | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+(-(beta|alpha|rc|dev)(\.[0-9]+)?)?/snapshot/')
+            # Windows portable has no electron-builder auto-update support (it is a
+            # manual-download target). Keep it out of the GitHub update channel so the
+            # client selects the NSIS setup asset instead of trying to replace its exe.
+            # The portable build is still uploaded to OSS for the download page.
+            case "$clean" in
+              *win-portable*.exe)
+                echo "Skip portable (manual install only): $clean"
+                continue
+                ;;
+            esac
             cp "$f" "$tmpdir/$clean"
             echo "Staged: $base -> $clean"
           done
