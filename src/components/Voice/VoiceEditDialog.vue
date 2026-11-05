@@ -136,6 +136,35 @@ const onSelectFile = async (file: any) => {
     await audioPlayer.value?.setRecordFromFile(file);
 };
 
+/**
+ * 复刻音色的参考音频太短时，云端会直接拒绝合成
+ * （例如「被克隆音频太短，推荐10秒左右」）。
+ * 在保存/试听前提示，避免直播开始后才静默失败。
+ */
+const checkPromptAudioDuration = (): boolean => {
+    const buffer = audioPlayer.value?.getAudioBuffer?.();
+    const duration = buffer?.duration || 0;
+    if (duration <= 0) {
+        return true;
+    }
+    if (duration < 5) {
+        Dialog.tipError(
+            t("voice.promptAudioTooShort", {
+                seconds: duration.toFixed(1),
+            }),
+        );
+        return false;
+    }
+    if (duration < 10) {
+        Dialog.tipWarning(
+            t("voice.promptAudioShortWarning", {
+                seconds: duration.toFixed(1),
+            }),
+        );
+    }
+    return true;
+};
+
 const buildContent = async (): Promise<VoiceContent | null> => {
     if (!formData.value.serverKey) {
         Dialog.tipError(t("voice.serverRequired"));
@@ -178,6 +207,9 @@ const buildContent = async (): Promise<VoiceContent | null> => {
         }
         if (!promptUrl) {
             Dialog.tipError(t("hint.recordVoice"));
+            return null;
+        }
+        if (!checkPromptAudioDuration()) {
             return null;
         }
         if (paramForm.value && !paramForm.value.validate()) {

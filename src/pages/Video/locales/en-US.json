@@ -94,6 +94,8 @@
     "voice.previewRetry": "Regenerate",
     "voice.previewBusyHint": "Preview audio is generating, please wait until it finishes",
     "voice.previewSuccess": "Preview generated",
+    "voice.promptAudioTooShort": "Reference audio is too short ({seconds}s). Please use at least 5 seconds, ideally around 10 seconds.",
+    "voice.promptAudioShortWarning": "Reference audio is short ({seconds}s). 10 seconds or more is recommended, otherwise the cloud may reject it as too short.",
     "voice.saveSuccess": "Voice saved",
     "soundVoice.title": "Voice",
     "soundVoice.manage": "Manage voices used for sound synthesis",

@@ -9,6 +9,9 @@ export const Dialog = {
     tipSuccess: (msg: string) => {
         Message.success(msg);
     },
+    tipWarning: (msg: string) => {
+        Message.warning(msg);
+    },
     tipError: (msg: string) => {
         
         Message.error(msg);

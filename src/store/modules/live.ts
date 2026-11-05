@@ -53,7 +53,29 @@ const EMPTY_LIVE_STATUS = {
         id: string;
         content: string;
         status: "synthesizing" | "waiting" | "playing" | "failed";
+        /** 失败或重试中的说明，成功时为空 */
+        message?: string;
+        createdAt?: number;
     }[],
+    /** 最近的语音合成错误（手动播报、循环口播、用户/系统事件都会记录） */
+    errors: [] as {
+        id: string;
+        source: string;
+        title: string;
+        content: string;
+        message: string;
+        retryable: boolean;
+        time: number;
+    }[],
+    lastError: null as {
+        id: string;
+        source: string;
+        title: string;
+        content: string;
+        message: string;
+        retryable: boolean;
+        time: number;
+    } | null,
     avatarRtmp: "",
     avatarHls: "",
     videoRtmp: "",
@@ -136,6 +158,8 @@ export const liveStore = defineStore("live", {
         },
         status: "stopped" as LiveStatusType,
         statusMsg: "",
+        /** 用户已关闭的最近错误 id，避免同一条错误反复弹出 */
+        dismissedErrorId: "",
         liveStatusTimer: undefined as any,
         liveStatus: ObjectUtil.clone(EMPTY_LIVE_STATUS),
         liveRuntime: {
@@ -275,6 +299,7 @@ export const liveStore = defineStore("live", {
                 this.liveStatus.id = data.id || SCENE_ID;
                 this.liveStatus.status = data.status || "stopped";
                 this.liveStatus.statusMsg = data.statusMsg || "";
+                this.liveStatus.avatars = data.avatars || [];
                 this.liveStatus.avatar.enable = data.avatar.enable;
                 this.liveStatus.avatar.width = data.avatar.width;
                 this.liveStatus.avatar.height = data.avatar.height;
@@ -286,6 +311,8 @@ export const liveStore = defineStore("live", {
                 this.liveStatus.talkTitle = data.talkTitle;
                 this.liveStatus.talkContent = data.talkContent;
                 this.liveStatus.talkQueue = data.talkQueue || [];
+                this.liveStatus.errors = data.errors || [];
+                this.liveStatus.lastError = data.lastError || null;
                 this.liveStatus.avatarRtmp = data.avatarRtmp || "";
                 this.liveStatus.avatarHls = data.avatarHls || "";
                 this.liveStatus.videoRtmp = data.videoRtmp || "";
@@ -315,9 +342,16 @@ export const liveStore = defineStore("live", {
             } else if (this.liveStatus.status === "running") {
                 this.status = "running";
             }
-            // 队列中有待合成/待播报的手动内容时加快轮询，让状态变化及时可见
-            const nextDelay =
-                this.liveStatus.talkQueue.length > 0 ? 1000 : 5000;
+            // 队列中有待合成/待播报内容，或刚刚出现错误时加快轮询，
+            // 让状态变化及时可见；错误历史本身不需要一直 1 秒轮询。
+            const now = Date.now() / 1000;
+            const hasActiveTalk = this.liveStatus.talkQueue.some(
+                (item) => item.status !== "failed",
+            );
+            const hasRecentError = this.liveStatus.errors.some(
+                (item) => now - item.time < 30,
+            );
+            const nextDelay = hasActiveTalk || hasRecentError ? 1000 : 5000;
             this.liveStatusTimer = setTimeout(this.statusUpdate, nextDelay);
         },
         async apiRequest(
@@ -601,6 +635,7 @@ export const liveStore = defineStore("live", {
             await $mapi.file.write("data-live-last.json", configPostContent);
             this.status = "starting";
             this.statusMsg = "";
+            this.dismissedErrorId = "";
             const res = await this.apiRequest("scene/start", {
                 scene: ObjectUtil.clone(configPost),
             });
@@ -624,6 +659,7 @@ export const liveStore = defineStore("live", {
                 return;
             }
             this.statusMsg = "";
+            this.dismissedErrorId = "";
         },
         /**
          * 动态打字播报：把文字交给直播服务，服务端先合成语音再插入播报队列。
@@ -641,6 +677,10 @@ export const liveStore = defineStore("live", {
         },
         fireEvent(type, data) {
             this.apiRequest("scene/event", { sceneId: SCENE_ID, type, data });
+        },
+        /** 关闭顶部的最近错误提示（服务端仍保留错误记录） */
+        dismissError(id: string) {
+            this.dismissedErrorId = id;
         },
         onMonitorBroadcast(data: any) {
             // console.log('MonitorEvent', JSON.stringify(data))

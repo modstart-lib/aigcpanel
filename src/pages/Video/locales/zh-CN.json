@@ -94,6 +94,8 @@
     "voice.previewRetry": "重新生成",
     "voice.previewBusyHint": "试听语音生成中，请等待生成完成后再操作",
     "voice.previewSuccess": "试听生成成功",
+    "voice.promptAudioTooShort": "参考音频太短（{seconds} 秒），请使用 5 秒以上、建议 10 秒左右的音频",
+    "voice.promptAudioShortWarning": "参考音频较短（{seconds} 秒），建议 10 秒以上，否则云端可能提示「被克隆音频太短」",
     "voice.saveSuccess": "音色已保存",
     "soundVoice.title": "语音音色",
     "soundVoice.manage": "管理数字人语音合成使用的音色",
