@@ -15,6 +15,7 @@ import {
 import { AppEnv } from "../env";
 import { Events } from "../event/main";
 import ConfigMain from "../config/main";
+import DBMain from "../db/main";
 import Log from "../log/main";
 import Apps from "../app/index";
 import { ServerMain } from "../server/main";
@@ -101,6 +102,10 @@ const headersForRequest = () => ({
  * 检查更新。请求失败时保持 failed 状态并把错误交给前端。
  */
 const check = async (): Promise<UpdaterState> => {
+    // 下载/安装进行中时，任何检查都不应重置状态
+    if (["downloading", "installing", "restarting"].includes(state.phase)) {
+        return state;
+    }
     if (checkAbort) {
         checkAbort.abort();
     }
@@ -733,7 +738,31 @@ const externalProcessBlockers = (): UpdaterBlocker[] => {
 };
 
 /**
- * 重启前检查：本地模型服务、由本应用启动的子进程、占用安装目标的系统进程。
+ * 运行中的业务任务（视频/语音/工作流等）。
+ * 任务由渲染进程调度，这里直接读共享 SQLite，重启前提示用户先停止/等待完成。
+ */
+const activeTaskBlockers = async (): Promise<UpdaterBlocker[]> => {
+    try {
+        const tasks = await DBMain.select(
+            `SELECT id, biz, title, status FROM data_task
+             WHERE status IN ('queue', 'wait', 'running')
+             ORDER BY id DESC LIMIT 50`,
+        );
+        return (tasks || []).map((task: any) => ({
+            type: "task" as const,
+            id: String(task.id),
+            name: task.title || `${task.biz || "Task"} #${task.id}`,
+            detail: task.status,
+        }));
+    } catch (e) {
+        // data_task 表尚未创建或数据库未就绪时忽略
+        return [];
+    }
+};
+
+/**
+ * 重启前检查：本地模型服务、运行中的业务任务、由本应用启动的子进程、
+ * 占用安装目标的系统进程。
  */
 const preflight = async (): Promise<UpdaterBlocker[]> => {
     const blockers: UpdaterBlocker[] = [];
@@ -762,6 +791,14 @@ const preflight = async (): Promise<UpdaterBlocker[]> => {
         }
     } catch (e) {
         Log.error("updater.preflight.process.error", e);
+    }
+    try {
+        const tasks = await activeTaskBlockers();
+        for (const task of tasks) {
+            blockers.push(task);
+        }
+    } catch (e) {
+        Log.error("updater.preflight.task.error", e);
     }
     const external = externalProcessBlockers();
     const known = new Set(blockers.map((item) => item.id));

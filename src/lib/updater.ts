@@ -54,7 +54,7 @@ export type UpdaterRelease = {
 };
 
 export type UpdaterBlocker = {
-    type: "server" | "process" | "app";
+    type: "server" | "process" | "task" | "app";
     id?: string;
     name: string;
     detail?: string;

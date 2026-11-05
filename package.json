@@ -1,6 +1,6 @@
 {
   "name": "aigcpanel",
-  "version": "2.7.0-beta.1",
+  "version": "2.6.0",
   "main": "dist-electron/main/index.js",
   "description": "开源 AI 数字人视频系统",
   "author": "ModStartLib",
@@ -41,7 +41,9 @@
     "screenshot": "tsx test/screenshot/index.ts",
     "auto-serve": "tsx test/auto-serve/index.ts",
     "test:updater-e2e": "node test/e2e/updater.mjs",
-    "test:updater-e2e:real": "node test/e2e/updater-real.mjs"
+    "test:updater-e2e:real": "node test/e2e/updater-real.mjs",
+    "test:updater-ui": "node test/e2e/updater-ui.mjs",
+    "test:updater-ui:fake": "node test/e2e/updater-ui-fake.mjs"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",

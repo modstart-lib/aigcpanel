@@ -119,8 +119,9 @@ const installWindows = (
     downloaded: string,
 ): InstallResult => {
     if (asset.kind === "setup") {
-        // electron-builder NSIS: /S 静默安装，--updated 避免重复启动
-        const child = spawn(downloaded, ["/S", "--updated"], {
+        // electron-builder NSIS: /S 静默安装，--updated 走更新流程（等应用退出、
+        // 结束残留实例），--force-run 让静默安装完成后自动重启新版本。
+        const child = spawn(downloaded, ["/S", "--updated", "--force-run"], {
             detached: true,
             stdio: "ignore",
             windowsHide: true,

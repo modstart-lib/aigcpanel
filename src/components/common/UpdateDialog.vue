@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { t } from "../../lang";
 import { updaterStore } from "../../store/modules/updater";
 
 const store = updaterStore();
+
+// Release notes come from the update API as HTML (notes/summary); older data may be plain text.
+// Only inject as HTML when it actually contains tags, otherwise keep the plain-text layout.
+const notesIsHtml = computed(() => /<\/?[a-z][\s\S]*>/i.test(store.notes || ""));
 
 onMounted(() => {
     store.init();
@@ -31,29 +35,6 @@ const phaseTitle = () => {
         default:
             return t("update.title");
     }
-};
-
-const latencyText = (latency: number, ok: boolean) => {
-    if (!ok) {
-        return t("update.channelTimeout");
-    }
-    if (latency >= 1000) {
-        return `${(latency / 1000).toFixed(2)} s`;
-    }
-    return `${latency} ms`;
-};
-
-const latencyClass = (latency: number, ok: boolean) => {
-    if (!ok) {
-        return "text-gray-400";
-    }
-    if (latency <= 400) {
-        return "text-green-600";
-    }
-    if (latency <= 1200) {
-        return "text-orange-500";
-    }
-    return "text-red-500";
 };
 
 const errorText = () => {
@@ -113,9 +94,12 @@ const errorText = () => {
 
                 <div
                     v-if="store.notes"
-                    class="max-h-40 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed text-gray-600 border border-gray-100 rounded-md px-3 py-2"
+                    class="updater-notes max-h-40 overflow-y-auto text-xs leading-relaxed text-gray-600 border border-gray-100 rounded-md px-3 py-2"
                 >
-                    {{ store.notes }}
+                    <div v-if="notesIsHtml" v-html="store.notes"></div>
+                    <div v-else class="whitespace-pre-wrap">
+                        {{ store.notes }}
+                    </div>
                 </div>
 
                 <div
@@ -125,46 +109,11 @@ const errorText = () => {
                     <span class="truncate mr-3">{{
                         store.state.asset.name
                     }}</span>
-                    <span class="shrink-0">{{ store.sizeText }}</span>
-                </div>
-
-                <div v-if="store.state.channels.length" class="space-y-1">
-                    <div class="text-xs font-bold text-gray-500">
-                        {{ t("update.downloadChannel") }}
-                        <span
-                            v-if="store.probing"
-                            class="font-normal text-gray-400"
-                        >
-                            · {{ t("update.channelProbing") }}
-                        </span>
-                    </div>
-                    <div
-                        v-for="item in store.probes"
-                        :key="item.url"
-                        class="flex items-center justify-between px-2 py-1.5 rounded-md cursor-pointer text-xs transition-colors"
-                        :class="
-                            store.selectedUrl === item.url
-                                ? 'bg-blue-50 text-blue-700'
-                                : 'hover:bg-gray-50 text-gray-600'
-                        "
-                        @click="item.ok && store.selectChannel(item.url)"
-                    >
-                        <div class="flex items-center min-w-0">
-                            <span
-                                class="inline-block w-3 shrink-0"
-                                v-if="store.selectedUrl === item.url"
-                            >
-                                ✓
-                            </span>
-                            <span class="truncate">{{ item.title }}</span>
-                        </div>
-                        <span
-                            class="shrink-0 ml-3 tabular-nums"
-                            :class="latencyClass(item.latency, item.ok)"
-                        >
-                            {{ latencyText(item.latency, item.ok) }}
-                        </span>
-                    </div>
+                    <span class="shrink-0">{{
+                        store.state.asset.size > 0
+                            ? store.assetSizeText
+                            : t("update.sizeUnknown")
+                    }}</span>
                 </div>
 
                 <a-alert
@@ -191,11 +140,14 @@ const errorText = () => {
                 </a-alert>
 
                 <div v-if="store.isDownloading" class="space-y-1">
-                    <a-progress
-                        :percent="store.progressPercent"
-                        :show-text="false"
-                        :stroke-width="8"
-                    />
+                    <div
+                        class="h-2 w-full overflow-hidden rounded-full bg-gray-100"
+                    >
+                        <div
+                            class="h-full rounded-full bg-green-500 transition-all duration-300"
+                            :style="{ width: store.progressPercent + '%' }"
+                        ></div>
+                    </div>
                     <div
                         class="flex items-center justify-between text-xs text-gray-400 tabular-nums"
                     >
@@ -239,12 +191,20 @@ const errorText = () => {
                             {{
                                 item.type === "server"
                                     ? t("update.blockerServer")
-                                    : t("update.blockerProcess")
+                                    : item.type === "process"
+                                      ? t("update.blockerProcess")
+                                      : item.type === "task"
+                                        ? t("update.blockerTask")
+                                        : t("update.blockerApp")
                             }}
                         </span>
                     </div>
                     <div class="text-[11px] text-orange-500">
-                        {{ t("update.blockedTip") }}
+                        {{
+                            store.hasStoppableBlockers
+                                ? t("update.blockedTip")
+                                : t("update.blockedExternalTip")
+                        }}
                     </div>
                 </div>
             </div>
@@ -256,6 +216,14 @@ const errorText = () => {
                     @click="store.openDownloadPage()"
                 >
                     {{ t("update.openDownloadPage") }}
+                </a-button>
+
+                <a-button
+                    v-if="store.isDownloading"
+                    size="small"
+                    @click="store.hide()"
+                >
+                    {{ t("update.downloadInBackground") }}
                 </a-button>
 
                 <a-button
@@ -329,3 +297,25 @@ const errorText = () => {
         </div>
     </a-modal>
 </template>
+
+<style scoped lang="less">
+.updater-notes {
+    :deep(p) {
+        margin: 0;
+    }
+
+    :deep(p + p) {
+        margin-top: 0.25rem;
+    }
+
+    :deep(ul),
+    :deep(ol) {
+        margin: 0;
+        padding-left: 1.25rem;
+    }
+
+    :deep(img) {
+        max-width: 100%;
+    }
+}
+</style>

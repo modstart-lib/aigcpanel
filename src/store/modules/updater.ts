@@ -47,6 +47,7 @@ export const updaterStore = defineStore("updater", {
             selectedUrl: "",
             probeKey: "",
             error: "",
+            readyNotified: false,
         };
     },
     getters: {
@@ -75,6 +76,9 @@ export const updaterStore = defineStore("updater", {
         sizeText(): string {
             return formatBytes(this.state.total || 0);
         },
+        assetSizeText(): string {
+            return formatBytes(this.state.asset?.size || 0);
+        },
         resumedText(): string {
             return formatBytes(this.state.resumedBytes || 0);
         },
@@ -91,8 +95,9 @@ export const updaterStore = defineStore("updater", {
             return (this.state.blockers || []).length > 0;
         },
         hasStoppableBlockers(): boolean {
-            return (this.state.blockers || []).some(
-                (item) => item.type !== "app",
+            // 只有应用内服务/子进程可以自动停止；外部进程与业务任务需要用户处理
+            return (this.state.blockers || []).some((item) =>
+                ["server", "process"].includes(item.type),
             );
         },
         canAutoInstall(): boolean {
@@ -117,6 +122,17 @@ export const updaterStore = defineStore("updater", {
                 if (state.phase === "failed") {
                     this.error = state.error || "";
                 }
+                if (state.phase === "ready" && !this.visible) {
+                    if (!this.readyNotified) {
+                        this.readyNotified = true;
+                        window.$mapi.app.toast(
+                            t("update.downloadCompleteRestartTip"),
+                            { duration: 8000 },
+                        );
+                    }
+                } else if (state.phase !== "ready") {
+                    this.readyNotified = false;
+                }
             });
             window.$mapi.updater
                 .getState()
@@ -133,6 +149,13 @@ export const updaterStore = defineStore("updater", {
             this.visible = false;
         },
         async check(noticeLatest = true) {
+            // 启动时的自动检测不能打断正在下载/安装/已下载完成的更新
+            if (
+                !noticeLatest &&
+                !["idle", "up-to-date"].includes(this.state.phase)
+            ) {
+                return;
+            }
             this.checking = true;
             this.error = "";
             // 手动检测时立即打开面板；启动自动检测只有发现新版本才打开
@@ -200,9 +223,14 @@ export const updaterStore = defineStore("updater", {
         },
         async download() {
             this.error = "";
+            this.readyNotified = false;
             if (!this.state.asset) {
                 this.error = t("update.noAsset");
                 return;
+            }
+            // 通道列表不展示给用户；下载前如尚未测速完成，先自动选出最快通道
+            if (!this.selectedUrl && (this.state.channels || []).length > 0) {
+                await this.maybeProbe(true);
             }
             try {
                 await window.$mapi.updater.download({
@@ -243,6 +271,8 @@ export const updaterStore = defineStore("updater", {
             this.error = "";
             const blockers = await this.preflight();
             if (blockers.length > 0) {
+                // 后台悬浮条触发重启时，若有阻碍需要打开面板让用户处理
+                this.visible = true;
                 return;
             }
             this.installing = true;
