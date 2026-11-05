@@ -25,6 +25,13 @@
                     "arm64"
                 ]
             },
+            {
+                "target": "portable",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            },
         ],
         "artifactName": "${productName}-${version}-win-${arch}.${ext}",
         "extraResources": [
@@ -65,6 +72,13 @@
         "target": [
             {
                 "target": "dmg",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            },
+            {
+                "target": "zip",
                 "arch": [
                     "x64",
                     "arm64"

@@ -33,6 +33,18 @@ const serverModule: {
     [key: string]: ServerContext;
 } = {};
 
+/**
+ * 运行中的本地服务（用于升级前预检）。
+ * 由 server:start / server:stop 维护，避免只依赖渲染进程计数。
+ */
+const runningServers: {
+    [localPath: string]: {
+        localPath: string;
+        name: string;
+        version: string;
+    };
+} = {};
+
 const init = () => {};
 
 const getModule = async (
@@ -175,7 +187,13 @@ ipcMain.handle("server:isSupport", async (event, serverInfo: ServerInfo) => {
 ipcMain.handle("server:start", async (event, serverInfo: ServerInfo) => {
     const module = await getModule(serverInfo);
     try {
-        return await module.start();
+        const result = await module.start();
+        runningServers[serverInfo.localPath] = {
+            localPath: serverInfo.localPath,
+            name: serverInfo.name,
+            version: serverInfo.version,
+        };
+        return result;
     } catch (e) {
         const error = mapError(e);
         Log.error("mapi.server.start.error", error);
@@ -244,7 +262,9 @@ ipcMain.handle("server:ping", async (event, serverInfo: ServerInfo) => {
 ipcMain.handle("server:stop", async (event, serverInfo: ServerInfo) => {
     const module = await getModule(serverInfo);
     try {
-        return await module.stop();
+        const result = await module.stop();
+        delete runningServers[serverInfo.localPath];
+        return result;
     } catch (e) {
         const error = mapError(e);
         Log.error("mapi.server.stop.error", error);
@@ -255,7 +275,9 @@ ipcMain.handle("server:stop", async (event, serverInfo: ServerInfo) => {
 ipcMain.handle("server:cancel", async (event, serverInfo: ServerInfo) => {
     const module = await getModule(serverInfo);
     try {
-        return await module.cancel();
+        const result = await module.cancel();
+        delete runningServers[serverInfo.localPath];
+        return result;
     } catch (e) {
         const error = mapError(e);
         Log.error("mapi.server.cancel.error", error);
@@ -462,6 +484,58 @@ export default {
 export const ServerMain = {
     getRunningServerCount,
     getModule,
+    /**
+     * 当前运行中的本地服务（升级重启前预检使用）。
+     * 通过 ping 过滤已经自行退出的服务，避免误报。
+     */
+    getRunningServerInfos: async () => {
+        const list: Array<{
+            localPath: string;
+            name: string;
+            version: string;
+        }> = [];
+        for (const key of Object.keys(runningServers)) {
+            const info = runningServers[key];
+            const module = serverModule[key];
+            if (!module) {
+                delete runningServers[key];
+                continue;
+            }
+            let alive = true;
+            if (typeof module.ping === "function") {
+                try {
+                    alive = !!(await module.ping());
+                } catch (e) {
+                    alive = false;
+                }
+            }
+            if (!alive) {
+                delete runningServers[key];
+                continue;
+            }
+            list.push(info);
+        }
+        return list;
+    },
+    /**
+     * 停止所有运行中的服务（用户确认「停止并继续更新」时调用）。
+     */
+    stopAllServers: async () => {
+        for (const key of Object.keys(runningServers)) {
+            const module = serverModule[key];
+            try {
+                if (module && typeof module.stop === "function") {
+                    await module.stop();
+                }
+            } catch (e) {
+                Log.error("mapi.server.stopAll.error", mapError(e));
+            }
+            delete runningServers[key];
+            delete serverModule[key];
+        }
+        runningServerCount = 0;
+        return true;
+    },
     // 权重按需下载：确保权重就绪（未配置 prepare 的服务直接返回）
     prepare: async (serverInfo: ServerInfo) => {
         const module = await getModule(serverInfo, {
@@ -500,6 +574,7 @@ export const ServerMain = {
         if (module && module.stop) {
             await module.stop();
         }
+        delete runningServers[serverInfo.localPath];
         if (serverModule[serverInfo.localPath]) {
             delete serverModule[serverInfo.localPath];
         }

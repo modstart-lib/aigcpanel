@@ -253,6 +253,10 @@ app.whenReady()
     });
 
 app.on("before-quit", (event) => {
+    // 自动升级流程已经在预检阶段停止所有服务，允许直接退出
+    if ((app as any).updateQuit) {
+        return;
+    }
     const localServerRunningCount = ServerMain.getRunningServerCount();
     if (localServerRunningCount > 0) {
         //  && isPackaged

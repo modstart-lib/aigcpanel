@@ -13,7 +13,8 @@ type BroadcastType =
     | "DarkModeChange"
     | "HotkeyWatch"
     | "Notice"
-    | "MonitorEvent";
+    | "MonitorEvent"
+    | "UpdaterState";
 
 const broadcast = (
     type: BroadcastType,

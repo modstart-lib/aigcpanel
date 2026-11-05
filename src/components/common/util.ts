@@ -1,11 +1,8 @@
 import { onMounted, toRaw, watch } from "vue";
-import { AppConfig } from "../../config";
 import { t } from "../../lang";
-import { defaultResponseProcessor } from "../../lib/api";
 import { Dialog } from "../../lib/dialog";
 import { FileUtil } from "../../lib/file";
 import { StorageUtil } from "../../lib/storage";
-import { VersionUtil } from "../../lib/util";
 
 export const doCopy = async (
     text: string | object,
@@ -137,24 +134,10 @@ export const doOpenBrowserFile = (options: {
 };
 
 export const doCheckForUpdate = async (noticeLatest?: boolean) => {
-    const res = await window.$mapi.updater.checkForUpdate();
-    defaultResponseProcessor(res, (res: ApiResult<any>) => {
-        if (!res.data.version) {
-            Dialog.tipError(t("update.checkFailed"));
-            return;
-        }
-        if (VersionUtil.le(res.data.version, AppConfig.version)) {
-            if (noticeLatest) {
-                Dialog.tipSuccess(t("update.alreadyLatest"));
-            }
-            return;
-        }
-        Dialog.confirm(
-            t("update.newVersionFound", { version: res.data.version }),
-        ).then(() => {
-            window.$mapi.app.openExternal(AppConfig.downloadUrl);
-        });
-    });
+    // 更新检查统一由 updater store 管理：打开更新面板、展示下载进度与重启入口
+    const { updaterStore } = await import("../../store/modules/updater");
+    const updater = updaterStore();
+    await updater.check(noticeLatest === true);
 };
 
 export const dataAutoSaveDraft = (

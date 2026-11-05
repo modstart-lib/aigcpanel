@@ -394,7 +394,44 @@ type DefsMapi = {
         cacheGetPath: (key: any) => Promise<string | null>;
     };
     updater: {
-        checkForUpdate: () => Promise<ApiResult<any>>;
+        checkForUpdate: () => Promise<any>;
+        getState: () => Promise<any>;
+        probe: (channels: Array<{ title: string; url: string }>) => Promise<
+            Array<{
+                title: string;
+                url: string;
+                ok: boolean;
+                latency: number;
+            }>
+        >;
+        download: (payload?: { url?: string; asset?: any }) => Promise<any>;
+        cancelDownload: () => Promise<any>;
+        preflight: () => Promise<
+            Array<{
+                type: "server" | "process" | "app";
+                id?: string;
+                name: string;
+                detail?: string;
+            }>
+        >;
+        stopBlockers: () => Promise<
+            Array<{
+                type: "server" | "process" | "app";
+                id?: string;
+                name: string;
+                detail?: string;
+            }>
+        >;
+        install: () => Promise<{
+            ok: boolean;
+            error?: string;
+            blockers: Array<any>;
+            state: any;
+            result?: any;
+        }>;
+        openDownloadedFile: () => Promise<boolean>;
+        openDownloadPage: () => Promise<boolean>;
+        onState: (cb: (state: any) => void) => () => void;
         getCheckAtLaunch: () => Promise<"yes" | "no">;
         setCheckAtLaunch: (value: "yes" | "no") => Promise<void>;
     };
@@ -509,9 +546,7 @@ type DefsMapi = {
         offlineAuthToken: (
             serverInfo: ServerInfo,
         ) => Promise<{ code: number; data?: { token: string } }>;
-        offlineAuthInfo: (
-            serverInfo: ServerInfo,
-        ) => Promise<{
+        offlineAuthInfo: (serverInfo: ServerInfo) => Promise<{
             code: number;
             data?: { token: string; machineId?: string };
         }>;

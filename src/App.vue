@@ -1,12 +1,14 @@
 <template>
     <a-config-provider :locale="locale" :global="true">
         <router-view></router-view>
+        <UpdateDialog />
     </a-config-provider>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { onLocaleChange } from "./lang";
+import UpdateDialog from "./components/common/UpdateDialog.vue";
 
 import zhCN from "@arco-design/web-vue/es/locale/lang/zh-cn";
 import enUS from "@arco-design/web-vue/es/locale/lang/en-us";

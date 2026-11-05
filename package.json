@@ -1,6 +1,6 @@
 {
   "name": "aigcpanel",
-  "version": "2.7.0-beta",
+  "version": "2.7.0-beta.1",
   "main": "dist-electron/main/index.js",
   "description": "开源 AI 数字人视频系统",
   "author": "ModStartLib",
@@ -39,7 +39,8 @@
     "format": "prettier --write --log-level warn \"src/**/*.{ts,tsx,vue,js}\" \"electron/**/*.{ts,tsx,js}\"",
     "dev:seed": "tsx test/dev-seed.ts",
     "screenshot": "tsx test/screenshot/index.ts",
-    "auto-serve": "tsx test/auto-serve/index.ts"
+    "auto-serve": "tsx test/auto-serve/index.ts",
+    "test:updater-e2e": "node test/e2e/updater.mjs"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",

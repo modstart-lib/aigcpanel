@@ -253,7 +253,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aigcpanel-mac-${{ matrix.arch }}
-          path: code/dist-release/*.dmg
+          path: |
+            code/dist-release/*.dmg
+            code/dist-release/*.zip
 
       - name: Upload Artifact (Linux)
         if: runner.os == 'Linux'
@@ -278,6 +280,7 @@ jobs:
           assets: |
             code/dist-release/*.exe:apps/{random}.bin:{name}.exe
             code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+            code/dist-release/*.zip:apps/{random}.bin:{name}.zip
             code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
             code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
@@ -318,22 +321,29 @@ jobs:
           TAG=${GITHUB_REF#refs/tags/}
           # Delete any existing release for this tag (handles force-push)
           gh release delete "$TAG" --yes 2>/dev/null || true
-          # Create release (draft, idempotent)
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --draft \
-            --prerelease=false \
-            --notes "" \
-            2>/dev/null || true
-          # Upload all artifacts (with pre-release tag stripped from version)
-          FULL_VERSION=$(node -p "require('./package.json').version")
-          CLEAN_VERSION=$(node -p "require('./package.json').version.replace(/-[a-zA-Z][a-zA-Z0-9.]*$/, '')")
+          # Create release (idempotent)
+          # 版本号带 alpha/beta/rc/dev 时标记为预发布
+          VERSION_FOR_PRERELEASE=$(node -p "require('./package.json').version")
+          if echo "$VERSION_FOR_PRERELEASE" | grep -Eq -- '-(alpha|beta|rc|dev)(\.|$)'; then
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --prerelease \
+              --notes "" \
+              2>/dev/null || true
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --notes "" \
+              2>/dev/null || true
+          fi
+          # 保留完整版本号（含 beta.1 等预发布信息）作为资产文件名
           find _artifacts/ -type f | while read f; do
-            base=$(basename "$f")
-            clean=$(echo "$base" | sed "s/$FULL_VERSION/$CLEAN_VERSION/")
-            echo "Uploading: $clean"
+            echo "Uploading: $(basename "$f")"
             gh release upload "$TAG" "$f" --clobber
           done
+          # 生成校验文件，客户端在没有 GitHub digest 时也能校验 sha256
+          (cd _artifacts && find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) -print0 | xargs -0 sha256sum | sed 's#  .*/#  #' > checksums.txt)
+          gh release upload "$TAG" _artifacts/checksums.txt --clobber
 
   # ── Notify ────────────────────────────────────────────────────────────────────
   notify:

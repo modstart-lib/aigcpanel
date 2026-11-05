@@ -18,6 +18,75 @@ import { Log } from "../log/index";
 
 const exec = util.promisify(_exec);
 
+/**
+ * 由本应用启动、仍在运行的子进程（升级预检 / 停止阻碍进程使用）。
+ */
+export type RunningChildProcess = {
+    pid: number;
+    label: string;
+    command: string;
+    startedAt: number;
+};
+
+const runningChildren: {
+    [pid: number]: {
+        info: RunningChildProcess;
+        stop: () => void;
+        kill: () => void;
+    };
+} = {};
+
+const registerChild = (
+    pid: number,
+    info: RunningChildProcess,
+    stop: () => void,
+    kill: () => void,
+) => {
+    if (!pid) {
+        return;
+    }
+    runningChildren[pid] = { info, stop, kill };
+};
+
+const unregisterChild = (pid?: number) => {
+    if (pid && runningChildren[pid]) {
+        delete runningChildren[pid];
+    }
+};
+
+export const getRunningChildren = (): RunningChildProcess[] => {
+    return Object.keys(runningChildren).map(
+        (key) => runningChildren[Number(key)].info,
+    );
+};
+
+export const stopAllChildren = () => {
+    const pids = Object.keys(runningChildren).map((key) => Number(key));
+    for (const pid of pids) {
+        const child = runningChildren[pid];
+        if (!child) {
+            continue;
+        }
+        try {
+            child.stop();
+        } catch (e) {
+            Log.error("App.stopAllChildren.stop.error", e);
+        }
+        // SIGINT 无效时兜底强制结束
+        setTimeout(() => {
+            const still = runningChildren[pid];
+            if (still === child) {
+                try {
+                    still.kill();
+                } catch (e) {
+                    Log.error("App.stopAllChildren.kill.error", e);
+                }
+            }
+        }, 3000);
+    }
+    return pids;
+};
+
 const outputStringConvert = (outputEncoding: "utf8" | "cp936", data: any) => {
     if (!data) {
         return "";
@@ -85,7 +154,9 @@ const spawnShell = async (
         shell?: boolean;
     } | null = null,
 ): Promise<{
+    pid: number | undefined;
     stop: () => void;
+    kill: () => void;
     send: (data: any) => void;
     result: () => Promise<string>;
 }> => {
@@ -149,6 +220,7 @@ const spawnShell = async (
     spawnProcess.on("exit", (code, signal) => {
         // console.log('App.spawnShell.exit', code)
         Log.info("App.spawnShell.exit", { code, signal });
+        unregisterChild(spawnProcess.pid);
         exitCode = code;
         if (isWin) {
             if (0 === code || 1 === code) {
@@ -173,10 +245,11 @@ const spawnShell = async (
     spawnProcess.on("error", (err) => {
         // console.log('App.spawnShell.error', err)
         Log.info("App.spawnShell.error", err);
+        unregisterChild(spawnProcess.pid);
         option.error?.(err.toString(), -1, spawnProcess);
         end = true;
     });
-    return {
+    const handle = {
         pid: spawnProcess.pid,
         stop: () => {
             Log.info("App.spawnShell.stop");
@@ -262,6 +335,20 @@ const spawnShell = async (
             });
         },
     };
+    registerChild(
+        spawnProcess.pid as number,
+        {
+            pid: spawnProcess.pid as number,
+            label: commandEntry || String(command),
+            command: Array.isArray(command)
+                ? command.join(" ")
+                : String(command),
+            startedAt: Date.now(),
+        },
+        () => handle.stop(),
+        () => handle.kill(),
+    );
+    return handle;
 };
 
 const spawnBinary = async (
@@ -379,6 +466,8 @@ export const Apps = {
     isPortAvailable,
     fixExecutable,
     getUserAgent,
+    runningProcesses: getRunningChildren,
+    stopAllChildren,
 };
 
 export default Apps;

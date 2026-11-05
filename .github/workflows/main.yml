@@ -254,7 +254,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aigcpanel-mac-${{ matrix.arch }}
-          path: code/dist-release/*.dmg
+          path: |
+            code/dist-release/*.dmg
+            code/dist-release/*.zip
 
       - name: Upload Artifact (Linux)
         if: runner.os == 'Linux'
@@ -279,6 +281,7 @@ jobs:
           assets: |
             code/dist-release/*.exe:apps/{random}.bin:{name}.exe
             code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+            code/dist-release/*.zip:apps/{random}.bin:{name}.zip
             code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
             code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
