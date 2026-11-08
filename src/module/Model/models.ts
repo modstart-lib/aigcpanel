@@ -782,6 +782,29 @@ export const SystemModels: Record<string, Partial<Model>[]> = {
             group: "Gemma",
         },
     ],
+    runcrate: [
+        {
+            id: "deepseek-ai/DeepSeek-V4-Flash",
+            provider: "runcrate",
+            name: "DeepSeek-V4-Flash",
+            group: "DeepSeek",
+            caps: { tools: true },
+        },
+        {
+            id: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            provider: "runcrate",
+            name: "Llama-3.3-70B-Instruct-Turbo",
+            group: "Llama-3.3",
+            caps: { tools: true },
+        },
+        {
+            id: "Qwen/Qwen3-235B-A22B-Instruct-2507",
+            provider: "runcrate",
+            name: "Qwen3-235B-A22B-Instruct-2507",
+            group: "Qwen",
+            caps: { tools: true },
+        },
+    ],
     ocoolai: [
         {
             id: "deepseek-chat",
