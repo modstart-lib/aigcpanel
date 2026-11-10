@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { buildServerContent, functionToLabels } from "../../lib/aigcpanel";
+import SafeHtml from "../common/SafeHtml.vue";
 import { useServerStore } from "../../store/modules/server";
 import { EnumServerType, ServerRecord } from "../../types/Server";
 
@@ -148,7 +149,7 @@ defineExpose({
                         <div
                             class="w-full max-h-32 p-3 overflow-auto text-sm bg-gray-100 leading-6 rounded-lg"
                         >
-                            <div v-html="content"></div>
+                            <SafeHtml :html="content" />
                         </div>
                     </div>
                 </div>

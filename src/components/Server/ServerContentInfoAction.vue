@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import ServerCloudDemoDialog from "./ServerCloudDemoDialog.vue";
-import { doCopy } from "../common/util";
+import SafeHtml from "../common/SafeHtml.vue";
 
 const demoDialog = ref<InstanceType<typeof ServerCloudDemoDialog> | null>(null);
 
@@ -36,26 +36,6 @@ const content = computed(() => {
     }
     return lines.join("\n");
 });
-watch(
-    () => visible.value,
-    (v) => {
-        if (v) {
-            const codeElements = document.querySelectorAll(
-                ".pb-content-info code",
-            );
-            codeElements.forEach((codeElement) => {
-                if (codeElement.getAttribute("data-click-bind")) {
-                    return;
-                }
-                codeElement.addEventListener("click", () => {
-                    const text = codeElement.textContent || "";
-                    doCopy(text);
-                });
-                codeElement.setAttribute("data-click-bind", "true");
-            });
-        }
-    },
-);
 </script>
 
 <template>
@@ -72,8 +52,8 @@ watch(
         <template #title>
             {{ $t("model.description") }}
         </template>
-        <div class="overflow-x-hidden leading-6 pb-content-info">
-            <div v-html="content"></div>
+        <div class="overflow-x-hidden leading-6">
+            <SafeHtml :html="content" />
         </div>
     </a-modal>
     <a-button
@@ -86,16 +66,3 @@ watch(
     </a-button>
     <ServerCloudDemoDialog ref="demoDialog" />
 </template>
-
-<style lang="less" scoped>
-.pb-content-info {
-    :deep(code) {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 0.2rem;
-        display: inline-block;
-        padding: 0.1rem 0.2rem;
-        cursor: pointer;
-        margin-bottom: 0.2rem;
-    }
-}
-</style>

@@ -1,4 +1,5 @@
 import { t } from "../lang";
+import { escapeHtml } from "./sanitize";
 
 export const allFunctions = [
     { value: "comfyui", label: "ComfyUI" },
@@ -27,16 +28,20 @@ export function functionToLabel(f: string) {
     return f;
 }
 
+// Produces HTML for SafeHtml: the config comes from remote model servers, so
+// every interpolated value is escaped here and sanitized again at render time.
 export function buildServerContent(config: any) {
     const contentLines: string[] = [];
     if (config?.content) {
         contentLines.push(config.content as string);
     }
-    if (config.functions) {
+    if (config?.functions) {
         for (const func in config.functions) {
-            if (config.functions[func].content) {
+            if (config.functions[func]?.content) {
                 contentLines.push(
-                    '<p class="font-bold">' + functionToLabel(func) + "</p>",
+                    '<p class="font-bold">' +
+                        escapeHtml(functionToLabel(func)) +
+                        "</p>",
                 );
                 contentLines.push(config.functions[func].content as string);
             }

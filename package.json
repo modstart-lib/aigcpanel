@@ -105,6 +105,7 @@
     "date-and-time": "^3.4.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.12",
+    "dompurify": "^3.4.17",
     "electron-context-menu": "^4.0.4",
     "express": "^5.2.1",
     "fabric": "^6.9.1",
