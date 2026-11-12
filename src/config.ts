@@ -1,6 +1,7 @@
 import packageJson from "../package.json";
 
-const BASE_URL = "https://aigcpanel.com";
+// 允许测试/私有部署覆盖接口域名（如本地 mock 服务、自建后端）
+const BASE_URL = process.env.AIGCPANEL_API_BASE_URL || "https://aigcpanel.com";
 
 export const AppConfig = {
     name: "AIGCPanel",

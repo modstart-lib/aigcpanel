@@ -222,6 +222,11 @@ export const EncodeUtil = {
                                 (filemeta.format ? "." + filemeta.format : "");
                             outputStream =
                                 fs.createWriteStream(finalOutputPath);
+                            // 写流错误必须处理，否则会变成未捕获异常且 promise 永不结束
+                            outputStream.on("error", (error) => {
+                                inputStream.destroy();
+                                reject(error);
+                            });
 
                             metadataRead = true;
 
@@ -256,12 +261,15 @@ export const EncodeUtil = {
             });
 
             inputStream.on("end", () => {
-                if (outputStream) {
-                    outputStream.end();
-                    resolve(outputPath);
-                } else {
+                if (!outputStream) {
                     reject(new Error("Invalid xzip file: incomplete metadata"));
+                    return;
                 }
+                // 必须等 write stream 写完（finish）再 resolve：
+                // 之前提前 resolve 会出现「解码路径已返回但文件还没落盘/创建」，
+                // 调用方紧接着 hubSave 就会报 HubSave.FileNotFound（Windows 上高发）。
+                outputStream.once("finish", () => resolve(outputPath));
+                outputStream.end();
             });
 
             inputStream.on("error", (error) => {
@@ -270,13 +278,6 @@ export const EncodeUtil = {
                 }
                 reject(error);
             });
-
-            if (outputStream) {
-                outputStream.on("error", (error) => {
-                    inputStream.destroy();
-                    reject(error);
-                });
-            }
         });
     },
 };
