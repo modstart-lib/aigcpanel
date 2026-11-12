@@ -31,6 +31,7 @@ import OpenAiProviderLogo from "./assets/image/providers/openai.png";
 import OpenRouterProviderLogo from "./assets/image/providers/openrouter.png";
 import PerplexityProviderLogo from "./assets/image/providers/perplexity.png";
 import PPIOProviderLogo from "./assets/image/providers/ppio.png";
+import RuncrateProviderLogo from "./assets/image/providers/runcrate.png";
 import SiliconFlowProviderLogo from "./assets/image/providers/silicon.png";
 import StepProviderLogo from "./assets/image/providers/step.png";
 import TencentCloudProviderLogo from "./assets/image/providers/tencent-cloud-ti.png";
@@ -66,6 +67,7 @@ const ProviderLogoMap = {
     minimax: MinimaxProviderLogo,
     ocoolai: OcoolAiProviderLogo,
     together: TogetherProviderLogo,
+    runcrate: RuncrateProviderLogo,
     fireworks: FireworksProviderLogo,
     zhinao: ZhinaoProviderLogo,
     nvidia: NvidiaProviderLogo,
@@ -131,6 +133,7 @@ export const getProviderTitle = (providerId: string) => {
         perplexity: "Perplexity",
         ppio: t("provider.ppio"),
         qwenlm: "QwenLM",
+        runcrate: "Runcrate",
         silicon: t("provider.silicon"),
         stepfun: t("provider.stepfun"),
         "tencent-cloud-ti": t("provider.tencentCloudTi"),
@@ -261,6 +264,17 @@ export const SystemProviders: Record<string, SystemProviderConfig> = {
             apiKey: "https://api.together.ai/settings/api-keys",
             docs: "https://docs.together.ai/docs/introduction",
             models: "https://docs.together.ai/docs/chat-models",
+        },
+    },
+    runcrate: {
+        api: {
+            url: "https://api.runcrate.ai",
+        },
+        websites: {
+            official: "https://runcrate.ai/",
+            apiKey: "https://runcrate.ai/dashboard/api-keys",
+            docs: "https://runcrate.ai/docs/models/chat-completions",
+            models: "https://api.runcrate.ai/v1/models",
         },
     },
     dmxapi: {
