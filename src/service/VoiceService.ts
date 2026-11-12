@@ -163,7 +163,9 @@ const createVoiceService = (
                 content.serverVersion,
             );
             if (!server) {
-                throw new Error("VoiceServerNotFound");
+                throw new Error(
+                    `VoiceServerNotFound: ${content.serverName}|${content.serverVersion}`,
+                );
             }
             const serverInfo = await serverStore.serverInfo(server);
             const bizId = `voice_${Date.now()}_${Math.floor(

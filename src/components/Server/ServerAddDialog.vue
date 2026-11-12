@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { AppConfig } from "../../config";
 import { t } from "../../lang";
-import { functionToLabels } from "../../lib/aigcpanel";
+import { functionToLabels, serverFunctionNames } from "../../lib/aigcpanel";
 import { Dialog } from "../../lib/dialog";
 import { VersionUtil } from "../../lib/util";
 import { useServerStore } from "../../store/modules/server";
@@ -31,7 +31,7 @@ const modelInfo = ref({
     platformName: "",
     platformArch: "",
     entry: "",
-    functions: [],
+    functions: [] as string[],
     settings: [],
     setting: {},
     isSupport: false,
@@ -198,7 +198,7 @@ const parseLocalDir = async (configPath: string): Promise<boolean> => {
         modelInfo.value.platformName = json.platformName || "";
         modelInfo.value.platformArch = json.platformArch || "";
         modelInfo.value.entry = json.entry || "";
-        modelInfo.value.functions = json.functions || [];
+        modelInfo.value.functions = serverFunctionNames(json.functions);
         modelInfo.value.settings = json.settings || {};
         modelInfo.value.setting = json.setting || {};
         modelInfo.value.config = json;

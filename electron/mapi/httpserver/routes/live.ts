@@ -6,12 +6,15 @@ import { Log } from "../../log/main";
 import { ServerMain } from "../../server/main";
 import type { ServerInfo } from "../../server/type";
 import { StorageMain } from "../../storage/main";
+
 import { sendJson, asyncHandler } from "../utils";
 
 const router = Router();
 
 // data_storage 中直播音色的 biz 标识（与 src/service/StorageService.ts 保持一致）
 const LIVE_VOICE_BIZ = "LiveVoice";
+
+
 
 /**
  * 构建模型调用所需的 ServerInfo。
@@ -49,15 +52,41 @@ const synthesize = async (voice: any, text: string): Promise<string> => {
     const records: any[] = Array.isArray(storageData.records)
         ? storageData.records
         : [];
-    const server = records.find(
+    let server: any = records.find(
         (r: any) =>
             r.name === content.serverName &&
             r.version === content.serverVersion,
     );
+    // 云模型记录（Free 版没有云目录，恒为 null）
+    let cloudRecord: any = null;
+    
     if (!server) {
-        throw new Error("VoiceServerNotFound");
+        const sameName = records.filter(
+            (r: any) => r.name === content.serverName,
+        );
+        const versionHint = sameName.length
+            ? ` (本地已安装版本: ${sameName
+                  .map((r: any) => r.version)
+                  .join(", ")})`
+            : "";
+        throw new Error(
+            `VoiceServerNotFound: ${content.serverName}|${content.serverVersion}${versionHint}`,
+        );
     }
-    const serverInfo = await buildServerInfo(server);
+    const serverInfo: ServerInfo = cloudRecord
+        ? {
+              // 云模型无本地目录，用模型标识作为模块缓存 key（避免多个云模型共用同一实例）
+              localPath: `${cloudRecord.name}|${cloudRecord.version}`,
+              name: cloudRecord.name,
+              version: cloudRecord.version,
+              type: "cloud" as ServerInfo["type"],
+              setting: {},
+              logFile: `logs/live_voice_${cloudRecord.name}_${Date.now()}.log`,
+              eventChannelName: "",
+              // 与渲染层 serverStore.serverInfo 一致：config 即云目录记录本身
+              config: cloudRecord,
+          }
+        : await buildServerInfo(server);
     const method = content.type === "clone" ? "soundClone" : "soundTts";
     const id = `live_voice_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
     const data: any =
@@ -133,11 +162,34 @@ router.post(
         } catch (e) {
             voice.content = {};
         }
+        const textContent = String(text);
+        const startTime = Date.now();
+        const model = `${voice.content.serverName || ""}|${
+            voice.content.serverVersion || ""
+        }`;
         try {
-            const url = await synthesize(voice, String(text));
+            const url = await synthesize(voice, textContent);
+            Log.info("httpserver.liveTts.done", {
+                voiceId,
+                title: record.title,
+                type: voice.content.type,
+                model,
+                chars: textContent.length,
+                cost: Date.now() - startTime,
+            });
             sendJson(res, 200, { code: 0, data: { url } });
         } catch (e: any) {
-            Log.error("httpserver.liveTts.error", String(e));
+            // 错误日志带上音色、模型与文本片段，直播端只打印 msg 时也能定位
+            Log.error("httpserver.liveTts.error", {
+                voiceId,
+                title: record.title,
+                type: voice.content.type,
+                model,
+                chars: textContent.length,
+                text: textContent.slice(0, 200),
+                cost: Date.now() - startTime,
+                error: String((e && e.message) || e),
+            });
             sendJson(res, 500, {
                 code: -1,
                 msg: String((e && e.message) || e),

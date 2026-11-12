@@ -2,6 +2,7 @@ import { cloneDeep } from "lodash-es";
 import { defineStore } from "pinia";
 import { computed, ref, toRaw, ComputedRef } from "vue";
 import { t } from "../../lang";
+import { serverFunctionNames } from "../../lib/aigcpanel";
 import { Dialog } from "../../lib/dialog";
 import { OfflineAuth } from "../../lib/offlineAuth";
 import { TimeUtil, wait } from "../../lib/util";
@@ -284,6 +285,8 @@ export const serverStore = defineStore("server", {
         async init() {
             await $mapi.storage.get("server", "records", []).then((records) => {
                 records.forEach((record: ServerRecord) => {
+                    // 兼容旧记录：functions 可能是 config.json 的对象格式
+                    record.functions = serverFunctionNames(record.functions);
                     record.status = createServerStatus(record);
                     record.runtime = getServerRuntimeComputedValue(record);
                 });
@@ -443,6 +446,8 @@ export const serverStore = defineStore("server", {
         async reloadRecords() {
             await $mapi.storage.get("server", "records", []).then((records) => {
                 records.forEach((record: ServerRecord) => {
+                    // 兼容旧记录：functions 可能是 config.json 的对象格式
+                    record.functions = serverFunctionNames(record.functions);
                     record.status = createServerStatus(record);
                     record.runtime = getServerRuntimeComputedValue(record);
                 });
@@ -485,7 +490,7 @@ export const serverStore = defineStore("server", {
                     type: EnumServerType.LOCAL,
                     // EasyServer（含 ComfyUI，其 entry 亦为 __EasyServer__）默认自启动
                     autoStart: json.entry === "__EasyServer__",
-                    functions: json.functions || [],
+                    functions: serverFunctionNames(json.functions),
                     localPath: `model/${dir.name}`,
                     settings: json.settings || [],
                     setting: json.setting || {},

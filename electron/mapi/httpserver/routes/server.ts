@@ -23,6 +23,20 @@ const router = Router();
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 /**
+ * config.json 的 functions 是对象（{ [name]: {...定义} }），
+ * 模型记录里统一存能力名数组，避免渲染层 `.includes()` 报错。
+ */
+const serverFunctionNames = (functions: any): string[] => {
+    if (Array.isArray(functions)) {
+        return functions.map((f: any) => String(f));
+    }
+    if (functions && typeof functions === "object") {
+        return Object.keys(functions);
+    }
+    return [];
+};
+
+/**
  * Read config.json from a local model directory and build a server record,
  * mirroring the LOCAL_DIR import flow used by ServerAddDialog.vue.
  */
@@ -88,7 +102,7 @@ const buildRecordFromDir = async (localPath: string): Promise<any> => {
         type: "localDir",
         // EasyServer（含 ComfyUI，其 entry 亦为 __EasyServer__）默认自启动
         autoStart: json.entry === "__EasyServer__",
-        functions: json.functions || [],
+        functions: serverFunctionNames(json.functions),
         localPath,
         settings: json.settings || [],
         setting: json.setting || {},
@@ -103,7 +117,7 @@ const getInstalledServers = async () => {
         .filter((r: any) => r.name && r.version)
         .map((r: any) => {
             // ComfyUI 模型确保存在 comfyui 功能（CLI serverCall 可用）
-            let funcNames: string[] = (r.functions || []).map(String);
+            let funcNames: string[] = serverFunctionNames(r.functions);
             if (
                 r.config?.type === "comfyui" &&
                 !funcNames.includes("comfyui")

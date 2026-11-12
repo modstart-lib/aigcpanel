@@ -15,6 +15,21 @@ export const allFunctions = [
     { value: "general", label: t("model.general") },
 ];
 
+/**
+ * config.json 的 functions 既可能是对象（{ [name]: {...定义} }），
+ * 也可能是数组（旧格式/种子数据）；模型记录里统一存为能力名数组，
+ * 否则渲染层 `record.functions.includes(...)` 会直接报错。
+ */
+export function serverFunctionNames(functions: any): string[] {
+    if (Array.isArray(functions)) {
+        return functions.map((f) => String(f));
+    }
+    if (functions && typeof functions === "object") {
+        return Object.keys(functions);
+    }
+    return [];
+}
+
 export function functionToLabels(functions: string[]) {
     return functions.map((f) => functionToLabel(f));
 }
