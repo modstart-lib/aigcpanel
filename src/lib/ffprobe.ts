@@ -1,7 +1,13 @@
+import { t } from "../lang";
+import { assertLocalFileExists } from "./file";
+
 export const ffprobeGetMediaDuration = async (
     media: string,
     ms: boolean = false,
 ): Promise<number> => {
+    // A missing file must be reported as such: ffprobe otherwise only returns
+    // empty output and the user sees a meaningless "media duration" error.
+    await assertLocalFileExists(media);
     const info = await $mapi.app.spawnBinary("ffprobe", [
         "-v",
         "error",
@@ -13,12 +19,13 @@ export const ffprobeGetMediaDuration = async (
     ]);
     const duration = parseFloat(info.trim());
     if (isNaN(duration)) {
-        throw "Could not retrieve media duration";
+        throw t("error.mediaDurationFailed", { path: media });
     }
     return ms ? Math.ceil(duration * 1000) : duration;
 };
 
 export const ffprobeVideoCodec = async (video: string): Promise<string> => {
+    await assertLocalFileExists(video);
     const info = await $mapi.app.spawnBinary("ffprobe", [
         "-v",
         "error",
@@ -41,6 +48,7 @@ export const ffprobeVideoInfo = async (
     height: number;
     fps: number;
 }> => {
+    await assertLocalFileExists(video);
     const info = await $mapi.app.spawnBinary("ffprobe", [
         "-v",
         "error",
@@ -57,7 +65,7 @@ export const ffprobeVideoInfo = async (
         .map((line) => line.trim())
         .filter((line) => line.length > 0);
     if (lines.length < 4) {
-        throw "Could not retrieve video info";
+        throw t("error.mediaInfoFailed", { path: video });
     }
     const width = parseInt(lines[0], 10);
     const height = parseInt(lines[1], 10);
@@ -68,7 +76,7 @@ export const ffprobeVideoInfo = async (
             : parseFloat(lines[2]);
     const duration = parseFloat(lines[3]);
     if (isNaN(width) || isNaN(height) || isNaN(fps) || isNaN(duration)) {
-        throw "Invalid video info data";
+        throw t("error.mediaInfoFailed", { path: video });
     }
     return { duration, width, height, fps };
 };
@@ -80,6 +88,7 @@ export const ffprobeAudioInfo = async (
     sampleRate: number;
     channels: number;
 }> => {
+    await assertLocalFileExists(audio);
     const info = await $mapi.app.spawnBinary("ffprobe", [
         "-v",
         "error",
@@ -96,13 +105,13 @@ export const ffprobeAudioInfo = async (
         .map((line) => line.trim())
         .filter((line) => line.length > 0);
     if (lines.length < 3) {
-        throw "Could not retrieve audio info";
+        throw t("error.mediaInfoFailed", { path: audio });
     }
     const sampleRate = parseInt(lines[0], 10);
     const channels = parseInt(lines[1], 10);
     const duration = parseFloat(lines[2]);
     if (isNaN(sampleRate) || isNaN(channels) || isNaN(duration)) {
-        throw "Invalid audio info data";
+        throw t("error.mediaInfoFailed", { path: audio });
     }
     return { duration, sampleRate, channels };
 };

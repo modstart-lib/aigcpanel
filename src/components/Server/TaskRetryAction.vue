@@ -26,6 +26,7 @@ const doRetry = async () => {
         if (isMultiStep) {
             await TaskService.update(record.id as any, {
                 status: "queue",
+                statusMsg: "",
             });
         } else {
             // 非多步骤任务：清空 jobResult / result，整体重新运行
@@ -33,6 +34,7 @@ const doRetry = async () => {
                 record.id as any,
                 {
                     status: "queue",
+                    statusMsg: "",
                     jobResult: {},
                     result: {},
                 },

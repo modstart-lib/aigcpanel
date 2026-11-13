@@ -356,6 +356,12 @@ export const TaskService = {
                 }
             }
         }
+        // A finished task must not keep the error message of an earlier failed
+        // attempt: the message is displayed in the task list, so a stale one
+        // makes a successful task look broken.
+        if (record.status === "success" && !("statusMsg" in record)) {
+            record.statusMsg = "";
+        }
         record = this.encodeRecord(record as TaskRecord);
         const fields = Object.keys(record);
         const values = fields.map((f) => record[f]);

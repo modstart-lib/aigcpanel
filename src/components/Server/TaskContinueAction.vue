@@ -2,7 +2,7 @@
 import { t } from "../../lang";
 import { Dialog } from "../../lib/dialog";
 import { sleep } from "../../lib/util";
-import { TaskRecord } from "../../service/TaskService";
+import { TaskRecord, TaskService } from "../../service/TaskService";
 import { useTaskStore } from "../../store/modules/task";
 
 const taskStore = useTaskStore();
@@ -16,6 +16,9 @@ const doContinue = async () => {
     Dialog.loadingOn(t("status.resuming"));
     try {
         await sleep(500);
+        await TaskService.update(record.id as any, {
+            statusMsg: "",
+        });
         await taskStore.dispatch(record.biz, record.id as any);
         Dialog.loadingOff();
         Dialog.tipSuccess(t("common.resumeSuccess"));

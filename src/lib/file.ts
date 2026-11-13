@@ -1,4 +1,5 @@
 import SparkMD5 from "spark-md5";
+import { t } from "../lang";
 
 export const FileUtil = {
     extensionToType(extension: string) {
@@ -169,4 +170,34 @@ export const FileUtil = {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     },
+};
+
+/**
+ * Fail fast with an actionable error when a local input file is gone.
+ *
+ * A task can run long after it was submitted: the user may have moved or
+ * deleted the source video/audio in the meantime. Without this check the
+ * failure only surfaces deep inside ffprobe/ffmpeg as a cryptic message such
+ * as "Could not retrieve media duration", which does not tell the user that
+ * their input file is missing.
+ */
+export const assertLocalFileExists = async (
+    path: string,
+    option?: {
+        // i18n key used for the error message, {path} is substituted
+        message?: string;
+    },
+): Promise<void> => {
+    // Remote inputs (http/rtmp/...) cannot be checked on the local filesystem.
+    if (/^(https?|rtmp|rtsp|tcp|udp):\/\//i.test(path || "")) {
+        return;
+    }
+    // Accept file:// urls as well as plain filesystem paths.
+    const localPath = FileUtil.urlToPath(path || "");
+    if (localPath && (await $mapi.file.exists(localPath))) {
+        return;
+    }
+    throw t(option?.message || "error.inputFileNotExists", {
+        path: path || "-",
+    });
 };

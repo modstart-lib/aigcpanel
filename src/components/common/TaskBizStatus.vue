@@ -32,36 +32,53 @@ const statusText = computed(() => {
     };
     return textMap[props.status as string] || "Unknown";
 });
+
+// Failures used to be hidden behind a tooltip on the status pill, so users only
+// saw "failed" without the reason (e.g. the source video was moved away).
+const statusMsgColor = computed(() => {
+    if (props.status === "fail") {
+        return "text-red-500";
+    }
+    if (props.status === "pause") {
+        return "text-blue-500";
+    }
+    return "text-gray-500";
+});
 </script>
 
 <template>
-    <div
-        class="text-white px-2 py-1 rounded-full text-sm inline-flex items-center"
-        :class="statusColor"
-    >
-        <div class="w-2 h-2 rounded-full bg-white mr-2"></div>
+    <div class="inline-flex items-center gap-2 min-w-0">
         <a-tooltip
             v-if="!!statusMsg && statusMsg.length < 20"
             :content="statusMsg"
             position="left"
             mini
         >
-            <div>
-                {{ statusText }}
-                <icon-info-circle />
+            <div class="text-xs truncate max-w-[12rem]" :class="statusMsgColor">
+                {{ statusMsg }}
             </div>
         </a-tooltip>
         <a-popover v-else-if="!!statusMsg" position="left">
-            <div>
-                {{ statusText }}
-                <icon-info-circle />
+            <div
+                class="text-xs truncate max-w-[12rem] cursor-pointer"
+                :class="statusMsgColor"
+            >
+                {{ statusMsg }}
             </div>
             <template #content>
-                <div class="w-96 h-32 overflow-auto -m-3">
-                    <pre class="text-xs">{{ statusMsg }}</pre>
+                <div class="w-96 max-h-60 overflow-auto -m-3 p-3">
+                    <pre class="text-xs whitespace-pre-wrap break-all">{{
+                        statusMsg
+                    }}</pre>
                 </div>
             </template>
         </a-popover>
-        <div v-else>{{ statusText }}</div>
+        <div
+            class="text-white px-2 py-1 rounded-full text-sm inline-flex items-center flex-shrink-0"
+            :class="statusColor"
+        >
+            <div class="w-2 h-2 rounded-full bg-white mr-2"></div>
+            {{ statusText }}
+        </div>
     </div>
 </template>

@@ -49,6 +49,7 @@ const doSubmit = async () => {
     }
     if (!(await $mapi.file.exists(formData.value.video))) {
         Dialog.tipError(t("error.videoFileNotSelected"));
+        formData.value.video = "";
         return;
     }
     const taskTitle = $mapi.file.pathToName(formData.value.video, false);
