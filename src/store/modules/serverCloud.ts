@@ -54,8 +54,41 @@ export const serverCloudStore = defineStore("serverCloud", {
         async waitReady() {
             await wait(() => this.isReady);
         },
+        /** 服务端返回的目录记录 -> 带本地字段（key/type/runtime）的云模型记录 */
+        mapRecord(r: any): ServerCloudRecord {
+            return {
+                ...r,
+                key: this.generateServerKey(r),
+                status: EnumServerStatus.RUNNING,
+                type: EnumServerType.CLOUD,
+                autoStart: true,
+                runtime: {
+                    functions: Object.keys(r.functions || {}),
+                    content: buildServerContent(r),
+                },
+            } as ServerCloudRecord;
+        },
+        /**
+         * 本地缓存的云端目录：网络异常时界面仍能显示云模型，
+         * 直播主进程（/api/live/tts）也会在拉取失败时回落到这份目录。
+         */
+        async loadCached() {
+            const records = await $mapi.storage.get(
+                "serverCloud",
+                "records",
+                [],
+            );
+            if (
+                !this.records.length &&
+                Array.isArray(records) &&
+                records.length > 0
+            ) {
+                this.records = records.map((r: any) => this.mapRecord(r));
+            }
+        },
         async init() {
             try {
+                await this.loadCached();
                 await this.refresh();
             } finally {
                 this.isReady = true;
@@ -70,21 +103,14 @@ export const serverCloudStore = defineStore("serverCloud", {
             try {
                 const res = await $mapi.user.apiPost("server/all", {});
                 const records = res?.data?.records;
-                this.records = (Array.isArray(records) ? records : []).map(
-                    (r: any) => {
-                        return {
-                            ...r,
-                            key: this.generateServerKey(r),
-                            status: EnumServerStatus.RUNNING,
-                            type: EnumServerType.CLOUD,
-                            autoStart: true,
-                            runtime: {
-                                functions: Object.keys(r.functions || {}),
-                                content: buildServerContent(r),
-                            },
-                        };
-                    },
-                );
+                const raw = Array.isArray(records) ? records : [];
+                this.records = raw.map((r: any) => this.mapRecord(r));
+                // 只缓存非空目录，避免接口异常时把可用缓存覆盖成空
+                if (raw.length > 0) {
+                    await $mapi.storage
+                        .set("serverCloud", "records", raw)
+                        .catch(() => {});
+                }
             } catch (e: any) {
                 // Keep the previous records so a transient failure does not
                 // make every cloud model disappear from the selectors; the

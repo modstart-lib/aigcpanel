@@ -155,7 +155,7 @@ onUnmounted(() => {
 
 <template>
     <div
-        class="pb-device-container bg-white p-6 min-h-full relative select-none"
+        class="pb-device-container bg-white dark:bg-gray-900 p-6 min-h-full relative select-none"
     >
         <PageHeader title="AI模型" />
         <ListerTop :total="serverStore.records.length" @refresh="doRefresh">

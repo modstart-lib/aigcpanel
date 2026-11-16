@@ -64,7 +64,9 @@ const dynamicComponent = computed(() => {
 </script>
 
 <template>
-    <div class="pb-device-container bg-white h-full relative select-none flex">
+    <div
+        class="pb-device-container bg-white dark:bg-gray-900 h-full relative select-none flex"
+    >
         <div
             class="w-52 flex-shrink-0 border-r border-solid border-gray-100 overflow-x-hidden overflow-y-auto"
         >

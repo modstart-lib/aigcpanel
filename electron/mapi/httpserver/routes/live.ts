@@ -59,6 +59,8 @@ const synthesize = async (voice: any, text: string): Promise<string> => {
     );
     // 云模型记录（Free 版没有云目录，恒为 null）
     let cloudRecord: any = null;
+    // 云模型未命中时的诊断信息（目录失败原因 / 云端目录版本）
+    let cloudModelHint = "";
     
     if (!server) {
         const sameName = records.filter(
@@ -70,7 +72,7 @@ const synthesize = async (voice: any, text: string): Promise<string> => {
                   .join(", ")})`
             : "";
         throw new Error(
-            `VoiceServerNotFound: ${content.serverName}|${content.serverVersion}${versionHint}`,
+            `VoiceServerNotFound: ${content.serverName}|${content.serverVersion}${versionHint}${cloudModelHint}`,
         );
     }
     const serverInfo: ServerInfo = cloudRecord
@@ -107,7 +109,17 @@ const synthesize = async (voice: any, text: string): Promise<string> => {
               };
     let res: any = null;
     for (let i = 0; i < 60; i++) {
-        res = await ServerMain.callFunction(serverInfo, method, data);
+        try {
+            res = await ServerMain.callFunction(serverInfo, method, data);
+        } catch (e) {
+            // 模型内部抛错（如云端任务接口失败）时补上调用阶段，便于区分
+            const message = String((e as any)?.message || e);
+            throw new Error(
+                cloudRecord
+                    ? `云端模型调用失败: ${message}`
+                    : `模型调用失败: ${message}`,
+            );
+        }
         if (res && res.code === 0 && res.data && res.data.type === "retry") {
             // 模型正忙，稍后重试
             await new Promise((r) => setTimeout(r, 1000));
@@ -116,7 +128,8 @@ const synthesize = async (voice: any, text: string): Promise<string> => {
         break;
     }
     if (!res || res.code) {
-        throw new Error((res && res.msg) || "SynthesizeFailed");
+        const msg = (res && res.msg) || "SynthesizeFailed";
+        throw new Error(cloudRecord ? `云端模型调用失败: ${msg}` : msg);
     }
     if (res.data && res.data.type === "retry") {
         throw new Error("SynthesizeBusy");
@@ -126,7 +139,11 @@ const synthesize = async (voice: any, text: string): Promise<string> => {
         throw new Error("SynthesizeEmptyResult");
     }
     // 结果复制到 hub，返回稳定可读的本地绝对路径
-    return await Files.hubSave(rawUrl);
+    try {
+        return await Files.hubSave(rawUrl);
+    } catch (e) {
+        throw new Error(`合成结果保存失败: ${e}`);
+    }
 };
 
 // ── POST /api/live/tts ─────────────────────────────────────────────────────
