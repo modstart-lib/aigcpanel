@@ -1,258 +1,146 @@
-# AIGCPanel 数字人
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="AIGCPanel：开源 AI 数字人桌面应用，给一段形象视频和文案，本地模型合成口播视频">
+</p>
 
-![](demo/image/home.png)
+<p align="center">
+  <a href="https://aigcpanel.com"><img src="https://img.shields.io/badge/download-aigcpanel.com-265BD7" alt="下载 AIGCPanel"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue" alt="支持 Windows、macOS 和 Linux">
+  <img src="https://img.shields.io/badge/stack-Electron%20%2B%20Vue%203-blue" alt="技术栈 Electron + Vue 3">
+  <img src="https://img.shields.io/badge/license-Apache--2.0-265BD7" alt="Apache-2.0 协议">
+  <a href="https://github.com/modstart-lib/aigcpanel"><img src="https://img.shields.io/github/stars/modstart-lib/aigcpanel.svg" alt="GitHub stars"></a>
+  <a href="https://gitee.com/modstart-lib/aigcpanel"><img src="https://gitee.com/modstart-lib/aigcpanel/badge/star.svg" alt="Gitee stars"></a>
+</p>
 
-![](https://img.shields.io/badge/Framework-TS+Vue3+Electron-blue)
-[![](https://img.shields.io/badge/WEB-aigcpanel.com-blue)](https://aigcpanel.com)
-[![](https://img.shields.io/github/stars/modstart-lib/aigcpanel.svg)](https://github.com/modstart-lib/aigcpanel)
-[![](https://gitee.com/modstart-lib/aigcpanel/badge/star.svg)](https://gitee.com/modstart-lib/aigcpanel)
+AIGCPanel 是一个装在自己电脑上的 AI 数字人工作台。模型由你下载到本机，口型合成、语音合成、语音识别、音视频处理都在本地跑；显卡不够用的时候，同一个界面里可以换成云端模型或者你自己的 API。
 
-## 软件介绍
+装好打开是这个样子：
 
-AIGCPanel 是一款简单易用的一站式 AI 数字人桌面应用，支持 Windows / macOS / Linux 三平台。无需深厚技术背景，普通用户也能快速上手，将本地 AI 模型变成生产力工具。
+![AIGCPanel 仪表盘：功能入口卡片，以及语音合成、数字人合成、工具箱的使用统计](./demo/image/home.png)
 
-核心能力涵盖：**数字人视频合成**（换口型）、**语音合成 / 声音复刻 / 识别**、**25+ 音视频处理工具**、**智能直播互动**，Pro 版额外提供**可视化工作流编排**和**云端 AI 模型服务**。
+出一条视频只要三步：
 
-软件内置模型市场，支持一键下载启动包，开箱即用；同时兼容远程 API 模型，灵活适配各类部署场景。
+1. 打开「AI 模型」，下载一个模型启动包（想先用云端模型也行，不用等下载）
+2. 进「数字人合成」，选形象，输入文案或上传音频
+3. 生成完在任务列表里下载
 
-> **重要提醒**：严禁将本产品用于任何违法违规业务，使用时须遵守中华人民共和国相关法律法规。
+## 五个工作区，一层模型
 
-## 功能特性
+![五个工作区共用一个 AI 模型层：本地启动包、云端模型、远程 API](./assets/readme/workspaces.svg)
 
-**数字人合成**
+模型在「AI 模型」里装一次就够了，其他页面取的是同一份列表。工作流把口型合成、语音合成、工具箱里的工具都做成节点，前后还能接大模型、JS 脚本和文件操作。
 
-- 基于多种开源口型同步模型（MuseTalk / LatentSync / Wav2Lip / Heygem），将任意音频与人物视频精准对齐
-- 支持直接输入文本由语音模型合成后驱动，或上传本地音频文件驱动
-- 支持绿幕视频形象，内置形象模板管理
-
-**语音处理**
-
-- 语音合成（TTS）：多模型支持，可调速度、音调等参数
-- 声音复刻：上传参考音频即可复刻特定音色
-- 语音识别（ASR）：输出带时间戳文字，可导出字幕文件（工具箱）
-- 声音替换：一键将视频音轨替换为合成音频（工具箱）
-
-**工具箱（25+ 工具）**
-
-- 声音处理：长文本转音频、字幕转音频、**声音识别**（ASR，含时间戳/字幕导出）、声音替换、音频规范化
-- 图像生成：文生图、图生图
-- 视频处理：背景添加、智能剪辑、片段放大、标注、字幕、全局变速、片段变速、尺寸转换、压缩、片段删除/保留、片头片尾合并、添加音频、视频合并、格式转换、FFmpeg 自定义、一键合成流程
-
-**可视化工作流**（VIP）
-
-- 拖拽式节点编排：大模型（LLM）、JS 脚本、条件分支、MCP 工具调用、文件操作、变量、随机值、正则提取、全部工具箱节点
-- 支持断点续跑、节点级状态追踪、运行历史查看
-
-**智能直播**（VIP）
-
-- 支持抖音、哔哩哔哩、虎牙、斗鱼、快手弹幕实时监控
-- 知识库配置：问答流程、视频播放流程、自定义内容
-- 违禁词检测与回复 Prompt 自定义
-- 互动事件记录与播报历史查看
-
-**AI 模型管理**
-
-- 本地模型一键导入、启动/停止、日志查看、参数配置
-- 支持远程 API 模型接入
-- 云端 AI 模型服务（无需本地显卡）（VIP）
-
-**其他**
-
-- 命令行工具 `aigcpanel`：查询模型列表、调用模型函数
-- 内置简体中文 / 英语双语界面
-- 支持暗色模式
-
-## 支持模型
-
-### 声音合成
-
-| 模型                                                                | 说明                   |
-| ------------------------------------------------------------------- | ---------------------- |
-| [CosyVoice-300M](https://github.com/FunAudioLLM/CosyVoice)          | 阿里通义实验室开源 TTS |
-| [CosyVoice-300M-Instruct](https://github.com/FunAudioLLM/CosyVoice) | 指令控制版             |
-| [CosyVoice2-0.5b](https://github.com/FunAudioLLM/CosyVoice)         | 第二代轻量版           |
-| [FishSpeech](https://github.com/fishaudio/fish-speech)              | 高质量零样本声音复刻   |
-| [IndexTTS](https://github.com/index-tts/index-tts)                  | 工业级中文 TTS         |
-| [SparkTTS](https://github.com/SparkAudio/Spark-TTS)                 | 讯飞开源语音合成       |
-| [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS)                | 少样本声音复刻         |
-
-### 声音识别
-
-| 模型                                           | 说明                                 |
-| ---------------------------------------------- | ------------------------------------ |
-| [FunASR](https://github.com/modelscope/FunASR) | 阿里达摩院开源 ASR，支持带时间戳输出 |
-
-### 视频模型
-
-| 模型                                                  | 说明                   |
-| ----------------------------------------------------- | ---------------------- |
-| [MuseTalk](https://github.com/TMElyralab/MuseTalk)    | 腾讯音乐实时口型同步   |
-| [LatentSync](https://github.com/bytedance/LatentSync) | 字节跳动高质量口型同步 |
-| [Wav2Lip](https://github.com/Rudrabha/Wav2Lip)        | 经典口型同步模型       |
-| [Heygem](https://github.com/duixcom/Duix.Heygem)      | 全身数字人驱动         |
-
-## 功能预览
-
-### 首页仪表盘
-
-快速导航入口 + 数据统计（语音合成、数字人合成、工具箱使用量，以及工作流（VIP）、智能直播形象与知识库数量）。
-
-![](demo/image/home.png)
+## 界面
 
 ### 数字人合成
 
-上传形象视频，输入文本或音频，一键生成换口型数字人视频。支持多种口型同步模型切换。
+上传形象视频，或者给一张正脸照片，让它自己生成 5 秒形象视频。文案交给语音模型合成音轨，也可以直接上传音频。口型模型 MuseTalk、LatentSync、Wav2Lip、Heygem 可以换着比效果，形象模板在「我的形象」里管。
 
-![](demo/image/video-gen.png)
+![数字人合成页：选形象、选音色、输入文案，下面是合成任务列表](./demo/image/video-gen.png)
 
-### 我的形象
+### 语音处理
 
-管理数字人形象模板，支持普通视频和绿幕视频。
+七个 TTS 模型，语速和音调能调。参考音频给 6～20 秒，就能复刻一个音色，试听满意再保存。任务列表支持批量下载。
 
-![](demo/image/video-template.png)
-
-### 语音合成
-
-多模型 TTS，支持声音复刻（上传参考音频）、速度/音调调节，任务列表可批量下载。
-
-![](demo/image/sound-tts.png)
+![语音合成页：选 TTS 模型和音色，输入文本后合成音频](./demo/image/sound-tts.png)
 
 ### 工具箱
 
-25+ 音视频处理工具，覆盖日常 AI 创作所需的全部音视频处理流程。包含声音识别（ASR）、长文本转音频、字幕转音频、声音替换、文生图、图生图，以及背景添加、智能剪辑、字幕、变速、压缩等视频处理工具。
+27 个工具，分声音、生成、视频、通用四组。视频组最多，16 个：背景添加和绿幕替换、智能剪辑、片段放大、标注、字幕、整体和片段变速、尺寸转换、压缩、片段保留、片头片尾图片、添加音频、视频合并、格式转换，以及自定义 FFmpeg 命令。声音组有语音识别（带时间戳，可导出字幕）、长文本转音频、字幕转音频、声音替换和音频规范化；生成组是文生图、图生图、文生视频、图生视频；通用组接自定义模型和 ComfyUI 工作流。
 
-![](demo/image/tool.png)
-
-### AI 模型管理
-
-统一管理本地模型和远程 API 模型。支持一键启动/停止、实时日志查看、参数配置。云端 AI 模型服务（VIP）无需本地显卡。
-
-![](demo/image/server.png)
+![工具箱：左侧是 27 个工具的分组列表，当前打开 FFmpeg 处理](./demo/image/tool.png)
 
 ### 可视化工作流（VIP）
 
-拖拽式节点编排，将大模型调用、脚本处理、音视频工具串联成自动化流水线。支持断点续跑和运行历史追踪。
+画布上拖节点：大模型、JS 脚本、条件分支、MCP 工具调用、文件操作、变量、随机值、正则提取，还有工具箱里的每个工具。支持断点续跑，节点状态和运行历史直接标在画布上。
 
-| 节点类型      | 说明                       |
-| ------------- | -------------------------- |
-| 大模型（LLM） | 调用配置的 AI 模型生成文本 |
-| JS 脚本       | 执行自定义 JavaScript 逻辑 |
-| 条件分支      | 根据条件控制流程走向       |
-| MCP 工具调用  | 调用 MCP 协议工具          |
-| 文件操作      | 复制、移动、列表读取       |
-| 变量 / 随机值 | 定义变量或生成随机数据     |
-| 正则提取      | 从文本中提取结构化内容     |
-| 工具节点      | 直接调用工具箱内任意工具   |
+![工作流画布：开始、变量、JS 脚本、大模型、条件分支等节点用曲线连在一起](./demo/image/workflow-edit.png)
 
-![](demo/image/workflow-edit.png)
+### 智能直播（VIP）
 
-### 智能直播
+接抖音、哔哩哔哩、虎牙、斗鱼、快手的弹幕，命中知识库里的关键词就播语音或数字人视频；直播中手动打字，数字人也会念出来。语音直播和数字人直播两种形式，输出 RTMP 流，违禁词检测和回复 Prompt 可以自己配。
 
-多平台弹幕监控 + 自动互动应答。配置知识库后，系统根据弹幕内容自动播报对应的语音或视频。
+直播形象单独一页：绿幕视频、正脸自拍视频都收在这里，直播时按选中的那条出画。
 
-![](demo/image/live-monitor.png)
+![直播形象页：三条绿幕数字人形象视频，标着分辨率和帧率](./demo/image/live-avatar.png)
 
-**直播知识库**：配置触发词与回复内容，支持文字回复和视频播放两种模式。违禁词检测和回复 Prompt 自定义（VIP）。
+### AI 模型
 
-![](demo/image/live-knowledge.png)
+本地模型导入后能启动、停止、看日志、改参数；远程 API 和云端模型在同一个列表里。权重支持按需下载，不用一次拖几个 G。命令行 `aigcpanel` 调的也是这份列表。
 
-**直播形象**：管理直播使用的数字人形象视频。
+![AI 模型页：本地模型卡片，标着模型能力和版本](./demo/image/server.png)
 
-![](demo/image/live-avatar.png)
+## 支持模型
 
-## 安装使用
+- **口型同步**：[MuseTalk](https://github.com/TMElyralab/MuseTalk) / [LatentSync](https://github.com/bytedance/LatentSync) / [Wav2Lip](https://github.com/Rudrabha/Wav2Lip) / [Heygem](https://github.com/duixcom/Duix.Heygem)
+- **语音合成**：[CosyVoice-300M](https://github.com/FunAudioLLM/CosyVoice) / [CosyVoice-300M-Instruct](https://github.com/FunAudioLLM/CosyVoice) / [CosyVoice2-0.5b](https://github.com/FunAudioLLM/CosyVoice) / [FishSpeech](https://github.com/fishaudio/fish-speech) / [IndexTTS](https://github.com/index-tts/index-tts) / [SparkTTS](https://github.com/SparkAudio/Spark-TTS) / [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS)
+- **语音识别**：[FunASR](https://github.com/modelscope/FunASR)
 
-从 [aigcpanel.com](https://aigcpanel.com) 下载对应平台安装包，安装后打开软件，进入模型管理下载所需模型的一键启动包，即可开始使用。
+上面这些是客户端内置支持的。模型市场里还有别的包，也可以自己导入。
 
-### Windows
+## 安装
 
-下载 `.exe` 安装包，双击安装，无需额外配置。
+从 [aigcpanel.com](https://aigcpanel.com) 下载安装包。装完在「AI 模型」里下一个启动包就能开工；不想等下载，可以先选云端模型。
 
-### macOS
+- **Windows**：`.exe` 双击安装
+- **macOS**：`.dmg`，Intel 和 Apple Silicon 都有。首次打开如果提示来源未知，去「系统设置 → 隐私与安全性」点「仍要打开」
+- **Linux**：提供 AppImage 和 deb 两种格式
 
-下载 `.dmg` 安装包，支持 Intel 和 Apple Silicon（M 系列芯片）。首次运行若提示来自未知开发者，在「系统设置 → 隐私与安全性」中点击「仍要打开」即可。
+```shell
+chmod +x AIGCPanel.AppImage && ./AIGCPanel.AppImage
+sudo dpkg -i AIGCPanel.deb
+```
 
-### Linux
-
-提供 AppImage 和 deb 两种格式：
-
-- AppImage：`chmod +x AIGCPanel.AppImage && ./AIGCPanel.AppImage`
-- deb：`sudo dpkg -i AIGCPanel.deb`
-
-## 技术栈
-
-| 技术                                                         | 用途                  |
-| ------------------------------------------------------------ | --------------------- |
-| [Electron](https://www.electronjs.org/)                      | 跨平台桌面应用框架    |
-| [Vue 3](https://vuejs.org/)                                  | 前端 UI 框架          |
-| [TypeScript](https://www.typescriptlang.org/)                | 类型安全              |
-| [Arco Design](https://arco.design/)                          | UI 组件库（字节跳动） |
-| [TailwindCSS](https://tailwindcss.com/)                      | 原子化 CSS            |
-| [Vite](https://vitejs.dev/)                                  | 构建工具              |
-| [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) | 本地数据持久化        |
-| [LogicFlow](https://site.logic-flow.cn/)                     | 工作流画布引擎        |
+本地模型第一次启动要等你电脑把模型加载完，之后点启动就行。云端模型和远程 API 不吃本机显卡。界面内置简体中文和英语，支持暗色模式。
 
 ## 本地开发
 
-> Node.js 20 及以上版本
+Node.js 20 及以上。技术栈是 Electron + Vue 3 + TypeScript + Arco Design，本地数据存 SQLite，工作流画布用 LogicFlow。
 
 ```shell
-# 安装依赖
 npm install
-
-# 开发模式运行
-npm run dev
-
-# 编译检查（TypeScript 无报错）
-npm run build:preview
-
-# 完整打包
-npm run build
+npm run dev            # 开发模式
+npm run build:preview  # 编译检查
+npm run build          # 打包
 ```
 
 ## 命令行工具
 
-`aigcpanel` CLI 支持在终端直接调用模型，适合脚本集成场景。
-
-可在软件「设置 → 命令行工具」界面一键安装到系统 PATH，也可手动将 `dist-cli/` 目录下对应平台的可执行文件加入 PATH。
+`aigcpanel` 可以在终端里直接调模型，适合写进脚本。可在「设置 → 命令行工具」一键装到 PATH，也可以手动把 `dist-cli/` 下对应平台的可执行文件加进 PATH。
 
 ```shell
 aigcpanel --help
 
-# 查询可用 AI 模型服务
+# 有哪些模型服务
 aigcpanel serverList
 
-# 查看 ComfyUI 服务的工作流（VIP）
-aigcpanel serverComfyuiList --server server-ComfyUI|1.0.0
+# 调用模型函数（文生图、语音合成、ComfyUI 工作流都可以）
+aigcpanel serverCall --server server-demo|1.1.0 --function textToImage \
+  --prompt "风景" --param '{"width":512,"height":512}'
+aigcpanel serverCall --server server-ComfyUI|1.0.0 --function comfyui \
+  --comfyuiName demo1 --param '{"width":512,"height":512}'
 
-# 调用模型服务函数（如文生图 / 语音合成 / ComfyUI 工作流等）
-aigcpanel serverCall --server server-demo|1.1.0 --function textToImage --prompt "风景" --param '{"width":512,"height":512}'
-aigcpanel serverCall --server server-ComfyUI|1.0.0 --function comfyui --comfyuiName demo1 --param '{"width":512,"height":512}'
-
-# 安装 / 删除模型服务、查看日志、设置参数
-aigcpanel serverInstall --dir /path/to/model-dir
-aigcpanel serverRemove --server server-demo|1.1.0
+# 看日志、改参数、安装或删除模型
 aigcpanel serverLog --server server-demo|1.1.0
 aigcpanel serverSetting --server server-demo|1.1.0 --idleTimeout 120
+aigcpanel serverInstall --dir /path/to/model-dir
 
-# 调用内置工具（如视频压缩、语音合成等），工具参数统一通过 --param JSON 传递
+# 调工具箱里的工具，参数统一走 --param
 aigcpanel tools --name VideoCompress --param '{"file":"/path/to/video.mp4"}'
-aigcpanel tools --name SoundGenerate --param '{"text":"你好世界"}'
 ```
 
 ## 问题反馈
 
-- 在 [Issues](../../issues) 页面搜索是否已有相同问题
-- 提交新 Issue 时请附上操作系统、软件版本和复现步骤
-- 技术讨论欢迎加入下方交流群
+- 先在 [Issues](../../issues) 里搜一下有没有同样的问题
+- 新 Issue 带上系统、软件版本和复现步骤
+- 也可以进下面的交流群直接问
 
 ## 更新日志
 
-详见 [CHANGELOG.md](./changelog.md)。
+见 [changelog.md](./changelog.md)。
 
-## 加入交流群
+## 交流群
 
-> 添加时请备注 AIGCPanel
+> 添加时备注 AIGCPanel
 
 <table width="100%">
     <thead>
@@ -264,15 +152,19 @@ aigcpanel tools --name SoundGenerate --param '{"text":"你好世界"}'
     <tbody>
         <tr>
             <td>
-                <img style="width:100%;" src="https://open.tecmz.com/code_dynamic/wx" />
+                <img style="width:100%;" src="https://open.tecmz.com/code_dynamic/wx" alt="微信交流群二维码" />
             </td>
             <td>
-                <img style="width:100%;" src="https://open.tecmz.com/code_dynamic/qq" />
+                <img style="width:100%;" src="https://open.tecmz.com/code_dynamic/qq" alt="QQ 交流群二维码" />
             </td>
         </tr>
     </tbody>
 </table>
 
+## 声明
+
+本产品仅用于合法内容创作。严禁将本产品用于任何违法违规业务，使用时须遵守中华人民共和国相关法律法规。
+
 ## License
 
-Apache-2.0
+[Apache-2.0](./LICENSE)。分发和修改时请保留版权与许可声明；软件「关于」页显示的是同一份协议。
