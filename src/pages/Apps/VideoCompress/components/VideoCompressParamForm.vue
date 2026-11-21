@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { t } from "../../../../lang";
 import { Dialog } from "../../../../lib/dialog";
 
 const formData = ref({
@@ -35,7 +36,7 @@ const getValue = async (): Promise<VideoCompressForm | undefined> => {
         data.compressionLevel > 100 ||
         isNaN(data.compressionLevel)
     ) {
-        Dialog.tipError("请设置有效的压缩程度（0-100）");
+        Dialog.tipError(t("error.validCompressionLevel"));
         return;
     }
     return data;
@@ -62,9 +63,9 @@ defineExpose({
 <template>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'视频编码'" mini>
+            <a-tooltip :content="t('app.videoCodec')" mini>
                 <icon-video-camera />
-                编码
+                {{ t("app.codec") }}
             </a-tooltip>
         </div>
         <div class="flex items-center gap-2">
@@ -81,9 +82,9 @@ defineExpose({
     </div>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'输出分辨率'" mini>
+            <a-tooltip :content="t('app.outputResolution')" mini>
                 <icon-desktop />
-                分辨率
+                {{ t("app.resolution") }}
             </a-tooltip>
         </div>
         <div class="flex items-center gap-2">
@@ -100,9 +101,9 @@ defineExpose({
     </div>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'压缩程度'" mini>
+            <a-tooltip :content="t('app.compressionLevel')" mini>
                 <icon-shrink />
-                压缩程度
+                {{ t("app.compressionLevel") }}
             </a-tooltip>
         </div>
         <div class="flex items-center gap-2">

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { t } from "../../lang";
 import { Dialog } from "../../lib/dialog";
 import { FileUtil } from "../../lib/file";
 import { doOpenFile } from "./util";
+import { useTruncated } from "./useTruncated";
 
 const props = defineProps<{
     modelValue: string[];
@@ -47,6 +48,21 @@ const removeFile = (index: number) => {
 const names = computed(() => {
     return props.modelValue.map((path) => FileUtil.getBaseName(path, true));
 });
+
+// Full button text; ellipsized in narrow cards, full text on hover when cut
+const buttonText = computed(() => {
+    const label = t("common.addFile");
+    if (!props.extensions.length) {
+        return label;
+    }
+    return `${label} (${t("common.extensions", {
+        extensions: props.extensions.join(", "),
+    })})`;
+});
+const { textEl, truncated, check } = useTruncated();
+watch(buttonText, () => {
+    check();
+});
 </script>
 
 <template>
@@ -55,23 +71,28 @@ const names = computed(() => {
             <div
                 v-for="(name, index) in names"
                 :key="index"
-                class="flex items-center gap-2 text-sm text-black rounded-lg leading-7 px-3 min-h-7 border border-gray-500"
+                class="flex items-center gap-2 text-sm text-black rounded-lg leading-7 px-3 min-h-7 border border-gray-500 overflow-hidden"
             >
-                <icon-file />
+                <icon-file class="flex-shrink-0" />
                 <a-tooltip :content="modelValue[index]" mini>
-                    <span class="flex-grow">{{ name }}</span>
+                    <span class="flex-grow truncate min-w-0">{{ name }}</span>
                 </a-tooltip>
                 <a-button size="mini" @click="removeFile(index)">
                     <icon-close />
                 </a-button>
             </div>
         </div>
-        <a-button @click="doSelectFile">
-            <icon-plus />
-            {{ t("common.addFile") }}
-            ({{
-                t("common.extensions", { extensions: extensions.join(", ") })
-            }})
-        </a-button>
+        <a-tooltip :content="buttonText" :disabled="!truncated" mini>
+            <a-button @click="doSelectFile" class="max-w-full overflow-hidden">
+                <span
+                    class="inline-flex items-center gap-1 min-w-0 max-w-full text-left"
+                >
+                    <icon-plus class="flex-shrink-0" />
+                    <span ref="textEl" class="truncate">
+                        {{ buttonText }}
+                    </span>
+                </span>
+            </a-button>
+        </a-tooltip>
     </div>
 </template>

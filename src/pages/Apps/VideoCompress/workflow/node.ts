@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import {
     NodeFunctionCall,
     NodeRunController,
@@ -11,8 +12,8 @@ import AppIcon from "~icons/mdi/zip-box";
 
 export default <NodeFunctionCall>{
     name: "VideoCompress",
-    title: "视频压缩",
-    description: "对视频进行压缩处理，调整编码、分辨率和压缩程度",
+    title: t("workflow.videoCompressTitle"),
+    description: t("workflow.videoCompressDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoCompressNode.vue")),
     inputFields: [
@@ -52,7 +53,7 @@ export default <NodeFunctionCall>{
                     compressionLevel: compressionLevel,
                 };
                 if (!taskRunData.file) {
-                    throw "文件参数错误";
+                    throw t("workflow.errorFileParam");
                 }
                 return await VideoCompressRun(taskRunData);
             },
@@ -67,10 +68,10 @@ export default <NodeFunctionCall>{
             !node.properties?.data?.resolution ||
             !node.properties?.data?.compressionLevel
         ) {
-            throw "请输入压缩参数";
+            throw t("workflow.errorCompressParam");
         }
         if (node.properties?.inputFields?.[0].value === "") {
-            throw "请输入文件参数";
+            throw t("workflow.errorFileRequired");
         }
     },
 };

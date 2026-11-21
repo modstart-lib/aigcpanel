@@ -86,17 +86,18 @@ const emit = defineEmits({
 <template>
     <div class="rounded-xl shadow border p-4">
         <VideoGenForm ref="videoGenForm" />
-        <SoundGenerateForm ref="soundGenerateForm" />
-        <div class="mb-4 relative">
+        <SoundGenerateForm ref="soundGenerateForm" voice-select-only />
+        <div class="mb-4">
             <a-textarea
                 v-model="formData.text"
                 :auto-size="{ minRows: 2 }"
                 :placeholder="$t('app.inputVideoGenPlaceholder')"
             ></a-textarea>
-            <div class="absolute bottom-1 right-1">
+            <!-- Place the copywriting action outside the textarea so it never covers the text -->
+            <div class="flex justify-end mt-1">
                 <ModelAgentButton
                     biz="VideoGenFlowTextPrompt"
-                    title="文案生成"
+                    :title="t('app.copywritingGenerate')"
                     @result="formData.text = $event"
                     :form-items="SoundGenerateTextFormItems"
                     :prompt-default="SoundGenerateTextPrompt"

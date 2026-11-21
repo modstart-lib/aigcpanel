@@ -11,5 +11,15 @@
     "error.audioParamError": "音频参数错误",
     "error.selectAudioFile2": "请选择音频文件",
     "error.inputVolumeParam": "请输入音量参数",
-    "error.inputAudioParam": "请输入音频参数"
+    "error.inputAudioParam": "请输入音频参数",
+    "app.videoMergeAudioTitle": "视频添加音频",
+    "app.videoMergeAudioDesc": "将音频文件合并到视频中，支持音量调节",
+    "app.videoMergeAudioStepSelectFile": "选择文件",
+    "app.videoMergeAudioStepSelectFileDesc": "选择需要处理的视频文件和音频文件",
+    "app.videoMergeAudioStepSetVolume": "设置音量",
+    "app.videoMergeAudioStepSetVolumeDesc": "调整音频的音量大小",
+    "app.videoMergeAudioStepMergeProcess": "合并处理",
+    "app.videoMergeAudioStepMergeProcessDesc": "使用FFmpeg将音频合并到视频中",
+    "workflow.videoMergeAudioTitle": "视频添加音频",
+    "workflow.videoMergeAudioDesc": "将音频文件合并到视频中"
 }

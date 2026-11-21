@@ -45,7 +45,7 @@ defineExpose({
                 $t("common.confirm")
             }}</a-button>
         </template>
-        <div style="max-height: 50vh" class="overflow-y-auto">
+        <div>
             <a-form :model="data" label-align="left" class="mt-4">
                 <a-form-item :label="$t('video.providerName')" name="title">
                     <a-input

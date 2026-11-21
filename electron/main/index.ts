@@ -20,7 +20,9 @@ import { ConfigTray } from "../config/tray";
 import { icnsLogoPath, icoLogoPath, logoPath } from "../config/icon";
 import { isDev, isMac, isPackaged } from "../lib/env";
 import { executeHooks } from "../lib/hooks";
+import { loadClientConfig } from "../lib/clientConfig";
 import { DevToolsManager } from "../lib/devtools";
+import { Diagnostics } from "../lib/diagnostics";
 import { AppsMain } from "../mapi/app/main";
 import { ServerMain } from "../mapi/server/main";
 import { HttpServerMain } from "../mapi/httpserver/main";
@@ -58,10 +60,30 @@ process.on("unhandledRejection", (reason) => {
     );
 });
 
+// Runtime diagnostics: renderer crashes, unresponsive windows, load failures,
+// child (GPU/utility) process crashes and periodic memory snapshots, all
+// written to the standard log file for post-mortem analysis. Must be
+// registered before any window is created.
+Diagnostics.register();
+
 // Ensure consistent app name (macOS uses Info.plist CFBundleName from the dev binary,
 // which would be "Electron" instead of "aigcpanel" without this explicit override)
 if (app.getName() !== "aigcpanel") {
     app.setName("aigcpanel");
+}
+
+// 数据目录覆盖：AIGCPANEL_DATA_ROOT 环境变量（有值时）重定向整个 userData 目录，
+// 使 database.db / storage / config.json / cli-auth.json / logs 及单实例锁全部落到独立目录，
+// 实现「正式使用数据与开发测试完全隔离」。
+// 必须在 requestSingleInstanceLock() 与 app.getPath("userData") 之前执行，否则锁文件与
+// 后续所有 userData 相关路径仍会落在默认目录。
+// Record the default Electron userData before redirecting it via setPath("userData", ...),
+// so the setup page can tell whether the effective data directory has been customized.
+const defaultUserData = app.getPath("userData");
+
+const clientConfig = loadClientConfig();
+if (clientConfig.dataPath) {
+    app.setPath("userData", clientConfig.dataPath);
 }
 
 app.disableHardwareAcceleration();
@@ -80,6 +102,7 @@ AppEnv.appRoot = process.env.APP_ROOT;
 AppEnv.appData = app.getPath("appData");
 AppEnv.userData = app.getPath("userData");
 AppEnv.dataRoot = path.join(AppEnv.userData, "data");
+AppEnv.dataRootDefault = path.join(defaultUserData, "data");
 
 if (!fs.existsSync(AppEnv.dataRoot)) {
     fs.mkdirSync(AppEnv.dataRoot, { recursive: true });
@@ -230,6 +253,10 @@ app.whenReady()
     });
 
 app.on("before-quit", (event) => {
+    // 自动升级流程已经在预检阶段停止所有服务，允许直接退出
+    if ((app as any).updateQuit) {
+        return;
+    }
     const localServerRunningCount = ServerMain.getRunningServerCount();
     if (localServerRunningCount > 0) {
         //  && isPackaged

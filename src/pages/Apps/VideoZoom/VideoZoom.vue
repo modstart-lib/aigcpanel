@@ -51,8 +51,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频片段放大"
-            desc="对视频中的片段进行快速放大，方便视频细节的查看"
+            :title="t('app.videoZoomTitle')"
+            :desc="t('app.videoZoomDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -63,18 +63,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频',
-                    description: '选择需要进行缩放处理的视频文件',
+                    label: t('app.stepSelectVideo'),
+                    description: t('app.stepSelectVideoDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置缩放节点',
-                    description: '在时间轴上添加缩放节点，设置缩放区域和时间',
+                    label: t('app.stepSetZoomNode'),
+                    description: t('app.stepSetZoomNodeDesc'),
                 },
                 {
                     key: 3,
-                    label: '生成视频',
-                    description: '使用FFmpeg处理视频，生成动态缩放效果',
+                    label: t('app.stepGenerateVideo'),
+                    description: t('app.stepGenerateVideoDesc'),
                 },
             ]"
         />

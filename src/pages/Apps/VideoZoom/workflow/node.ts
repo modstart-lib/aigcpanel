@@ -12,8 +12,8 @@ import { VideoZoomRun } from "../task";
 
 export default <NodeFunctionCall>{
     name: "VideoZoom",
-    title: "视频片段放大",
-    description: "放大视频中的指定片段",
+    title: t("workflow.videoZoomTitle"),
+    description: t("workflow.videoZoomDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoZoomNode.vue")),
     inputFields: [

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -58,12 +59,12 @@ const props = defineProps<{
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-file />
-                    解析文件
+                    {{ $t("app.parseFile") }}
                 </div>
             </div>
             <div class="flex-grow">
                 <TaskJobResultStepView :record="record" step="Prepare">
-                    <div class="flex gap-2 mb-2">
+                    <div class="flex flex-wrap gap-2 mb-2">
                         <VideoInfo :data="record.jobResult?.Prepare!" />
                     </div>
                 </TaskJobResultStepView>
@@ -73,22 +74,27 @@ const props = defineProps<{
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-file />
-                    压缩配置
+                    {{ $t("app.compressConfig") }}
                 </div>
             </div>
             <div class="flex-grow">
                 <TaskJobResultStepView :record="record" step="Compress">
                     <div class="flex items-center gap-1 mb-2">
-                        <a-tag class="rounded-lg"
-                            >编码: {{ record.modelConfig?.codec }}</a-tag
-                        >
-                        <a-tag class="rounded-lg"
-                            >分辨率: {{ record.modelConfig?.resolution }}</a-tag
-                        >
-                        <a-tag class="rounded-lg"
-                            >压缩程度:
-                            {{ record.modelConfig?.compressionLevel }}%</a-tag
-                        >
+                        <a-tag class="rounded-lg">{{
+                            $t("app.codecValue", {
+                                value: record.modelConfig?.codec,
+                            })
+                        }}</a-tag>
+                        <a-tag class="rounded-lg">{{
+                            $t("app.resolutionValue", {
+                                value: record.modelConfig?.resolution,
+                            })
+                        }}</a-tag>
+                        <a-tag class="rounded-lg">{{
+                            $t("app.compressionLevelValue", {
+                                value: record.modelConfig?.compressionLevel,
+                            })
+                        }}</a-tag>
                     </div>
                 </TaskJobResultStepView>
             </div>
@@ -97,7 +103,7 @@ const props = defineProps<{
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-file />
-                    压缩完成
+                    {{ $t("app.compressDone") }}
                 </div>
             </div>
             <TaskJobResultStepView :record="record" step="Compress">
@@ -119,6 +125,7 @@ const props = defineProps<{
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

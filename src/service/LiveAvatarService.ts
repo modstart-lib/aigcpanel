@@ -31,6 +31,13 @@ export const LiveAvatarService = {
         );
         return this.decodeRecord(record);
     },
+    async getByName(name: string): Promise<LiveAvatarRecord | null> {
+        const record: any = await window.$mapi.db.first(
+            `SELECT * FROM ${this.tableName()} WHERE name = ?`,
+            [name],
+        );
+        return this.decodeRecord(record);
+    },
     async list(): Promise<LiveAvatarRecord[]> {
         const records: LiveAvatarRecord[] = await window.$mapi.db.select(
             `SELECT * FROM ${this.tableName()} ORDER BY id DESC`,

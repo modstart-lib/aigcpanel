@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AigcPanel 接口文档</title>
+<title>{{TITLE}}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f7fa; color: #1d2129; line-height: 1.6; }
@@ -11,174 +11,34 @@
   .header h1 { font-size: 22px; font-weight: 600; }
   .header p { font-size: 14px; color: #aaa; margin-top: 4px; }
   .container { max-width: 900px; margin: 32px auto; padding: 0 24px; }
-  .card { background: #fff; border-radius: 8px; border: 1px solid #e5e8ef; margin-bottom: 24px; overflow: hidden; }
-  .card-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #f0f1f5; }
-  .method { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 4px; letter-spacing: 0.5px; }
-  .get  { background: #e8f7f0; color: #00b42a; }
-  .post { background: #e8f4ff; color: #165dff; }
-  .path { font-family: monospace; font-size: 15px; font-weight: 600; color: #1d2129; }
-  .desc { margin-left: auto; font-size: 13px; color: #86909c; }
-  .card-body { padding: 20px; }
-  .section-title { font-size: 13px; font-weight: 600; color: #86909c; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e8ef; }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  h4 { font-size: 14px; font-weight: 600; margin: 16px 0 8px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 20px; margin: 8px 0; }
+  li { margin: 4px 0; }
+  strong { font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
   th { text-align: left; padding: 8px 12px; background: #f7f8fa; color: #86909c; font-weight: 500; border-bottom: 1px solid #e5e8ef; }
   td { padding: 10px 12px; border-bottom: 1px solid #f0f1f5; color: #4e5969; vertical-align: top; }
   td:first-child { font-family: monospace; color: #165dff; }
   tr:last-child td { border-bottom: none; }
+  pre { background: #f7f8fa; border-radius: 6px; padding: 14px 16px; font-size: 13px; overflow-x: auto; line-height: 1.7; color: #1d2129; border: 1px solid #e5e8ef; margin: 12px 0; }
+  code { background: #f7f8fa; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+  pre code { background: none; padding: 0; border-radius: 0; }
+  blockquote { border-left: 3px solid #165dff; padding: 8px 16px; margin: 12px 0; background: #f7f8fa; border-radius: 0 4px 4px 0; }
+  hr { border: none; border-top: 1px solid #e5e8ef; margin: 24px 0; }
   .required { color: #f53f3f; font-size: 11px; margin-left: 4px; }
   .optional { color: #86909c; font-size: 11px; margin-left: 4px; }
-  pre { background: #f7f8fa; border-radius: 6px; padding: 14px 16px; font-size: 13px; overflow-x: auto; line-height: 1.7; color: #1d2129; border: 1px solid #e5e8ef; margin-top: 12px; }
-  .divider { height: 1px; background: #f0f1f5; margin: 16px 0; }
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>AigcPanel HTTP 接口文档</h1>
-  <p>Base URL：http://localhost:{{PORT}}</p>
+  <h1>AIGCPanel HTTP 接口文档</h1>
+  <p>Base URL：http://{{BIND_ADDR}}:{{PORT}}</p>
 </div>
 <div class="container">
-
-  <div class="card">
-    <div class="card-header">
-      <span class="method get">GET</span>
-      <span class="path">/api/model/list</span>
-      <span class="desc">获取已安装的服务列表</span>
-    </div>
-    <div class="card-body">
-      <div class="section-title">请求参数</div>
-      <p style="font-size:14px;color:#86909c;">无</p>
-      <div class="divider"></div>
-      <div class="section-title">返回字段说明</div>
-      <table>
-        <tr><th>字段</th><th>类型</th><th>说明</th></tr>
-        <tr><td>id</td><td>string</td><td>服务唯一标识，格式 <code>name|version</code>，用于 /api/model/call 的 model 参数</td></tr>
-        <tr><td>functions[].name</td><td>string</td><td>功能名称，用于 /api/model/call 的 function 参数</td></tr>
-        <tr><td>functions[].args</td><td>string[]</td><td>调用时 param 对象的顶层参数字段名，对应 <code>param.字段名</code></td></tr>
-        <tr><td>functions[].param</td><td>object[]</td><td>调用时 param.param 的参数定义列表，每项含 name/title/type/defaultValue 等</td></tr>
-      </table>
-      <div class="divider"></div>
-      <div class="section-title">返回示例</div>
-      <pre>{
-  "code": 0,
-  "data": [
-    {
-      "id": "aigcpanel-server-tts|1.0.0",
-      "name": "aigcpanel-server-tts",
-      "version": "1.0.0",
-      "title": "语音合成",
-      "functions": [
-        {
-          "name": "soundTts",
-          "args": ["text"],
-          "param": [
-            { "name": "speaker", "title": "发音人", "type": "select", "defaultValue": "", "options": [...] }
-          ]
-        },
-        {
-          "name": "soundClone",
-          "args": ["text", "promptAudio", "promptText"],
-          "param": []
-        }
-      ]
-    },
-    {
-      "id": "aigcpanel-server-sd|1.2.0",
-      "name": "aigcpanel-server-sd",
-      "version": "1.2.0",
-      "title": "图像生成",
-      "functions": [
-        {
-          "name": "textToImage",
-          "args": ["prompt"],
-          "param": [
-            { "name": "width", "title": "宽度", "type": "inputNumber", "defaultValue": 512 },
-            { "name": "height", "title": "高度", "type": "inputNumber", "defaultValue": 512 }
-          ]
-        }
-      ]
-    }
-  ]
-}</pre>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <span class="method post">POST</span>
-      <span class="path">/api/model/call</span>
-      <span class="desc">调用服务功能，异步返回 taskId</span>
-    </div>
-    <div class="card-body">
-      <div class="section-title">请求体 (JSON)</div>
-      <table>
-        <tr><th>字段</th><th>类型</th><th>说明</th></tr>
-        <tr><td>model<span class="required">*必填</span></td><td>string</td><td>服务标识，格式为 <code>name|version</code>，来自 /api/model/list 的 id 字段</td></tr>
-        <tr><td>function<span class="required">*必填</span></td><td>string</td><td>调用的功能名称，来自 functions[].name</td></tr>
-        <tr><td>param<span class="required">*必填</span></td><td>object</td><td>功能参数对象，顶层字段来自 functions[].args，嵌套 param 字段来自 functions[].param</td></tr>
-        <tr><td>param.&lt;arg&gt;</td><td>any</td><td>各 args 字段直接放在 param 顶层，如 <code>text</code>、<code>prompt</code>、<code>audio</code> 等</td></tr>
-        <tr><td>param.param</td><td>object</td><td>动态参数对象，字段定义来自 functions[].param，key 为各项的 name</td></tr>
-      </table>
-      <div class="divider"></div>
-      <div class="section-title">请求示例（语音合成）</div>
-      <pre>{
-  "model": "aigcpanel-server-tts|1.0.0",
-  "function": "soundTts",
-  "param": {
-    "text": "你好，欢迎使用 AigcPanel",
-    "param": { "speaker": "zh-CN-XiaoxiaoNeural" }
-  }
-}</pre>
-      <div class="section-title" style="margin-top:12px;">请求示例（图像生成）</div>
-      <pre>{
-  "model": "aigcpanel-server-sd|1.2.0",
-  "function": "textToImage",
-  "param": {
-    "prompt": "a beautiful landscape, 4k",
-    "param": { "width": 512, "height": 512, "steps": 20 }
-  }
-}</pre>
-      <div class="divider"></div>
-      <div class="section-title">返回示例</div>
-      <pre>{
-  "code": 0,
-  "data": { "taskId": "lz3k8m2abc1" }
-}</pre>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <span class="method get">GET</span>
-      <span class="path">/api/model/query</span>
-      <span class="desc">查询任务结果</span>
-    </div>
-    <div class="card-body">
-      <div class="section-title">Query 参数</div>
-      <table>
-        <tr><th>字段</th><th>类型</th><th>说明</th></tr>
-        <tr><td>taskId<span class="required">*必填</span></td><td>string</td><td>由 /api/model/call 返回的任务 ID</td></tr>
-      </table>
-      <div class="divider"></div>
-      <div class="section-title">返回示例（处理中）</div>
-      <pre>{ "code": 0, "data": { "status": "pending" } }</pre>
-      <div class="section-title" style="margin-top:12px;">返回示例（成功）</div>
-      <pre>{
-  "code": 0,
-  "data": {
-    "status": "success",
-    "result": {
-      "type": "success",
-      "start": 1714300000000,
-      "end": 1714300005000,
-      "data": { "url": "/path/to/output.wav" }
-    }
-  }
-}</pre>
-      <div class="section-title" style="margin-top:12px;">返回示例（失败）</div>
-      <pre>{ "code": 0, "data": { "status": "error", "error": "错误信息" } }</pre>
-    </div>
-  </div>
-
+  {{CONTENT}}
 </div>
 </body>
 </html>

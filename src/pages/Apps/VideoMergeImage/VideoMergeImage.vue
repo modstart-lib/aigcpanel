@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -46,8 +47,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="片头片尾图片"
-            desc="将图片合并到视频的开头或结尾，支持设置图片显示时长"
+            :title="t('app.videoMergeImageTitle')"
+            :desc="t('app.videoMergeImageDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -58,18 +59,20 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频和图片',
-                    description: '选择需要合并的视频文件和图片文件',
+                    label: t('app.videoMergeImageStepSelectVideoAndImage'),
+                    description: t(
+                        'app.videoMergeImageStepSelectVideoAndImageDesc',
+                    ),
                 },
                 {
                     key: 2,
-                    label: '设置合并参数',
-                    description: '设置片头/片尾图片和显示时长',
+                    label: t('app.videoMergeImageStepSetMergeParams'),
+                    description: t('app.videoMergeImageStepSetMergeParamsDesc'),
                 },
                 {
                     key: 3,
-                    label: '生成视频',
-                    description: '使用FFmpeg处理视频，生成合并效果',
+                    label: t('app.videoMergeImageStepGenerateVideo'),
+                    description: t('app.videoMergeImageStepGenerateVideoDesc'),
                 },
             ]"
         />

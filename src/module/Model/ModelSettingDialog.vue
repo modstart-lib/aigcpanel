@@ -24,7 +24,7 @@ defineExpose({
         <template #title>
             {{ $t("setting.llm") }}
         </template>
-        <div class="-mx-5 -my-6" style="height: calc(100vh - 15rem)">
+        <div class="-mx-5 -my-6">
             <ModelSetting />
         </div>
     </a-modal>

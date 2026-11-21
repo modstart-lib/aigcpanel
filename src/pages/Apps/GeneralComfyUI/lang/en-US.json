@@ -1,0 +1,17 @@
+{
+    "general.comfyui.title": "General ComfyUI",
+    "general.comfyui.desc": "Call generic workflows in the ComfyUI service.",
+    "general.comfyui.appDesc": "Call generic workflows in the ComfyUI service (not categorized to a business function).",
+    "general.comfyui.call": "General ComfyUI Workflow Call",
+    "general.comfyui.callTip": "Select a generic workflow in the ComfyUI service that is not categorized, and call it directly with workflow parameters.",
+    "general.comfyui.config": "General ComfyUI Config",
+    "general.selectWorkflow": "Select workflow",
+    "general.selectWorkflowTip": "Please select a generic workflow to call",
+    "general.noWorkflow": "No generic workflows available in the current model",
+    "general.noTaskComfyui": "No general ComfyUI tasks",
+    "general.comfyui.runFail": "General ComfyUI execution failed",
+    "general.file": "File",
+    "general.filterComfyUI": "Filter by ComfyUI",
+    "general.all": "All",
+    "general.taskSuffix": "Task"
+}

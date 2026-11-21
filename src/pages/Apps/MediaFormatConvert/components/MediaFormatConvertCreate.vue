@@ -31,7 +31,7 @@ const doSubmit = async () => {
         return;
     }
     if (!formData.value.media) {
-        Dialog.tipError("请选择媒体文件");
+        Dialog.tipError(t("error.selectMediaFile"));
         return;
     }
 
@@ -63,7 +63,7 @@ const doSubmit = async () => {
     <div class="rounded-xl shadow border p-4">
         <div class="mb-4 flex items-start">
             <div class="pt-1 w-5">
-                <a-tooltip :content="'媒体文件'" mini>
+                <a-tooltip :content="t('app.mediaFile')" mini>
                     <icon-file />
                 </a-tooltip>
             </div>
@@ -88,7 +88,7 @@ const doSubmit = async () => {
         <div class="flex">
             <a-button class="mr-2" type="primary" @click="doSubmit">
                 <icon-send class="mr-2" />
-                {{ "提交任务" }}
+                {{ $t("common.submitTask") }}
             </a-button>
         </div>
     </div>

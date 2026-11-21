@@ -50,6 +50,12 @@ const stepData = computed(() => {
         <div class="text-red-400 text-xs p-2">
             <icon-info-circle />
             {{ $t("error.processError") }}
+            <div
+                v-if="record.statusMsg"
+                class="mt-1 text-red-500 whitespace-pre-wrap break-all"
+            >
+                {{ record.statusMsg }}
+            </div>
         </div>
     </div>
     <div
@@ -59,6 +65,12 @@ const stepData = computed(() => {
         <div class="text-red-400 text-xs p-2">
             <icon-info-circle />
             {{ $t("error.processError") }}
+            <div
+                v-if="record.statusMsg"
+                class="mt-1 text-red-500 whitespace-pre-wrap break-all"
+            >
+                {{ record.statusMsg }}
+            </div>
         </div>
     </div>
     <div v-else class="w-full bg-gray-100 rounded-lg">

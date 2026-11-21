@@ -9,7 +9,7 @@ const props = defineProps<{
 <template>
     <div class="mb-4">
         <div class="font-bold mb-2">{{ $t("app.imageToImageConfig") }}</div>
-        <div>
+        <div class="flex flex-wrap gap-1">
             <ImageToImageFormViewBody :data="data" />
         </div>
     </div>

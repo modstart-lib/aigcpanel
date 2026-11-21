@@ -9,5 +9,17 @@
     "common.stretchFill": "拉伸填充",
     "error.validTargetWidth": "请设置有效的目标宽度",
     "error.validTargetHeight": "请设置有效的目标高度",
-    "error.inputSizeParam": "请输入尺寸参数"
+    "error.inputSizeParam": "请输入尺寸参数",
+    "app.videoSizeConvertTitle": "视频尺寸转换",
+    "app.videoSizeConvertDesc": "调整视频尺寸，支持横屏、竖屏预设和多种填充方式",
+    "app.videoSizeConvertStepSelectVideo": "选择视频",
+    "app.videoSizeConvertStepSelectVideoDesc": "选择需要进行尺寸转换的视频文件",
+    "app.videoSizeConvertStepSetSize": "设置尺寸",
+    "app.videoSizeConvertStepSetSizeDesc": "选择目标尺寸和填充方式",
+    "app.videoSizeConvertStepGenerateVideo": "生成视频",
+    "app.videoSizeConvertStepGenerateVideoDesc": "使用FFmpeg处理视频，生成指定尺寸",
+    "app.presetPortrait": "竖屏",
+    "app.presetSquare": "方形",
+    "workflow.videoSizeConvertTitle": "视频尺寸转换",
+    "workflow.videoSizeConvertDesc": "转换视频的尺寸"
 }

@@ -4,5 +4,15 @@
     "common.manualSetTimeNode": "手动设置时间节点",
     "common.confirmDone": "确认无误完成",
     "error.validZoomDuration": "请设置有效的放大持续时间",
-    "msg.taskNotCompleteConfirmFinal": "任务未完成，需要手动确认终稿"
+    "msg.taskNotCompleteConfirmFinal": "任务未完成，需要手动确认终稿",
+    "app.videoZoomTitle": "视频片段放大",
+    "app.videoZoomDesc": "对视频中的片段进行快速放大，方便视频细节的查看",
+    "app.stepSelectVideo": "选择视频",
+    "app.stepSelectVideoDesc": "选择需要进行缩放处理的视频文件",
+    "app.stepSetZoomNode": "设置缩放节点",
+    "app.stepSetZoomNodeDesc": "在时间轴上添加缩放节点，设置缩放区域和时间",
+    "app.stepGenerateVideo": "生成视频",
+    "app.stepGenerateVideoDesc": "使用FFmpeg处理视频，生成动态缩放效果",
+    "workflow.videoZoomTitle": "视频片段放大",
+    "workflow.videoZoomDesc": "放大视频中的指定片段"
 }

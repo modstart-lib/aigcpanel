@@ -22,5 +22,17 @@
     "msg.continueEditVideo": "任务已继续，开始剪辑视频",
     "msg.confirmSegments": "确认包含 {count} 个片段，继续剪辑视频？",
     "msg.playedLastSelected": "已播放到最后一个勾选片段",
-    "msg.taskNotCompleteConfirmSegments": "任务未完成，需要手动确认剪辑片段"
+    "msg.taskNotCompleteConfirmSegments": "任务未完成，需要手动确认剪辑片段",
+    "app.videoQuickCutTitle": "快速剪辑",
+    "app.videoQuickCutDesc": "通过语音识别进行视频快速剪辑，支持内容片段的自定义包括或去除",
+    "app.videoQuickCutStepSelectVideo": "选择视频",
+    "app.videoQuickCutStepSelectVideoDesc": "选择需要进行快速剪辑的视频文件",
+    "app.videoQuickCutStepSpeechRecognition": "语音识别",
+    "app.videoQuickCutStepSpeechRecognitionDesc": "对视频进行语音识别，生成字幕内容",
+    "app.videoQuickCutStepConfirmEdit": "确认剪辑",
+    "app.videoQuickCutStepConfirmEditDesc": "根据识别结果确认需要包含或去除的片段",
+    "app.videoQuickCutStepGenerateVideo": "生成视频",
+    "app.videoQuickCutStepGenerateVideoDesc": "根据剪辑配置合并生成新的视频文件",
+    "workflow.videoQuickCutTitle": "快速剪辑",
+    "workflow.videoQuickCutDesc": "快速剪辑视频"
 }

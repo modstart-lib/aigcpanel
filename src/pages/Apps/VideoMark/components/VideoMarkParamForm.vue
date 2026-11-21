@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Dialog } from "../../../../lib/dialog";
+import { t } from "../../../../lang";
 
 const formData = ref({
     borderColor: "#ff0000",
@@ -26,15 +27,15 @@ const getValue = async (): Promise<VideoMarkForm | undefined> => {
     data.borderRadius = formData.value.borderRadius;
     data.borderStyle = formData.value.borderStyle;
     if (data.borderWidth <= 0 || isNaN(data.borderWidth)) {
-        Dialog.tipError("请设置有效的边框宽度");
+        Dialog.tipError(t("error.validBorderWidth"));
         return;
     }
     if (data.borderOpacity < 0 || data.borderOpacity > 1) {
-        Dialog.tipError("请设置有效的边框不透明度");
+        Dialog.tipError(t("error.validBorderOpacity"));
         return;
     }
     if (data.borderRadius < 0 || isNaN(data.borderRadius)) {
-        Dialog.tipError("请设置有效的圆角");
+        Dialog.tipError(t("error.validBorderRadius"));
         return;
     }
     return data;
@@ -67,9 +68,9 @@ defineExpose({
 <template>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'边框颜色'" mini>
+            <a-tooltip :content="$t('app.borderColor')" mini>
                 <icon-bg-colors />
-                边框颜色
+                {{ $t("app.borderColor") }}
             </a-tooltip>
         </div>
         <div class="flex-grow">
@@ -78,9 +79,9 @@ defineExpose({
     </div>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'边框宽度'" mini>
+            <a-tooltip :content="$t('app.borderWidth')" mini>
                 <icon-edit />
-                边框宽度
+                {{ $t("app.borderWidth") }}
             </a-tooltip>
         </div>
         <div class="flex-grow">
@@ -93,9 +94,9 @@ defineExpose({
     </div>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'边框不透明度'" mini>
+            <a-tooltip :content="$t('app.borderOpacity')" mini>
                 <icon-eye />
-                边框不透明度
+                {{ $t("app.borderOpacity") }}
             </a-tooltip>
         </div>
         <div class="flex-grow">
@@ -112,9 +113,9 @@ defineExpose({
     </div>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'圆角'" mini>
+            <a-tooltip :content="$t('app.borderRadius')" mini>
                 <icon-settings />
-                圆角
+                {{ $t("app.borderRadius") }}
             </a-tooltip>
         </div>
         <div class="flex-grow">
@@ -127,15 +128,15 @@ defineExpose({
     </div>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'线条样式'" mini>
+            <a-tooltip :content="$t('app.borderStyle')" mini>
                 <icon-edit />
-                线条样式
+                {{ $t("app.borderStyle") }}
             </a-tooltip>
         </div>
         <div class="flex-grow">
             <a-radio-group v-model="formData.borderStyle" type="button">
-                <a-radio value="solid">实线</a-radio>
-                <a-radio value="dashed">虚线</a-radio>
+                <a-radio value="solid">{{ $t("app.borderSolid") }}</a-radio>
+                <a-radio value="dashed">{{ $t("app.borderDashed") }}</a-radio>
             </a-radio-group>
         </div>
     </div>

@@ -1,324 +1,209 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { StorageMain } from "../../storage/main";
-import { DBMain } from "../../db/main";
-import { Events } from "../../event/main";
-import { Log } from "../../log/main";
-import {
-    sendJson,
-    asyncHandler,
-    pollQuery,
-    functionArgsMap,
-    functionBizMap,
-} from "../utils";
+import { sendJson, asyncHandler, functionArgsMap } from "../utils";
 
 const router = Router();
 
-// ── Helpers ──────────────────────────────────────────────────────────────
-
+/**
+ * 获取已安装的模型服务完整列表（含完整参数定义）
+ */
 const getInstalledServers = async () => {
     const storageData = await StorageMain.read("server", null);
     const records = storageData?.records || [];
     return records
         .filter((r: any) => r.name && r.version)
-        .map((r: any) => ({
-            id: `${r.name}|${r.version}`,
-            name: r.name,
-            version: r.version,
-            title: r.title || r.name,
-            functions: (r.functions || []).map((funcName: string) => ({
-                name: funcName,
-                args: functionArgsMap[funcName] || [],
-                param: r.config?.functions?.[funcName]?.param || [],
-            })),
-        }));
+        .map((r: any) => {
+            let funcNames: string[] = (r.functions || []).map(String);
+            if (
+                r.config?.type === "comfyui" &&
+                !funcNames.includes("comfyui")
+            ) {
+                funcNames = [...funcNames, "comfyui"];
+            }
+            return {
+                id: `${r.name}|${r.version}`,
+                name: r.name,
+                version: r.version,
+                title: r.title || r.name,
+                type: r.type || r.config?.type || "local",
+                description: r.config?.description || "",
+                functions: funcNames.map((funcName: string) => ({
+                    name: funcName,
+                    args: functionArgsMap[funcName] || [],
+                    param: r.config?.functions?.[funcName]?.param || [],
+                })),
+                settings: (r.settings || []).map((s: any) => ({
+                    name: s.name,
+                    title: s.title,
+                    type: s.type,
+                    default: s.default,
+                    placeholder: s.placeholder || "",
+                    options: s.options || [],
+                    hint: s.hint || "",
+                })),
+                config: {
+                    type: r.config?.type || "",
+                    entry: r.config?.entry || "",
+                    description: r.config?.description || "",
+                    deviceDescription: r.config?.deviceDescription || "",
+                    minDisk: r.config?.minDisk || "",
+                    minMemory: r.config?.minMemory || "",
+                    minGpu: r.config?.minGpu || "",
+                    minGpuMemory: r.config?.minGpuMemory || "",
+                },
+            };
+        });
 };
 
-const getServerRecord = async (serverName: string, serverVersion: string) => {
+/**
+ * 按服务器标识解析记录
+ */
+const resolveServerRecord = async (serverKey: string) => {
+    const [serverName, serverVersion = ""] = String(serverKey || "").split("|");
     const storageData = await StorageMain.read("server", null);
     const records = storageData?.records || [];
-    return records.find(
-        (r: any) => r.name === serverName && r.version === serverVersion,
-    );
-};
-
-const buildModelConfig = (
-    funcName: string,
-    serverName: string,
-    serverTitle: string,
-    serverVersion: string,
-    param: any,
-) => {
-    switch (funcName) {
-        case "soundTts":
-            return {
-                type: "SoundTts",
-                ttsServerKey: `${serverName}|${serverVersion}`,
-                ttsParam: param?.param || {},
-                text: param?.text || "",
-            };
-        case "soundClone":
-            return {
-                type: "SoundClone",
-                cloneServerKey: `${serverName}|${serverVersion}`,
-                cloneParam: param?.param || {},
-                text: param?.text || "",
-                promptUrl: param?.promptAudio || "",
-                promptText: param?.promptText || "",
-            };
-        case "videoGen":
-            return {
-                soundType: "soundCustom",
-                soundCustomFile: param?.audio || "",
-                videoTemplateUrl: param?.video || "",
-            };
-        case "asr":
-            return {
-                audio: param?.audio || "",
-            };
-        case "textToImage":
-            return {
-                prompt: param?.prompt || "",
-                textToImage: {
-                    serverName,
-                    serverTitle,
-                    serverVersion,
-                    type: "TextToImage",
-                    serverKey: `${serverName}|${serverVersion}`,
-                    param: param?.param || {},
-                },
-            };
-        case "imageToImage":
-            return {
-                image: param?.image || "",
-                prompt: param?.prompt || "",
-                imageToImage: {
-                    serverName,
-                    serverTitle,
-                    serverVersion,
-                    type: "ImageToImage",
-                    serverKey: `${serverName}|${serverVersion}`,
-                    param: param?.param || {},
-                },
-            };
-        default:
-            return param || {};
+    if (serverVersion) {
+        const record = records.find(
+            (r: any) => r.name === serverName && r.version === serverVersion,
+        );
+        if (!record) {
+            throw new Error(`Server not found: ${serverName}|${serverVersion}`);
+        }
+        return record;
     }
-};
-
-const buildTaskParam = (funcName: string, param: any) => {
-    if (funcName === "videoGen" || funcName === "asr") {
-        return param?.param || {};
+    const matched = records.filter((r: any) => r.name === serverName);
+    if (matched.length === 0) {
+        throw new Error(`Server not found: ${serverName}`);
     }
-    return {};
-};
-
-const buildTaskTitle = (funcName: string, param: any): string => {
-    switch (funcName) {
-        case "soundTts":
-            return param?.text ? String(param.text).slice(0, 20) : "TTS任务";
-        case "soundClone":
-            return param?.text
-                ? String(param.text).slice(0, 20)
-                : "音色克隆任务";
-        case "videoGen":
-            return "AI数字人视频";
-        case "asr":
-            return "ASR识别任务";
-        case "textToImage":
-            return param?.prompt
-                ? String(param.prompt).slice(0, 20)
-                : "文生图任务";
-        case "imageToImage":
-            return param?.prompt
-                ? String(param.prompt).slice(0, 20)
-                : "图生图任务";
-        default:
-            return "任务";
+    if (matched.length > 1) {
+        const versions = matched.map((r: any) => r.version).join(", ");
+        throw new Error(
+            `Multiple versions found for "${serverName}" (${versions}), please specify version`,
+        );
     }
+    return matched[0];
 };
 
-// ── GET /api/model/list ──────────────────────────────────────────────────
-router.get(
+// ── POST /api/model/list ──────────────────────────────────────────────────
+// 获取已安装的服务列表（精简版，兼容旧版调用）
+
+router.post(
     "/list",
     asyncHandler(async (_req: Request, res: Response) => {
         const servers = await getInstalledServers();
-        sendJson(res, 200, { code: 0, data: servers });
+        // 保持兼容：返回精简结构和完整数据
+        const list = servers.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            version: s.version,
+            title: s.title,
+            functions: s.functions,
+        }));
+        sendJson(res, 200, { code: 0, data: list });
     }),
 );
 
-// ── POST /api/model/call ─────────────────────────────────────────────────
-router.post(
-    "/call",
-    asyncHandler(async (req: Request, res: Response) => {
-        const { model, version, function: funcName, param } = req.body || {};
-        let serverName: string;
-        let serverVersion: string;
-        if (version !== undefined) {
-            serverName = model || "";
-            serverVersion = version || "";
-        } else {
-            const parts = (model || "").split("|");
-            serverName = parts[0];
-            serverVersion = parts.slice(1).join("|");
-        }
-        if (!serverName || !serverVersion) {
-            sendJson(res, 400, {
-                code: -1,
-                msg: "Missing model or version",
-            });
-            return;
-        }
-        if (!funcName) {
-            sendJson(res, 400, { code: -1, msg: "Missing function" });
-            return;
-        }
-        const biz = functionBizMap[funcName];
-        if (!biz) {
-            sendJson(res, 400, {
-                code: -1,
-                msg: `Unknown function: ${funcName}`,
-            });
-            return;
-        }
-        const serverRecord = await getServerRecord(serverName, serverVersion);
-        if (!serverRecord) {
-            sendJson(res, 400, {
-                code: -1,
-                msg: `Server not found: ${serverName}|${serverVersion}`,
-            });
-            return;
-        }
-        const serverTitle = serverRecord.title || serverName;
-        const modelConfig = buildModelConfig(
-            funcName,
-            serverName,
-            serverTitle,
-            serverVersion,
-            param,
-        );
-        const taskParam = buildTaskParam(funcName, param);
-        const title = buildTaskTitle(funcName, param);
-        const taskDbId = await DBMain.insert(
-            `INSERT INTO data_task (biz, title, status, startTime, serverName, serverTitle, serverVersion, param, jobResult, modelConfig, result, type)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                biz,
-                title,
-                "queue",
-                Date.now(),
-                serverName,
-                serverTitle,
-                serverVersion,
-                JSON.stringify(taskParam),
-                JSON.stringify({}),
-                JSON.stringify(modelConfig),
-                JSON.stringify({}),
-                1,
-            ],
-        );
-        const taskId = String(taskDbId);
-        sendJson(res, 200, { code: 0, data: { taskId } });
-        Events.callPage("main", "httpserver:submitTask", {
-            biz,
-            taskId,
-        }).catch((err) => {
-            Log.error("httpserver.submitTask.error", err);
-        });
-    }),
-);
+// ── POST /api/model/info ──────────────────────────────────────────────────
+// 获取指定模型的完整参数信息（含所有字段定义、设置项、硬件要求等）
+// Body: { server: "name|version" }  或  { server: "name" }
 
-// ── POST /api/model/query ────────────────────────────────────────────────
 router.post(
-    "/query",
+    "/info",
     asyncHandler(async (req: Request, res: Response) => {
-        const { taskId } = req.body || {};
-        if (!taskId) {
-            sendJson(res, 400, { code: -1, msg: "Missing taskId" });
+        const { server } = req.body || {};
+        if (!server) {
+            sendJson(res, 400, { code: -1, msg: "Missing server" });
             return;
         }
-        const queryOnce = async () => {
-            const record = await DBMain.first(
-                "SELECT * FROM data_task WHERE id = ?",
-                [taskId],
-            );
-            if (!record) {
-                return {
-                    done: true,
-                    payload: {
-                        code: 0,
-                        data: { status: "error", error: "Task not found" },
-                    },
-                };
-            }
-            if (record.status === "success") {
-                let result: any = null;
-                try {
-                    const parsed = JSON.parse(record.result);
-                    if (parsed && Object.keys(parsed).length > 0)
-                        result = parsed;
-                } catch (_) {}
-                if (result) {
-                    return {
-                        done: true,
-                        payload: {
-                            code: 0,
-                            data: {
-                                status: "success",
-                                result: {
-                                    code: 0,
-                                    msg: "ok",
-                                    data: {
-                                        type: "success",
-                                        start: record.startTime || 0,
-                                        end: record.endTime || 0,
-                                        data: result,
-                                    },
-                                },
-                            },
-                        },
-                    };
-                }
-            } else if (record.status === "fail") {
-                return {
-                    done: true,
-                    payload: {
-                        code: 0,
-                        data: {
-                            status: "error",
-                            error: record.statusMsg || "Task failed",
-                        },
-                    },
-                };
-            } else if (record.status === "pause") {
-                let jobResult: any = null;
-                try {
-                    jobResult = JSON.parse(record.jobResult);
-                } catch (_) {}
-                return {
-                    done: true,
-                    payload: {
-                        code: 0,
-                        data: {
-                            status: "pause",
-                            taskId: String(record.id),
-                            step: jobResult?.step || null,
-                            statusMsg: record.statusMsg || "Task paused",
-                        },
-                    },
-                };
-            }
-            return { done: false, payload: null };
-        };
-        const { finished, result } = await pollQuery(queryOnce, {
-            timeoutMs: 60_000,
-            intervalMs: 500,
-        });
-        if (finished && result) {
-            sendJson(res, 200, result);
-        } else {
-            sendJson(res, 200, { code: 0, data: { status: "pending" } });
+        let record: any;
+        try {
+            record = await resolveServerRecord(String(server));
+        } catch (e) {
+            sendJson(res, 400, { code: -1, msg: String(e) });
+            return;
         }
+
+        const funcNames: string[] = (record.functions || []).map(String);
+        if (
+            record.config?.type === "comfyui" &&
+            !funcNames.includes("comfyui")
+        ) {
+            funcNames.push("comfyui");
+        }
+
+        // 构建 functions 详细信息
+        const functions = funcNames.map((funcName: string) => {
+            const funcDef = record.config?.functions?.[funcName] || {};
+            const paramList = funcDef.param || [];
+            return {
+                name: funcName,
+                title: funcDef.title || funcName,
+                description: funcDef.description || "",
+                args: functionArgsMap[funcName] || [],
+                // 参数定义：每个参数的名称、标题、类型、默认值、选项等
+                param: paramList.map((p: any) => ({
+                    name: p.name,
+                    title: p.title,
+                    type: p.type || "text",
+                    default: p.defaultValue ?? p.default ?? "",
+                    placeholder: p.placeholder || "",
+                    required: p.required ?? false,
+                    options: p.options || [],
+                    hint: p.hint || "",
+                    min: p.min,
+                    max: p.max,
+                })),
+                // 返回结果定义（如有）
+                result: (funcDef.result || []).map((r: any) => ({
+                    name: r.name,
+                    title: r.title,
+                    type: r.type || "string",
+                    description: r.description || "",
+                })),
+            };
+        });
+
+        // 构建设置项
+        const settings = (record.settings || []).map((s: any) => ({
+            name: s.name,
+            title: s.title,
+            type: s.type,
+            default: s.default ?? s.defaultValue ?? "",
+            placeholder: s.placeholder || "",
+            options: s.options || [],
+            hint: s.hint || "",
+        }));
+
+        sendJson(res, 200, {
+            code: 0,
+            data: {
+                id: `${record.name}|${record.version}`,
+                name: record.name,
+                version: record.version,
+                title: record.title || record.name,
+                description: record.config?.description || "",
+                type: record.type || record.config?.type || "local",
+                // 硬件要求
+                requirements: {
+                    minDisk: record.config?.minDisk || "",
+                    minMemory: record.config?.minMemory || "",
+                    minGpu: record.config?.minGpu || "",
+                    minGpuMemory: record.config?.minGpuMemory || "",
+                    deviceDescription: record.config?.deviceDescription || "",
+                },
+                // 功能列表及参数
+                functions,
+                // 模型设置项
+                settings,
+                // 原始 config（完整引用）
+                config: {
+                    entry: record.config?.entry || "",
+                    cloudName: record.config?.cloudName || "",
+                    autoStart: !!record.autoStart,
+                },
+            },
+        });
     }),
 );
 

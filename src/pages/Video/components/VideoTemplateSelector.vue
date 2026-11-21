@@ -5,6 +5,9 @@ import {
     VideoTemplateService,
 } from "../../../service/VideoTemplateService";
 
+defineProps<{ modelValue: number }>();
+const emit = defineEmits<{ "update:modelValue": [value: number] }>();
+
 const records = ref<VideoTemplateRecord[]>([]);
 onMounted(async () => {
     records.value = await VideoTemplateService.list();
@@ -12,7 +15,11 @@ onMounted(async () => {
 </script>
 
 <template>
-    <a-select allow-search>
+    <a-select
+        :model-value="modelValue || undefined"
+        allow-search
+        @change="emit('update:modelValue', $event as number)"
+    >
         <a-option :value="0">
             {{ $t("hint.selectAvatar") }}
         </a-option>

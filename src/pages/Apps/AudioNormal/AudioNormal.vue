@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -43,8 +44,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="声音归一化"
-            desc="对视频或音频进行声音归一化处理，调整音量使声音更均衡"
+            :title="t('app.audioNormalTitle')"
+            :desc="t('app.audioNormalDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -55,18 +56,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择文件',
-                    description: '选择需要处理的视频或音频文件',
+                    label: t('app.stepSelectFile'),
+                    description: t('app.stepSelectFileDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置归一化程度',
-                    description: '调整归一化的强度百分比',
+                    label: t('app.stepSetNormalization'),
+                    description: t('app.stepSetNormalizationDesc'),
                 },
                 {
                     key: 3,
-                    label: '处理文件',
-                    description: '使用FFmpeg进行音频归一化处理',
+                    label: t('app.stepProcessFile'),
+                    description: t('app.stepProcessFileDesc'),
                 },
             ]"
         />
@@ -82,7 +83,7 @@ const doRefresh = async () => {
                     :indeterminate="isIndeterminate"
                     @change="onCheckAll"
                 >
-                    {{ "全选" }}
+                    {{ $t("common.selectAll") }}
                 </a-checkbox>
                 <TaskBatchDeleteAction
                     :records="checkRecords"

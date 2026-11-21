@@ -60,11 +60,7 @@ const doUser = async () => {
                         :src="user.user.avatar as string"
                         class="rounded-full border border-solid border-gray-200 w-10 h-10 shadow-lg"
                     />
-                    <img
-                        v-if="user.data?.vip?.icon"
-                        :src="user.data.vip.icon as string"
-                        class="absolute -top-1 -right-1 w-6 h-6"
-                    />
+                    
                 </div>
             </a-tooltip>
             <div v-else>
@@ -79,11 +75,7 @@ const doUser = async () => {
                         :src="user.user.avatar as string"
                         class="rounded-full border border-solid border-gray-200 w-10 h-10 shadow-lg"
                     />
-                    <img
-                        v-if="user.data?.vip?.icon"
-                        :src="user.data.vip.icon as string"
-                        class="absolute -top-1 -right-1 w-4 h-4"
-                    />
+                    
                 </div>
             </div>
         </div>
@@ -97,7 +89,7 @@ const doUser = async () => {
                 <div class="flex justify-center">
                     <icon-home class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("nav.home") }}</div>
+                <div class="text-sm truncate">{{ $t("nav.home") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -108,7 +100,7 @@ const doUser = async () => {
                 <div class="flex justify-center">
                     <i-mdi-account-circle-outline class="text-xl" />
                 </div>
-                <div class="text-sm">数字人</div>
+                <div class="text-sm truncate">{{ $t("nav.video") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -119,7 +111,7 @@ const doUser = async () => {
                 <div class="flex justify-center">
                     <icon-live-broadcast class="text-xl" />
                 </div>
-                <div class="text-sm">直播</div>
+                <div class="text-sm truncate">{{ $t("nav.live") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -130,7 +122,7 @@ const doUser = async () => {
                 <div class="flex justify-center">
                     <icon-tool class="text-xl" />
                 </div>
-                <div class="text-sm">小工具</div>
+                <div class="text-sm truncate">{{ $t("nav.tool") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -141,7 +133,7 @@ const doUser = async () => {
                 <div class="flex justify-center">
                     <WorkflowIcon class="h-5 w-5" />
                 </div>
-                <div class="text-sm">工作流</div>
+                <div class="text-sm truncate">{{ $t("nav.workflow") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -152,7 +144,7 @@ const doUser = async () => {
                 <div class="flex justify-center">
                     <i-mdi-server-outline class="text-xl" />
                 </div>
-                <div class="text-sm">AI模型</div>
+                <div class="text-sm truncate">{{ $t("nav.server") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -163,7 +155,7 @@ const doUser = async () => {
                 <div class="flex justify-center">
                     <icon-settings class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("common.setting") }}</div>
+                <div class="text-sm truncate">{{ $t("common.setting") }}</div>
             </a>
         </div>
         <div></div>

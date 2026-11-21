@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { t } from "../../../../lang";
 import { Dialog } from "../../../../lib/dialog";
 
 const formData = ref({
@@ -24,7 +25,7 @@ const getValue = async (): Promise<AudioNormalForm | undefined> => {
         data.normalizationPercentage > 100 ||
         isNaN(data.normalizationPercentage)
     ) {
-        Dialog.tipError("请设置有效的归一化百分比（0-100）");
+        Dialog.tipError(t("error.validNormalizationPercentage"));
         return;
     }
     return data;
@@ -45,9 +46,9 @@ defineExpose({
 <template>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-32">
-            <a-tooltip :content="'归一化程度'" mini>
+            <a-tooltip :content="t('app.normalizationLevel')" mini>
                 <icon-sound />
-                归一化程度
+                {{ t("app.normalizationLevel") }}
             </a-tooltip>
         </div>
         <div class="flex items-center gap-2">

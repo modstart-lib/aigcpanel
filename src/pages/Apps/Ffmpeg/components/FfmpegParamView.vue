@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from "../../../../lang";
 const props = defineProps<{
     data: {
         commands: [];
@@ -22,7 +23,7 @@ const props = defineProps<{
             </a-tag>
         </template>
         <template v-else>
-            <a-tag class="rounded-lg">未配置</a-tag>
+            <a-tag class="rounded-lg">{{ t("common.notConfigured") }}</a-tag>
         </template>
     </div>
 </template>

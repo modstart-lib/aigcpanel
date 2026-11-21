@@ -48,6 +48,7 @@ export const MAPI = {
             AppEnv.appData = env.appData;
             AppEnv.userData = env.userData;
             AppEnv.dataRoot = env.dataRoot;
+            AppEnv.dataRootDefault = env.dataRootDefault;
             AppEnv.isInit = true;
         }
     },

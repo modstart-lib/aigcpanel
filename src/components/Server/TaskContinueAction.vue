@@ -2,9 +2,8 @@
 import { t } from "../../lang";
 import { Dialog } from "../../lib/dialog";
 import { sleep } from "../../lib/util";
-import { TaskRecord } from "../../service/TaskService";
+import { TaskRecord, TaskService } from "../../service/TaskService";
 import { useTaskStore } from "../../store/modules/task";
-import { computed } from "vue";
 
 const taskStore = useTaskStore();
 
@@ -17,6 +16,9 @@ const doContinue = async () => {
     Dialog.loadingOn(t("status.resuming"));
     try {
         await sleep(500);
+        await TaskService.update(record.id as any, {
+            statusMsg: "",
+        });
         await taskStore.dispatch(record.biz, record.id as any);
         Dialog.loadingOff();
         Dialog.tipSuccess(t("common.resumeSuccess"));
@@ -25,18 +27,12 @@ const doContinue = async () => {
         Dialog.tipError(t("error.resumeFailed"));
     }
 };
-const continueContent = computed(() => {
-    if (props.record.status === "fail") {
-        return t("common.retryAttempt");
-    }
-    return t("task.resume");
-});
 </script>
 
 <template>
     <a-tooltip
-        v-if="record.status === 'pause' || record.status === 'fail'"
-        :content="continueContent"
+        v-if="record.status === 'pause'"
+        :content="$t('task.resume')"
         mini
     >
         <a-button class="mr-2" @click="doContinue()">

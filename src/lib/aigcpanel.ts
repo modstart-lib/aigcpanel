@@ -1,14 +1,34 @@
 import { t } from "../lang";
+import { escapeHtml } from "./sanitize";
 
 export const allFunctions = [
+    { value: "comfyui", label: "ComfyUI" },
     { value: "soundTts", label: t("voice.synthesis") },
     { value: "soundClone", label: t("voice.clone") },
     { value: "videoGen", label: t("avatar.digitalHuman") },
     { value: "asr", label: t("voice.recognition") },
     { value: "textToImage", label: t("model.txt2img") },
     { value: "imageToImage", label: t("model.img2img") },
+    { value: "textToVideo", label: t("model.txt2video") },
+    { value: "imageToVideo", label: t("model.img2video") },
     { value: "live", label: t("avatar.smartLive") },
+    { value: "general", label: t("model.general") },
 ];
+
+/**
+ * config.json 的 functions 既可能是对象（{ [name]: {...定义} }），
+ * 也可能是数组（旧格式/种子数据）；模型记录里统一存为能力名数组，
+ * 否则渲染层 `record.functions.includes(...)` 会直接报错。
+ */
+export function serverFunctionNames(functions: any): string[] {
+    if (Array.isArray(functions)) {
+        return functions.map((f) => String(f));
+    }
+    if (functions && typeof functions === "object") {
+        return Object.keys(functions);
+    }
+    return [];
+}
 
 export function functionToLabels(functions: string[]) {
     return functions.map((f) => functionToLabel(f));
@@ -23,16 +43,20 @@ export function functionToLabel(f: string) {
     return f;
 }
 
+// Produces HTML for SafeHtml: the config comes from remote model servers, so
+// every interpolated value is escaped here and sanitized again at render time.
 export function buildServerContent(config: any) {
     const contentLines: string[] = [];
     if (config?.content) {
         contentLines.push(config.content as string);
     }
-    if (config.functions) {
+    if (config?.functions) {
         for (const func in config.functions) {
-            if (config.functions[func].content) {
+            if (config.functions[func]?.content) {
                 contentLines.push(
-                    '<p class="font-bold">' + functionToLabel(func) + "</p>",
+                    '<p class="font-bold">' +
+                        escapeHtml(functionToLabel(func)) +
+                        "</p>",
                 );
                 contentLines.push(config.functions[func].content as string);
             }

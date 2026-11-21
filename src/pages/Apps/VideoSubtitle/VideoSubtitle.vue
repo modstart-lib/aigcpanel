@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -43,8 +44,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频添加字幕"
-            desc="为视频添加字幕，支持SRT格式字幕文件"
+            :title="t('app.videoSubtitleTitle')"
+            :desc="t('app.videoSubtitleDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -55,18 +56,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择文件',
-                    description: '选择需要添加字幕的视频文件和SRT格式字幕文件',
+                    label: t('app.videoSubtitleStepSelectFile'),
+                    description: t('app.videoSubtitleStepSelectFileDesc'),
                 },
                 {
                     key: 2,
-                    label: '解析内容',
-                    description: '分析视频信息和解析字幕文件内容',
+                    label: t('app.videoSubtitleStepParseContent'),
+                    description: t('app.videoSubtitleStepParseContentDesc'),
                 },
                 {
                     key: 3,
-                    label: '合成视频',
-                    description: '将字幕渲染到视频上',
+                    label: t('app.videoSubtitleStepCompositeVideo'),
+                    description: t('app.videoSubtitleStepCompositeVideoDesc'),
                 },
             ]"
         />

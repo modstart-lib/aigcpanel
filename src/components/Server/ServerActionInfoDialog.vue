@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { buildServerContent, functionToLabels } from "../../lib/aigcpanel";
+import SafeHtml from "../common/SafeHtml.vue";
 import { useServerStore } from "../../store/modules/server";
 import { EnumServerType, ServerRecord } from "../../types/Server";
 
@@ -53,6 +54,7 @@ defineExpose({
                     <div class="flex flex-wrap items-center">
                         <div class="mr-2 mb-1">{{ props.record.title }}</div>
                         <div
+                            v-if="props.record.type !== EnumServerType.CLOUD"
                             class="mr-2 text-sm bg-gray-100 px-2 leading-6 inline-block rounded-lg mb-1"
                         >
                             v{{ props.record.version }}
@@ -99,7 +101,7 @@ defineExpose({
                                 "
                             >
                                 <icon-cloud class="mr-1"></icon-cloud>
-                                {{ $t("model.cloudModel") }}
+                                {{ $t("model.remoteModel") }}
                             </div>
                         </div>
                         <div
@@ -119,6 +121,7 @@ defineExpose({
                     <div>
                         <a-tag
                             v-for="label in functionToLabels(record.functions)"
+                            :key="label"
                             class="mr-1 rounded-lg"
                         >
                             {{ label }}
@@ -146,7 +149,7 @@ defineExpose({
                         <div
                             class="w-full max-h-32 p-3 overflow-auto text-sm bg-gray-100 leading-6 rounded-lg"
                         >
-                            <div v-html="content"></div>
+                            <SafeHtml :html="content" />
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import {
     NodeFunctionCall,
     NodeRunController,
@@ -11,8 +12,8 @@ import AppIcon from "~icons/mdi/volume-high";
 
 export default <NodeFunctionCall>{
     name: "AudioNormal",
-    title: "声音归一化",
-    description: "对视频或音频进行声音归一化处理",
+    title: t("workflow.audioNormalTitle"),
+    description: t("workflow.audioNormalDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./AudioNormalNode.vue")),
     inputFields: [
@@ -47,7 +48,7 @@ export default <NodeFunctionCall>{
                     normalizationPercentage: normalizationPercentage,
                 };
                 if (!taskRunData.file) {
-                    throw "文件参数错误";
+                    throw t("workflow.errorFileParam");
                 }
                 return await AudioNormalRun(taskRunData);
             },
@@ -58,10 +59,10 @@ export default <NodeFunctionCall>{
     },
     async check(node) {
         if (!node.properties?.data?.normalizationPercentage) {
-            throw "请输入归一化程度参数";
+            throw t("workflow.errorNormalizationParam");
         }
         if (node.properties?.inputFields?.[0].value === "") {
-            throw "请输入文件参数";
+            throw t("workflow.errorFileRequired");
         }
     },
 };

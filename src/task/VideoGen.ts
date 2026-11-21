@@ -1,9 +1,29 @@
 import { DataService } from "../service/DataService";
 import { TaskService } from "../service/TaskService";
+import { t } from "../lang";
 import { useServerStore } from "../store/modules/server";
 import { TaskBiz } from "../store/modules/task";
 
 const serverStore = useServerStore();
+
+// Allowed audio extensions for videoGen, reject video containers like mp4
+const AUDIO_EXT_WHITELIST = ["wav", "mp3", "flac", "ogg", "aac", "m4a", "wma"];
+
+// Remote / URL values are uploaded by the server module and must not be
+// checked against the local filesystem.
+const isRemoteUrl = (path: string) => /^(https?|file):\/\//i.test(path);
+
+const getAudioExt = (path: string) => {
+    if (!path) return "";
+    let p = path;
+    // handle query string in URL (e.g. ?X-Amz-...=...)
+    const queryIndex = p.search(/[?#]/);
+    if (queryIndex >= 0) {
+        p = p.substring(0, queryIndex);
+    }
+    const match = p.match(/\.([A-Za-z0-9]+)$/);
+    return match ? match[1].toLowerCase() : "";
+};
 
 export const VideoGen: TaskBiz = {
     runFunc: async (bizId, bizParam) => {
@@ -15,7 +35,7 @@ export const VideoGen: TaskBiz = {
         const modelConfig: VideoGenModelConfigType = record.modelConfig;
         // console.log('VideoGen.runFunc.serverInfo', serverInfo)
         await TaskService.update(bizId, {
-            status: "wait",
+            status: "running",
         });
         let audioFile: string | null = null;
         if (modelConfig.soundType === "soundGenerate") {
@@ -28,6 +48,30 @@ export const VideoGen: TaskBiz = {
         }
         if (!audioFile) {
             throw new Error("AudioFileEmpty");
+        }
+        // Reject unsupported audio format (e.g. a video container uploaded as audio)
+        const audioExt = getAudioExt(audioFile);
+        if (audioExt && !AUDIO_EXT_WHITELIST.includes(audioExt)) {
+            throw new Error(
+                `audio format not supported: .${audioExt}, expected ${AUDIO_EXT_WHITELIST.join(
+                    "/",
+                )}`,
+            );
+        }
+        // Fail fast with an actionable message when an input file is gone
+        // (moved/deleted after submit, or a stale persisted path). Otherwise the
+        // task is dispatched to the model and only fails later with a cryptic
+        // "文件不存在" (which also looks like a stuck/queued task in the UI).
+        if (!isRemoteUrl(audioFile) && !(await $mapi.file.exists(audioFile))) {
+            throw `${t("error.audioFileNotExists")}: ${audioFile}`;
+        }
+        const videoFile = modelConfig.videoTemplateUrl;
+        if (
+            videoFile &&
+            !isRemoteUrl(videoFile) &&
+            !(await $mapi.file.exists(videoFile))
+        ) {
+            throw `${t("error.videoFileNotSelected")}: ${videoFile}`;
         }
         const res = await serverStore.call(serverInfo, "videoGen", {
             id: serverStore.generateTaskId("VideoGen", bizId),

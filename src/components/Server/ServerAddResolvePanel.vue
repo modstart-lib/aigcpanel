@@ -75,6 +75,7 @@ const isSuccess = () => {
 defineExpose({
     reset,
     isSuccess,
+    doRunManual,
 });
 </script>
 

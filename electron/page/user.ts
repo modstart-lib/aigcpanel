@@ -5,6 +5,8 @@ import { Page } from "./index";
 
 export const PageUser = {
     NAME: "user",
+    // Keep the dialog centered relative to its parent (main) window
+    centerOnParent: true,
     open: async (option: { parent?: BrowserWindow }) => {
         option = Object.assign(
             {
@@ -34,6 +36,8 @@ export const PageUser = {
             parent: option.parent,
             alwaysOnTop,
         });
+        // Center the dialog relative to the parent window instead of the screen
+        Page.centerInParent(win, option.parent);
         return Page.openWindow(PageUser.NAME, win, "page/user.html");
     },
 };

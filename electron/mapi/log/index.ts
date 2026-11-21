@@ -31,11 +31,9 @@ const jsonStringifyLogData = (data: any) => {
     });
 };
 
+// 统一日志目录：系统日志与应用日志统一写入 <dataRoot>/logs
+// （dataRoot = <userData>/data，即 .../aigcpanel/data/logs）
 const logsDir = () => {
-    return path.join(AppEnv.userData, "logs");
-};
-
-const appLogsDir = () => {
     return path.join(AppEnv.dataRoot, "logs");
 };
 
@@ -48,47 +46,39 @@ const file = () => {
 };
 
 const appFile = (name: string) => {
-    return path.join(appLogsDir(), name + "_" + stringDatetime() + ".log");
+    return path.join(logsDir(), name + "_" + stringDatetime() + ".log");
 };
 
 const cleanOldLogs = (keepDays: number) => {
-    const logDirs = [
-        // 系统日志
-        logsDir(),
-        // 应用日志
-        appLogsDir(),
-    ];
-    for (const logDir of logDirs) {
-        if (!fs.existsSync(logDir)) {
-            return;
+    if (!fs.existsSync(logsDir())) {
+        return;
+    }
+    const files = fs.readdirSync(logsDir());
+    const now = new Date();
+    // console.log('cleanOldLogs', logsDir(), files)
+    for (let file of files) {
+        const filePath = path.join(logsDir(), file);
+        let date = null;
+        for (let s of file.split(/[_\\.]/)) {
+            // 匹配 YYYYMMDD
+            if (s.match(/^\d{8}$/)) {
+                date = s;
+                break;
+            }
         }
-        const files = fs.readdirSync(logDir);
-        const now = new Date();
-        // console.log('cleanOldLogs', logDir, files)
-        for (let file of files) {
-            const filePath = path.join(logDir, file);
-            let date = null;
-            for (let s of file.split(/[_\\.]/)) {
-                // 匹配 YYYYMMDD
-                if (s.match(/^\d{8}$/)) {
-                    date = s;
-                    break;
-                }
-            }
-            if (!date) {
-                continue;
-            }
-            const fileDate = new Date(
-                parseInt(date.substring(0, 4)),
-                parseInt(date.substring(4, 6)) - 1,
-                parseInt(date.substring(6, 8)),
-            );
-            const diff = Math.abs(now.getTime() - fileDate.getTime());
-            const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
-            // console.log('fileDate', file, fileDate, diffDays)
-            if (diffDays > keepDays) {
-                fs.unlinkSync(filePath);
-            }
+        if (!date) {
+            continue;
+        }
+        const fileDate = new Date(
+            parseInt(date.substring(0, 4)),
+            parseInt(date.substring(4, 6)) - 1,
+            parseInt(date.substring(6, 8)),
+        );
+        const diff = Math.abs(now.getTime() - fileDate.getTime());
+        const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+        // console.log('fileDate', file, fileDate, diffDays)
+        if (diffDays > keepDays) {
+            fs.unlinkSync(filePath);
         }
     }
 };
@@ -142,7 +132,7 @@ const appLog = (
         if (appFileStreams[name]) {
             appFileStreams[name].end();
         }
-        const logDir = appLogsDir();
+        const logDir = logsDir();
         if (!fs.existsSync(logDir)) {
             fs.mkdirSync(logDir);
         }
@@ -238,9 +228,6 @@ const collectRenderOrMain = async (option?: {
     let logFiles = [];
     logFiles = logFiles.concat(
         await FileIndex.list(logsDir(), { isDataPath: false }),
-    );
-    logFiles = logFiles.concat(
-        await FileIndex.list(appLogsDir(), { isDataPath: false }),
     );
     // console.log('logFiles', logFiles)
     logFiles = logFiles.filter((logFile) => {

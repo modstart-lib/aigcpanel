@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -53,7 +54,7 @@ const props = defineProps<{
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-video-camera />
-                    解析文件
+                    {{ $t("app.parseFile") }}
                 </div>
             </div>
             <div class="flex-grow">
@@ -62,7 +63,7 @@ const props = defineProps<{
                         v-for="(video, index) in record.jobResult?.Prepare
                             ?.videos"
                         :key="index"
-                        class="flex gap-2 mb-2"
+                        class="flex flex-wrap gap-2 mb-2"
                     >
                         <VideoInfo :data="video" />
                     </div>
@@ -73,14 +74,14 @@ const props = defineProps<{
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-settings />
-                    合并配置
+                    {{ $t("app.mergeConfig") }}
                 </div>
             </div>
             <div class="flex-grow">
                 <TaskJobResultStepView :record="record" step="Config">
                     <div class="flex items-center gap-1 mb-2">
                         <a-tag class="rounded-lg"
-                            >视频数量
+                            >{{ $t("app.videoCount") }}
                             {{ record.modelConfig?.videos?.length || 0 }}</a-tag
                         >
                     </div>
@@ -92,7 +93,7 @@ const props = defineProps<{
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-video-camera />
-                    视频渲染
+                    {{ $t("app.videoRender") }}
                 </div>
             </div>
             <TaskJobResultStepView :record="record" step="Render">
@@ -114,6 +115,7 @@ const props = defineProps<{
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

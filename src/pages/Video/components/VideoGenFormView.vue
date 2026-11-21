@@ -11,7 +11,7 @@ const props = defineProps<{
         <div class="font-bold mb-2">
             {{ $t("voice.recognitionConfig") }}
         </div>
-        <div>
+        <div class="flex flex-wrap gap-1">
             <VideoGenFormViewBody :data="data" />
         </div>
     </div>

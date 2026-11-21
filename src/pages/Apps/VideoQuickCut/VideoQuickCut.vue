@@ -51,8 +51,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="快速剪辑"
-            desc="通过语音识别进行视频快速剪辑，支持内容片段的自定义包括或去除"
+            :title="t('app.videoQuickCutTitle')"
+            :desc="t('app.videoQuickCutDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -63,23 +63,25 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频',
-                    description: '选择需要进行快速剪辑的视频文件',
+                    label: t('app.videoQuickCutStepSelectVideo'),
+                    description: t('app.videoQuickCutStepSelectVideoDesc'),
                 },
                 {
                     key: 2,
-                    label: '语音识别',
-                    description: '对视频进行语音识别，生成字幕内容',
+                    label: t('app.videoQuickCutStepSpeechRecognition'),
+                    description: t(
+                        'app.videoQuickCutStepSpeechRecognitionDesc',
+                    ),
                 },
                 {
                     key: 3,
-                    label: '确认剪辑',
-                    description: '根据识别结果确认需要包含或去除的片段',
+                    label: t('app.videoQuickCutStepConfirmEdit'),
+                    description: t('app.videoQuickCutStepConfirmEditDesc'),
                 },
                 {
                     key: 4,
-                    label: '生成视频',
-                    description: '根据剪辑配置合并生成新的视频文件',
+                    label: t('app.videoQuickCutStepGenerateVideo'),
+                    description: t('app.videoQuickCutStepGenerateVideoDesc'),
                 },
             ]"
         />

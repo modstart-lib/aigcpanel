@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { t } from "../../../../lang";
 import { Dialog } from "../../../../lib/dialog";
 
 type FfmpegForm = {
@@ -12,7 +13,8 @@ const formData = ref({
 
 const commandsPresets = [
     {
-        title: "提取音频",
+        key: "extractAudio",
+        titleKey: "app.presetExtractAudio",
         commands: [
             "-i",
             "{input1:mp4}",
@@ -24,7 +26,8 @@ const commandsPresets = [
         ],
     },
     {
-        title: "裁剪视频",
+        key: "trimVideo",
+        titleKey: "app.presetTrimVideo",
         commands: [
             "-i",
             "{input1:mp4}",
@@ -41,7 +44,7 @@ const commandsPresets = [
 
 const getValue = async (): Promise<FfmpegForm | undefined> => {
     if (formData.value.commands.length === 0) {
-        Dialog.tipError("请至少添加一条命令");
+        Dialog.tipError(t("error.atLeastOneCommand"));
         return;
     }
     return {
@@ -64,7 +67,7 @@ defineExpose({
 <template>
     <div class="mb-4 flex items-start">
         <div class="pt-1 w-5 flex-shrink-0">
-            <a-tooltip :content="'命令模板'" mini>
+            <a-tooltip :content="t('app.commandTemplate')" mini>
                 <icon-command />
             </a-tooltip>
         </div>
@@ -110,25 +113,25 @@ defineExpose({
                 <a-select
                     @change="
                         formData.commands =
-                            commandsPresets.find((p) => p.title === $event)
+                            commandsPresets.find((p) => p.key === $event)
                                 ?.commands || []
                     "
                     class="w-auto"
-                    placeholder="选择命令模板"
+                    :placeholder="t('app.selectCommandTemplate')"
                 >
                     <a-option
                         v-for="preset in commandsPresets"
-                        :key="preset.title"
-                        :value="preset.title"
+                        :key="preset.key"
+                        :value="preset.key"
                     >
-                        {{ preset.title }}
+                        {{ t(preset.titleKey) }}
                     </a-option>
                 </a-select>
             </div>
             <div class="mt-2 text-gray-400 text-xs">
                 <code>{input1:xxx}</code>
                 <code>{output1:xxx}</code>
-                分别代表第1个输入文件和第1个输出文件，xxx为文件扩展名，如mp4、mp3等
+                {{ t("app.commandTemplateHint") }}
             </div>
         </div>
     </div>

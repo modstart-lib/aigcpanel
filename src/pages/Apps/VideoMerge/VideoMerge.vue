@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -43,8 +44,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频合并"
-            desc="将多个视频文件合并为一个视频，支持拼接和叠加"
+            :title="t('app.videoMergeTitle')"
+            :desc="t('app.videoMergeDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -55,18 +56,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择文件',
-                    description: '选择需要合并的视频文件',
+                    label: t('app.stepSelectFile'),
+                    description: t('app.stepSelectFileDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置合并方式',
-                    description: '选择视频合并的方式',
+                    label: t('app.stepSetMergeMode'),
+                    description: t('app.stepSetMergeModeDesc'),
                 },
                 {
                     key: 3,
-                    label: '合并处理',
-                    description: '使用FFmpeg将视频合并',
+                    label: t('app.stepMergeProcess'),
+                    description: t('app.stepMergeProcessDesc'),
                 },
             ]"
         />
@@ -82,7 +83,7 @@ const doRefresh = async () => {
                     :indeterminate="isIndeterminate"
                     @change="onCheckAll"
                 >
-                    全选
+                    {{ $t("common.selectAll") }}
                 </a-checkbox>
                 <TaskBatchDeleteAction
                     :records="checkRecords"

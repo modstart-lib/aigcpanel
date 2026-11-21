@@ -11,7 +11,7 @@ export const SoundAsr: TaskBiz = {
             bizParam,
         );
         await TaskService.update(bizId, {
-            status: "wait",
+            status: "running",
         });
         const res = await serverStore.call(serverInfo, "asr", {
             id: serverStore.generateTaskId("SoundAsr", bizId),

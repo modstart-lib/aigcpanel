@@ -62,7 +62,7 @@ const doSubmit = async () => {
         v-model:visible="visible"
         title-align="start"
         :title="$t('voice.replaceConfig')"
-        width="600px"
+        width="min(600px, 95vw)"
         :destroyOnClose="true"
     >
         <template #footer>
@@ -72,11 +72,7 @@ const doSubmit = async () => {
                 }}</a-button>
             </div>
         </template>
-        <div
-            v-if="visible"
-            class="space-y-4 overflow-y-auto"
-            style="max-height: calc(100vh - 10rem)"
-        >
+        <div v-if="visible" class="space-y-4">
             <SoundAsrForm ref="soundAsrForm" />
             <SoundGenerateForm ref="soundGenerateForm" />
         </div>

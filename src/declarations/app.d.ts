@@ -20,6 +20,7 @@ declare type SoundAsrParamType = {
 };
 
 declare type SoundGenerateParamType = {
+    voiceId?: number;
     serverName: string;
     serverTitle: string;
     serverVersion: string;
@@ -57,6 +58,7 @@ declare type TextToImageParamType = {
     serverVersion: string;
     type: "TextToImage";
     serverKey: string;
+    comfyuiName: string;
     param: {
         [key: string]: any;
     };
@@ -68,6 +70,31 @@ declare type ImageToImageParamType = {
     serverVersion: string;
     type: "ImageToImage";
     serverKey: string;
+    comfyuiName: string;
+    param: {
+        [key: string]: any;
+    };
+};
+
+declare type TextToVideoParamType = {
+    serverName: string;
+    serverTitle: string;
+    serverVersion: string;
+    type: "TextToVideo";
+    serverKey: string;
+    comfyuiName: string;
+    param: {
+        [key: string]: any;
+    };
+};
+
+declare type ImageToVideoParamType = {
+    serverName: string;
+    serverTitle: string;
+    serverVersion: string;
+    type: "ImageToVideo";
+    serverKey: string;
+    comfyuiName: string;
     param: {
         [key: string]: any;
     };

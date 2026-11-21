@@ -4,19 +4,10 @@ import type { TextTrackItem } from "./item/TextTrackItem";
 import type { VideoTrackItem } from "./item/VideoTrackItem";
 
 export type TrackItemType =
-    | "video"
-    | "audio"
-    | "text"
-    | "image"
-    | "effect"
-    | "transition"
-    | "filter";
+    "video" | "audio" | "text" | "image" | "effect" | "transition" | "filter";
 
 export type TrackItem =
-    | AudioTrackItem
-    | ImageTrackItem
-    | TextTrackItem
-    | VideoTrackItem;
+    AudioTrackItem | ImageTrackItem | TextTrackItem | VideoTrackItem;
 
 export type VisibleTrackItem = ImageTrackItem | TextTrackItem | VideoTrackItem;
 
@@ -115,12 +106,7 @@ export interface BaseMediaTrackItem {
 }
 
 export type TrackActionType =
-    | "Undo"
-    | "Redo"
-    | "Split"
-    | "Delete"
-    | "RectSelector"
-    | "TimeRangeSelector";
+    "Undo" | "Redo" | "Split" | "Delete" | "RectSelector" | "TimeRangeSelector";
 
 export type TrackActionItem = {
     type: TrackActionType;

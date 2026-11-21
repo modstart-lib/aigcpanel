@@ -32,11 +32,11 @@ const doSubmit = async () => {
         return;
     }
     if (!formData.value.video) {
-        Dialog.tipError("请选择视频文件");
+        Dialog.tipError(t("error.selectVideoFile"));
         return;
     }
     if (!formData.value.image) {
-        Dialog.tipError("请选择背景图片");
+        Dialog.tipError(t("error.selectBackgroundImage"));
         return;
     }
 
@@ -70,7 +70,7 @@ const doSubmit = async () => {
     <div class="rounded-xl shadow border p-4">
         <div class="mb-4 flex items-start">
             <div class="pt-1 w-5">
-                <a-tooltip :content="'视频文件'" mini>
+                <a-tooltip :content="t('app.videoFile')" mini>
                     <icon-video-camera />
                 </a-tooltip>
             </div>
@@ -80,7 +80,7 @@ const doSubmit = async () => {
         </div>
         <div class="mb-4 flex items-start">
             <div class="pt-1 w-5">
-                <a-tooltip :content="'背景图片'" mini>
+                <a-tooltip :content="t('app.backgroundImage')" mini>
                     <icon-image />
                 </a-tooltip>
             </div>
@@ -98,7 +98,7 @@ const doSubmit = async () => {
         <div class="flex">
             <a-button class="mr-2" type="primary" @click="doSubmit">
                 <icon-send />
-                {{ "提交任务" }}
+                {{ $t("common.submitTask") }}
             </a-button>
         </div>
     </div>

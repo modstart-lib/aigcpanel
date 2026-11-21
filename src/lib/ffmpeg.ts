@@ -1,5 +1,6 @@
 import { ffprobeGetMediaDuration, ffprobeVideoInfo } from "./ffprobe";
 import { t } from "../lang";
+import { assertLocalFileExists } from "./file";
 
 let hardwareEncodersCache: { [key: string]: boolean } | null = null;
 
@@ -135,6 +136,11 @@ export const ffmpegOptimized = async (
 
     let totalDuration = 0;
     const inputFile = extractInputFile(optimizedArgs);
+    // Report a moved/deleted input file directly, otherwise ffmpeg just exits
+    // with a generic failure that does not tell the user what is missing.
+    if (inputFile) {
+        await assertLocalFileExists(inputFile);
+    }
     if (inputFile && option?.onProgress) {
         try {
             totalDuration = await ffprobeGetMediaDuration(inputFile, false);
@@ -216,6 +222,7 @@ export const ffmpegSetMediaRatio = async (
     if (!output) {
         output = await $mapi.file.temp(ext);
     }
+    await assertLocalFileExists(input);
     const buildAtempoFilter = (ratio: number): string => {
         // atempo 只支持 0.5~2.0，超过需要多次串联
         const filters: string[] = [];
@@ -310,6 +317,7 @@ const ffmpegConvertAudio = async (
     if (!output) {
         output = await $mapi.file.temp(option.format);
     }
+    await assertLocalFileExists(input);
     return new Promise<string>(async (resolve, reject) => {
         const args: string[] = [
             "-i",
@@ -376,7 +384,9 @@ export const ffmpegMergeAudio = async (
             !currentRecord.audio ||
             !(await $mapi.file.exists(currentRecord.audio))
         ) {
-            throw `${t("error.audioFileNotExists")}: ${currentRecord.audio}`;
+            throw t("error.inputFileNotExists", {
+                path: currentRecord.audio || "-",
+            });
         }
         // 计算当前片段的时长限制
         const startMs = currentRecord.start;
@@ -458,6 +468,10 @@ export const ffmpegMergeAudio = async (
 };
 
 export const ffmpegCombineVideoAudio = async (video: string, audio: string) => {
+    // Report a moved/deleted source file directly instead of letting ffmpeg
+    // fail and showing the generic "video and audio synthesis failed".
+    await assertLocalFileExists(video);
+    await assertLocalFileExists(audio);
     const output = await $mapi.file.temp("mp4");
     await $mapi.app.spawnBinary("ffmpeg", [
         "-i",
@@ -487,6 +501,7 @@ export const ffmpegCombineVideoAudio = async (video: string, audio: string) => {
 };
 
 export const ffmpegVideoToAudio = async (video: string) => {
+    await assertLocalFileExists(video);
     const file = await $mapi.file.temp("mp3");
     await $mapi.app.spawnBinary("ffmpeg", [
         "-y",
@@ -554,6 +569,7 @@ export const ffmpegVideoNormal = async (
         durationMax?: number;
     },
 ): Promise<string> => {
+    await assertLocalFileExists(input);
     option = Object.assign({
         widthMax: 1920,
         heightMax: 1920,
@@ -611,7 +627,70 @@ export const ffmpegVideoNormal = async (
     return output;
 };
 
+// Turn a still image into a fixed-duration video (default 5s) so that an
+// avatar can be created from a photo and reused by the existing video pipeline.
+export const ffmpegImageToVideo = async (
+    input: string,
+    option?: {
+        duration?: number;
+        fps?: number;
+        sizeMax?: number;
+    },
+): Promise<string> => {
+    option = Object.assign(
+        {
+            duration: 5,
+            fps: 25,
+            sizeMax: 1920,
+        },
+        option || {},
+    );
+    await assertLocalFileExists(input);
+    const output = await $mapi.file.temp("mp4");
+    // Fit the image into a sizeMax box keeping the aspect ratio, then force
+    // both dimensions to even numbers (required by H.264 yuv420p).
+    const scaleFilter = [
+        `scale='min(${option.sizeMax},iw)':'min(${option.sizeMax},ih)':force_original_aspect_ratio=decrease`,
+        `scale=trunc(iw/2)*2:trunc(ih/2)*2`,
+        `format=yuv420p`,
+    ].join(",");
+    const args = [
+        "-hide_banner",
+        "-y",
+        "-loop",
+        "1",
+        "-framerate",
+        option.fps!.toString(),
+        "-i",
+        input,
+        "-t",
+        option.duration!.toString(),
+        "-vf",
+        scaleFilter,
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "18",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        "-an",
+        "-r",
+        option.fps!.toString(),
+        output,
+    ];
+    await $mapi.app.spawnBinary("ffmpeg", args);
+    if (!(await $mapi.file.exists(output))) {
+        throw t("error.imageToVideoFailed");
+    }
+    return output;
+};
+
 export const ffmpegVideoPreview = async (input: string): Promise<string> => {
+    await assertLocalFileExists(input);
     const output = await $mapi.file.temp("mp4");
     const args = [
         "-hide_banner",
@@ -642,6 +721,7 @@ export async function ffmpegCutVideo(
     startMs: number,
     endMs: number,
 ): Promise<string> {
+    await assertLocalFileExists(input);
     const output = await $mapi.file.temp("mp4");
     const startSeconds = startMs / 1000;
     const durationSeconds = (endMs - startMs) / 1000;
@@ -677,7 +757,11 @@ export async function ffmpegConcatVideos(videos: string[]): Promise<string> {
         throw new Error("No videos to concat");
     }
     if (videos.length === 1) {
+        await assertLocalFileExists(videos[0]);
         return videos[0];
+    }
+    for (const video of videos) {
+        await assertLocalFileExists(video);
     }
     const output = await $mapi.file.temp("mp4");
     const txtFile = await $mapi.file.temp("txt");

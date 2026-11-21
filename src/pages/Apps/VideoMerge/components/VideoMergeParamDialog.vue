@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
+import { t } from "../../../../lang";
 import VideoMergeParamForm from "./VideoMergeParamForm.vue";
 
 const paramForm = ref<InstanceType<typeof VideoMergeParamForm>>();
@@ -43,20 +44,18 @@ defineExpose({
     <a-modal
         v-model:visible="visible"
         title-align="start"
-        :title="'视频合并设置'"
-        width="600px"
+        :title="t('app.videoMergeTitle')"
+        width="min(600px, 95vw)"
         :destroyOnClose="true"
     >
         <template #footer>
             <div class="flex justify-end space-x-2">
-                <a-button type="primary" @click="doSubmit">保存</a-button>
+                <a-button type="primary" @click="doSubmit">{{
+                    $t("common.save")
+                }}</a-button>
             </div>
         </template>
-        <div
-            v-if="visible"
-            class="space-y-4 overflow-y-auto"
-            style="max-height: calc(100vh - 10rem)"
-        >
+        <div v-if="visible" class="space-y-4">
             <VideoMergeParamForm ref="paramForm" />
         </div>
     </a-modal>

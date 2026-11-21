@@ -12,8 +12,8 @@ import { VideoSubtitleRun } from "../task";
 
 export default <NodeFunctionCall>{
     name: "VideoSubtitle",
-    title: "视频添加字幕",
-    description: "为视频添加字幕",
+    title: t("workflow.videoSubtitleTitle"),
+    description: t("workflow.videoSubtitleDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoSubtitleNode.vue")),
     inputFields: [

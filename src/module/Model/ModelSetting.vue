@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useModelStore } from "./store/model";
+import { ModelType } from "./types";
+import { testActionSet, testActionUnset } from "../../utils/test";
 import ProviderAddDialog from "./components/ProviderAddDialog.vue";
 import ProviderEditDialog from "./components/ProviderEditDialog.vue";
 import { getProviderUrl } from "./providers";
@@ -66,6 +68,96 @@ watch(
     },
     { immediate: true },
 );
+
+const testActionNames = [
+    "ModelSetting.providers",
+    "ModelSetting.selectProvider",
+    "ModelSetting.models",
+    "ModelSetting.enabledModels",
+    "ModelSetting.changeProvider",
+    "ModelSetting.chat",
+    "ModelSetting.modelAdd.show",
+    "ModelSetting.modelAdd.fill",
+    "ModelSetting.modelAdd.submit",
+    "ModelSetting.modelEdit.show",
+    "ModelSetting.modelEdit.fill",
+    "ModelSetting.modelEdit.submit",
+    "ModelSetting.modelDelete",
+];
+
+onMounted(() => {
+    testActionSet("ModelSetting.providers", () => {
+        return modelStore.providers.map((p) => ({
+            id: p.id,
+            title: p.title,
+            enabled: p.data.enabled,
+        }));
+    });
+    testActionSet("ModelSetting.selectProvider", (params: any) => {
+        doSelectProvider(params?.providerId || "");
+    });
+    testActionSet("ModelSetting.models", () => {
+        return (provider.value?.data.models || []).map((m) => ({
+            id: m.id,
+            name: m.name,
+            group: m.group,
+            type: m.type,
+            caps: m.caps ? Object.assign({}, m.caps) : {},
+            enabled: m.enabled,
+        }));
+    });
+    testActionSet("ModelSetting.enabledModels", async (params: any) => {
+        return await modelStore.enabledModels(params?.type as ModelType);
+    });
+    testActionSet("ModelSetting.changeProvider", async (params: any) => {
+        await modelStore.change(
+            currentProviderId.value,
+            params?.key,
+            params?.value,
+        );
+    });
+    testActionSet("ModelSetting.chat", async (params: any) => {
+        return await modelStore.chat(
+            currentProviderId.value,
+            params?.modelId || "",
+            params?.prompt || "",
+            { systemPrompt: null, extra: params?.extra },
+        );
+    });
+    testActionSet("ModelSetting.modelAdd.show", () => {
+        modelAdd.value?.show();
+    });
+    testActionSet("ModelSetting.modelAdd.fill", (params: any) => {
+        modelAdd.value?.fill(params || {});
+    });
+    testActionSet("ModelSetting.modelAdd.submit", () => {
+        modelAdd.value?.doSubmit();
+    });
+    testActionSet("ModelSetting.modelEdit.show", (params: any) => {
+        const m = provider.value?.data.models.find(
+            (m) => m.id === params?.modelId,
+        );
+        if (m) {
+            modelEdit.value?.show(m);
+        }
+    });
+    testActionSet("ModelSetting.modelEdit.fill", (params: any) => {
+        modelEdit.value?.fill(params || {});
+    });
+    testActionSet("ModelSetting.modelEdit.submit", () => {
+        modelEdit.value?.doSubmit();
+    });
+    testActionSet("ModelSetting.modelDelete", async (params: any) => {
+        await modelStore.modelDelete(
+            currentProviderId.value,
+            params?.modelId || "",
+        );
+    });
+});
+
+onUnmounted(() => {
+    testActionUnset(testActionNames);
+});
 </script>
 
 <template>
@@ -212,6 +304,7 @@ watch(
                     <div>
                         <a-input
                             :model-value="provider.data.apiHost"
+                            :placeholder="provider.apiUrl"
                             @input="
                                 modelStore.change(
                                     provider.id,
@@ -285,6 +378,11 @@ watch(
                                             class="flex-grow flex items-center gap-1"
                                         >
                                             {{ m.name }}
+                                            <icon-file
+                                                v-if="m.type === 'text'"
+                                                :title="$t('model.typeText')"
+                                                class="text-blue-500"
+                                            />
                                             <icon-eye
                                                 v-if="m.caps?.vision"
                                                 :title="$t('model.capVision')"

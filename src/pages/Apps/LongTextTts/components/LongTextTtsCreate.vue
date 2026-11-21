@@ -60,15 +60,22 @@ const doSubmit = async () => {
 
 <template>
     <div class="rounded-xl shadow border p-4">
-        <div class="mb-4">
-            <div class="mb-2 font-bold">{{ $t("app.longTextLabel") }}</div>
-            <a-textarea
-                v-model="formData.text"
-                :placeholder="$t('app.inputLongTextPlaceholder')"
-                :auto-size="{ minRows: 6, maxRows: 20 }"
-            />
-        </div>
         <SoundGenerateForm ref="soundGenerateForm" />
+        <div class="mb-4 flex items-start w-full">
+            <div class="pt-1 w-5 flex-shrink-0">
+                <a-tooltip :content="$t('app.longTextLabel')" mini>
+                    <i-mdi-text-long class="w-4 h-4" />
+                </a-tooltip>
+            </div>
+            <div class="flex-grow min-w-0">
+                <div class="mb-2 font-bold">{{ $t("app.longTextLabel") }}</div>
+                <a-textarea
+                    v-model="formData.text"
+                    :placeholder="$t('app.inputLongTextPlaceholder')"
+                    :auto-size="{ minRows: 6, maxRows: 20 }"
+                />
+            </div>
+        </div>
         <div class="flex">
             <a-button class="mr-2" type="primary" @click="doSubmit">
                 <i-mdi-send class="mr-2" />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -46,8 +47,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频尺寸转换"
-            desc="调整视频尺寸，支持横屏、竖屏预设和多种填充方式"
+            :title="t('app.videoSizeConvertTitle')"
+            :desc="t('app.videoSizeConvertDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -58,18 +59,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频',
-                    description: '选择需要进行尺寸转换的视频文件',
+                    label: t('app.videoSizeConvertStepSelectVideo'),
+                    description: t('app.videoSizeConvertStepSelectVideoDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置尺寸',
-                    description: '选择目标尺寸和填充方式',
+                    label: t('app.videoSizeConvertStepSetSize'),
+                    description: t('app.videoSizeConvertStepSetSizeDesc'),
                 },
                 {
                     key: 3,
-                    label: '生成视频',
-                    description: '使用FFmpeg处理视频，生成指定尺寸',
+                    label: t('app.videoSizeConvertStepGenerateVideo'),
+                    description: t('app.videoSizeConvertStepGenerateVideoDesc'),
                 },
             ]"
         />

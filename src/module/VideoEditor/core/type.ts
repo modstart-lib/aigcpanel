@@ -1,10 +1,7 @@
 import { BaseTrackItemOption, TrackItem, TrackItemType } from "./track/type";
 
 export type VideoEditorMode =
-    | ""
-    | "editor"
-    | "rectsSelector"
-    | "timeRangesSelector";
+    "" | "editor" | "rectsSelector" | "timeRangesSelector";
 
 export type VideoEditorOption = {
     // in seconds

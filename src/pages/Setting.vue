@@ -4,6 +4,7 @@ import DataConfigDialogButton from "../components/common/DataConfigDialogButton.
 import SettingAbout from "../components/Setting/SettingAbout.vue";
 import SettingBasic from "../components/Setting/SettingBasic.vue";
 import SettingCli from "../components/Setting/SettingCli.vue";
+import SettingApi from "../components/Setting/SettingApi.vue";
 import SettingEnv from "../components/Setting/SettingEnv.vue";
 import { t } from "../lang";
 import { TabContentScroller } from "../lib/ui";
@@ -15,7 +16,7 @@ import {
     SoundGenerateTextPrompt,
 } from "./Video/components/config/prompt";
 import { SoundGenerateReplaceContent } from "./Video/components/config/replaceContent";
-import { testActionSet, testActionUnset } from "../utils/test";
+import { testActionSet, testActionUnset, testRegistry } from "../utils/test";
 
 let tabContentScroller: TabContentScroller | null = null;
 const contentContainer = ref<HTMLElement | null>(null);
@@ -25,31 +26,34 @@ onMounted(() => {
         tabContainer.value as HTMLElement,
         contentContainer.value as HTMLElement,
         {
-            activeClass: "menu-active",
+            activeClass: "menu-item-active",
         },
     );
     testActionSet("page.ready", () => {});
+    // 截图钩子：对本地路径等隐私信息脱敏（截图脚本按截图名 setting.prepare 调用）
+    testActionSet("setting.prepare", async () => {
+        const demoHome = "/Users/demo";
+        const actions = [
+            "Setting.setHubRootDemo",
+            "Setting.setCliPathDemo",
+            "Setting.setDataRootDemo",
+        ];
+        for (const action of actions) {
+            try {
+                await testRegistry.callAction(action, { home: demoHome });
+            } catch {
+                // 子组件未挂载时忽略
+            }
+        }
+    });
 });
 onBeforeUnmount(() => {
     tabContentScroller?.destroy();
 });
 onUnmounted(() => {
-    testActionUnset("page.ready");
+    testActionUnset(["page.ready", "setting.prepare"]);
 });
 </script>
-
-<style lang="less" scoped>
-.menu-active {
-    --tw-bg-opacity: 1;
-    background-color: rgb(243 244 246 / var(--tw-bg-opacity));
-}
-
-[data-theme="dark"] {
-    .menu-active {
-        background-color: var(--color-bg-page-nav-active);
-    }
-}
-</style>
 
 <template>
     <div class="flex select-none bg-white">
@@ -59,29 +63,35 @@ onUnmounted(() => {
         >
             <div
                 data-section="basic"
-                class="p-2 rounded-lg mb-4 cursor-pointer menu-active"
+                class="p-2 rounded-lg mb-4 cursor-pointer menu-item-active"
             >
-                <div class="text-base">
+                <div class="text-base truncate">
                     <icon-settings />
                     {{ t("setting.basic") }}
                 </div>
             </div>
             <div data-section="data" class="p-2 rounded-lg mb-4 cursor-pointer">
-                <div class="text-base">
+                <div class="text-base truncate">
                     <icon-tool />
                     {{ t("setting.dataConfig") }}
                 </div>
             </div>
             <div data-section="env" class="p-2 rounded-lg mb-4 cursor-pointer">
-                <div class="text-base">
+                <div class="text-base truncate">
                     <icon-code />
                     {{ t("setting.env") }}
                 </div>
             </div>
             <div data-section="cli" class="p-2 rounded-lg mb-4 cursor-pointer">
-                <div class="text-base">
+                <div class="text-base truncate">
                     <icon-computer />
                     {{ t("setting.cli") }}
+                </div>
+            </div>
+            <div data-section="api" class="p-2 rounded-lg mb-4 cursor-pointer">
+                <div class="text-base truncate">
+                    <icon-cloud />
+                    {{ t("setting.api") }}
                 </div>
             </div>
 
@@ -89,7 +99,7 @@ onUnmounted(() => {
                 data-section="about"
                 class="p-2 rounded-lg mb-4 cursor-pointer"
             >
-                <div class="text-base">
+                <div class="text-base truncate">
                     <icon-user />
                     {{ t("about.software") }}
                 </div>
@@ -115,7 +125,7 @@ onUnmounted(() => {
                         {{ t("setting.dataConfig") }}
                     </div>
                     <div>
-                        <div class="flex gap-1">
+                        <div class="flex flex-wrap gap-1">
                             
                             <ModelPromptDataConfigButton
                                 :title="t('sound.asrOptimizePrompt')"
@@ -168,6 +178,17 @@ onUnmounted(() => {
                     </div>
                     <div>
                         <SettingCli />
+                    </div>
+                </div>
+                <div
+                    class="border-b border-solid border-gray-200 my-6 dark:border-gray-700"
+                ></div>
+                <div data-section="api" class="scroll-mt-4">
+                    <div class="text-base font-bold mb-4">
+                        {{ t("setting.api") }}
+                    </div>
+                    <div>
+                        <SettingApi />
                     </div>
                 </div>
                 <div

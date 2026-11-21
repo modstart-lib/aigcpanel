@@ -11,20 +11,36 @@ const props = defineProps<{
     record: TaskRecord;
 }>();
 
+const emit = defineEmits({
+    update: () => true,
+});
+
 const doRetry = async () => {
     const record = props.record;
     Dialog.loadingOn(t("status.retrying"));
     try {
         await sleep(500);
-        await TaskService.update(
-            record.id as any,
-            {
+        // 多步骤任务：jobResult 中存在 step 状态机，保留已成功步骤，
+        // 仅置 queue 后重新调度，从失败步骤继续执行
+        const isMultiStep = !!record.jobResult?.step;
+        if (isMultiStep) {
+            await TaskService.update(record.id as any, {
                 status: "queue",
-                jobResult: {},
-                result: {},
-            },
-            { mergeResult: false },
-        );
+                statusMsg: "",
+            });
+        } else {
+            // 非多步骤任务：清空 jobResult / result，整体重新运行
+            await TaskService.update(
+                record.id as any,
+                {
+                    status: "queue",
+                    statusMsg: "",
+                    jobResult: {},
+                    result: {},
+                },
+                { mergeResult: false },
+            );
+        }
         await taskStore.dispatch(record.biz, record.id as any);
         Dialog.loadingOff();
         Dialog.tipSuccess(t("common.retrySuccess"));
@@ -32,6 +48,7 @@ const doRetry = async () => {
         Dialog.loadingOff();
         Dialog.tipError(t("common.retryFailed"));
     }
+    emit("update");
 };
 </script>
 

@@ -2,12 +2,14 @@
 import { useModelStore } from "./store/model";
 import { computed, ref } from "vue";
 import { getModelLogo } from "./models";
+import { ModelType, modelTypeNormalize } from "./types";
 
 type ModelRecord = {
     providerId: string;
     providerTitle: string;
     modelId: string;
     modelName: string;
+    modelType: ModelType;
     caps?: {
         vision?: boolean;
         tools?: boolean;
@@ -18,6 +20,11 @@ const props = defineProps({
     filter: {
         type: Function as unknown as () => (model: ModelRecord) => boolean,
         default: null,
+    },
+    // 模型类型：text 文本大模型
+    type: {
+        type: String as unknown as () => ModelType,
+        default: "text",
     },
 });
 
@@ -32,11 +39,16 @@ const availableModels = computed(() => {
             if (!m.enabled) {
                 continue;
             }
+            const modelType = modelTypeNormalize(m.type);
+            if (modelType !== props.type) {
+                continue;
+            }
             const record: ModelRecord = {
                 providerId: p.id,
                 providerTitle: p.title,
                 modelId: m.id,
                 modelName: m.name,
+                modelType,
                 caps: m.caps,
             };
             if (props.filter && !props.filter(record)) {

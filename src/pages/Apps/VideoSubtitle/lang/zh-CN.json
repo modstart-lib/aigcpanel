@@ -1,5 +1,15 @@
 {
     "common.subtitleFile": "字幕文件",
     "error.selectSubtitleFile": "请选择字幕文件",
-    "error.inputSubtitleParam": "请输入字幕参数"
+    "error.inputSubtitleParam": "请输入字幕参数",
+    "app.videoSubtitleTitle": "视频添加字幕",
+    "app.videoSubtitleDesc": "为视频添加字幕，支持SRT格式字幕文件",
+    "app.videoSubtitleStepSelectFile": "选择文件",
+    "app.videoSubtitleStepSelectFileDesc": "选择需要添加字幕的视频文件和SRT格式字幕文件",
+    "app.videoSubtitleStepParseContent": "解析内容",
+    "app.videoSubtitleStepParseContentDesc": "分析视频信息和解析字幕文件内容",
+    "app.videoSubtitleStepCompositeVideo": "合成视频",
+    "app.videoSubtitleStepCompositeVideoDesc": "将字幕渲染到视频上",
+    "workflow.videoSubtitleTitle": "视频添加字幕",
+    "workflow.videoSubtitleDesc": "为视频添加字幕"
 }

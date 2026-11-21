@@ -423,12 +423,10 @@ const doSplit = () => {
         return;
     }
     const record = editingRecords.value[currentIndex.value];
-    if (
-        !(
-            sliderValue.value > record.startSeconds! &&
-            sliderValue.value < record.endSeconds!
-        )
-    ) {
+    if (!(
+        sliderValue.value > record.startSeconds! &&
+        sliderValue.value < record.endSeconds!
+    )) {
         Dialog.tipError(t("soundAsrEdit.invalidTimeRange"));
         return;
     }

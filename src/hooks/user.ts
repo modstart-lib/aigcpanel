@@ -14,7 +14,7 @@ export const useUserPage = ({ web, status }) => {
 
     const whiteUrl = [
         "/app_manager/user",
-        "/member_vip",
+        
         "/login",
         "/register",
         "/logout",
@@ -113,8 +113,4 @@ document.addEventListener('click', (event) => {
     };
 };
 
-export const useUser = () => {
-    const store = useUserStore();
-    const isVip = computed(() => !store.data?.vip?.isDefault);
-    return { isVip, store };
-};
+

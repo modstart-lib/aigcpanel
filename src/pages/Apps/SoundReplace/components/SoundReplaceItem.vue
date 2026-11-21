@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import ServerNameVersion from "../../../../components/Server/ServerNameVersion.vue";
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -329,7 +330,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
                         </div>
                     </template>
                 </TaskJobResultStepView>
-                <div class="mt-1 flex gap-1">
+                <div class="mt-1 flex gap-1 flex-wrap">
                     <SoundGenerateFormViewBody
                         :data="record.modelConfig?.soundGenerate!"
                     />
@@ -402,6 +403,7 @@ const doSaveConfirmRecordItem = async (index: number, text: string) => {
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

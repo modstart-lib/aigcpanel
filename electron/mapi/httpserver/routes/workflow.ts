@@ -7,8 +7,8 @@ import { sendJson, asyncHandler, pollQuery } from "../utils";
 
 const router = Router();
 
-// ── GET /api/workflow/list ───────────────────────────────────────────────
-router.get(
+// ── POST /api/workflow/list ──────────────────────────────────────────────
+router.post(
     "/list",
     asyncHandler(async (_req: Request, res: Response) => {
         const rows = await DBMain.select(

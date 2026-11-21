@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -42,10 +43,7 @@ const doRefresh = async () => {
 
 <template>
     <div class="p-5">
-        <PageHeader
-            title="ffmpeg处理"
-            desc="执行自定义FFmpeg命令，支持多文件输入和输出"
-        >
+        <PageHeader :title="t('app.ffmpegTitle')" :desc="t('app.ffmpegDesc')">
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
             /></template>
@@ -55,18 +53,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '输入文件',
-                    description: '选择需要处理的输入文件',
+                    label: t('app.stepInputFile'),
+                    description: t('app.stepInputFileDesc'),
                 },
                 {
                     key: 2,
-                    label: '编写命令',
-                    description: '自定义FFmpeg命令参数',
+                    label: t('app.stepWriteCommand'),
+                    description: t('app.stepWriteCommandDesc'),
                 },
                 {
                     key: 3,
-                    label: '执行处理',
-                    description: '运行FFmpeg命令并生成输出文件',
+                    label: t('app.stepExecute'),
+                    description: t('app.stepExecuteDesc'),
                 },
             ]"
         />
@@ -82,7 +80,7 @@ const doRefresh = async () => {
                     :indeterminate="isIndeterminate"
                     @change="onCheckAll"
                 >
-                    全选
+                    {{ $t("common.selectAll") }}
                 </a-checkbox>
                 <TaskBatchDeleteAction
                     :records="checkRecords"
@@ -121,7 +119,7 @@ const doRefresh = async () => {
                         :indeterminate="isIndeterminate"
                         @change="onCheckAll"
                     >
-                        全选
+                        {{ $t("common.selectAll") }}
                     </a-checkbox>
                     <TaskBatchDeleteAction
                         :records="checkRecords"

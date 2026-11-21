@@ -11,5 +11,15 @@
     "error.audioParamError": "Audio parameter error",
     "error.selectAudioFile2": "Please select an audio file",
     "error.inputVolumeParam": "Please enter volume parameter",
-    "error.inputAudioParam": "Please enter audio parameter"
+    "error.inputAudioParam": "Please enter audio parameter",
+    "app.videoMergeAudioTitle": "Add Audio to Video",
+    "app.videoMergeAudioDesc": "Merge audio files into the video with volume adjustment",
+    "app.videoMergeAudioStepSelectFile": "Select Files",
+    "app.videoMergeAudioStepSelectFileDesc": "Select the video file and audio file to process",
+    "app.videoMergeAudioStepSetVolume": "Set Volume",
+    "app.videoMergeAudioStepSetVolumeDesc": "Adjust the volume of the audio",
+    "app.videoMergeAudioStepMergeProcess": "Merge Processing",
+    "app.videoMergeAudioStepMergeProcessDesc": "Use FFmpeg to merge the audio into the video",
+    "workflow.videoMergeAudioTitle": "Add Audio to Video",
+    "workflow.videoMergeAudioDesc": "Merge audio files into the video"
 }

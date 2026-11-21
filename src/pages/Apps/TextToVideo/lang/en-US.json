@@ -1,0 +1,15 @@
+{
+    "app.imageGenerateService": "Video Generation Service",
+    "app.videoGeneration": "Video Generation",
+    "app.inputPromptDesc": "Enter text describing the video",
+    "app.inputPromptLabel": "Input Prompt",
+    "app.mergeImage": "Merge Video Clips",
+    "app.mergeImageDesc": "Merge all video clips into one long video",
+    "app.processVideo": "Process Video",
+    "app.promptLabel": "Prompt",
+    "app.promptText": "Prompt Text",
+    "app.textToVideoDesc": "Convert text to video",
+    "app.textToVideoSettings": "Text-to-Video Settings",
+    "app.textToVideoConfig": "Text to Video Config",
+    "workflow.paramErrorMissing": "Parameter error: missing {items}"
+}

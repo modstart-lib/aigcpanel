@@ -3,5 +3,15 @@
     "common.accelerationCoefficient": "加速系数",
     "common.accelerationValue": "加速系数 {speed}x",
     "common.setSpeedTimeRange": "设置加速时间范围",
-    "error.validAcceleration": "请设置有效的加速系数"
+    "error.validAcceleration": "请设置有效的加速系数",
+    "app.videoSpeedPartTitle": "视频片段变速",
+    "app.videoSpeedPartDesc": "标记视频的片段，然后对片段进行加速",
+    "app.videoSpeedPartStepSelectVideo": "选择视频",
+    "app.videoSpeedPartStepSelectVideoDesc": "选择需要进行片段加速处理的视频文件",
+    "app.videoSpeedPartStepSetSpeedNodes": "设置加速节点",
+    "app.videoSpeedPartStepSetSpeedNodesDesc": "在时间轴上添加加速节点，设置加速区域和时间",
+    "app.videoSpeedPartStepGenerateVideo": "生成视频",
+    "app.videoSpeedPartStepGenerateVideoDesc": "使用FFmpeg处理视频，生成片段加速效果",
+    "workflow.videoSpeedPartTitle": "视频片段变速",
+    "workflow.videoSpeedPartDesc": "改变视频片段的播放速度"
 }

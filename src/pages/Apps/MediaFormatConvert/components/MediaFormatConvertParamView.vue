@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { t } from "../../../../lang";
 
 const props = defineProps<{
     data: {
@@ -39,23 +40,27 @@ const audioCodecText = computed(() => {
 
 <template>
     <div class="flex flex-wrap mb-2 gap-1">
-        <a-tag class="rounded-lg"
-            >格式：{{ data.targetFormat?.toUpperCase() || "未配置" }}</a-tag
-        >
-        <a-tag v-if="data.videoCodec && !data.lossless" class="rounded-lg"
-            >视频编码：{{ videoCodecText }}</a-tag
-        >
-        <a-tag v-if="data.videoBitrate && !data.lossless" class="rounded-lg"
-            >视频比特率：{{ data.videoBitrate }} kbps</a-tag
-        >
-        <a-tag v-if="data.audioCodec && !data.lossless" class="rounded-lg"
-            >音频编码：{{ audioCodecText }}</a-tag
-        >
-        <a-tag v-if="data.audioBitrate && !data.lossless" class="rounded-lg"
-            >音频比特率：{{ data.audioBitrate }} kbps</a-tag
-        >
+        <a-tag class="rounded-lg">{{
+            t("app.formatValue", {
+                value:
+                    data.targetFormat?.toUpperCase() ||
+                    t("common.notConfigured"),
+            })
+        }}</a-tag>
+        <a-tag v-if="data.videoCodec && !data.lossless" class="rounded-lg">{{
+            t("app.videoCodecValue", { value: videoCodecText })
+        }}</a-tag>
+        <a-tag v-if="data.videoBitrate && !data.lossless" class="rounded-lg">{{
+            t("app.videoBitrateValue", { value: data.videoBitrate })
+        }}</a-tag>
+        <a-tag v-if="data.audioCodec && !data.lossless" class="rounded-lg">{{
+            t("app.audioCodecValue", { value: audioCodecText })
+        }}</a-tag>
+        <a-tag v-if="data.audioBitrate && !data.lossless" class="rounded-lg">{{
+            t("app.audioBitrateValue", { value: data.audioBitrate })
+        }}</a-tag>
         <a-tag v-if="data.lossless !== undefined" class="rounded-lg">{{
-            data.lossless ? "无损转换" : "有损转换"
+            data.lossless ? t("app.losslessConvert") : t("app.lossyConvert")
         }}</a-tag>
     </div>
 </template>

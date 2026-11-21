@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
+import { t } from "../../../../lang";
 import VideoBackgroundParamForm from "./VideoBackgroundParamForm.vue";
 
 const props = defineProps<{}>();
@@ -50,15 +51,19 @@ defineExpose({
     <a-modal v-model:visible="visible" width="80vw" title-align="start">
         <template #title>
             <div class="flex items-center">
-                <div class="font-bold mr-2">设置参数</div>
+                <div class="font-bold mr-2">{{ t("app.setParams") }}</div>
             </div>
         </template>
-        <div style="height: calc(100vh - 15rem)">
+        <div>
             <VideoBackgroundParamForm ref="paramForm" />
         </div>
         <template #footer>
-            <a-button @click="visible = false">取消</a-button>
-            <a-button type="primary" @click="doSave">保存</a-button>
+            <a-button @click="visible = false">{{
+                $t("common.cancel")
+            }}</a-button>
+            <a-button type="primary" @click="doSave">{{
+                $t("common.save")
+            }}</a-button>
         </template>
     </a-modal>
 </template>

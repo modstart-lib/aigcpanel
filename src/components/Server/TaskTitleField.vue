@@ -35,7 +35,7 @@ const onTitleClick = () => {
 <template>
     <div class="flex items-center">
         <div
-            class="truncate flex-grow max-w-96 cursor-pointer"
+            class="truncate flex-grow min-w-0 max-w-96 cursor-pointer"
             @click="onTitleClick"
         >
             {{ record.title }}
@@ -45,7 +45,10 @@ const onTitleClick = () => {
             :value="record.title"
             @change="onEditTitle"
         >
-            <a class="ml-1 text-gray-400" href="javascript:;">
+            <a
+                class="ml-1 text-gray-400 flex-shrink-0 whitespace-nowrap"
+                href="javascript:;"
+            >
                 <icon-pen />
             </a>
         </InputInlineEditor>

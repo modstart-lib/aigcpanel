@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { testActionSet, testActionUnset } from "@/utils/test";
 import { onMounted, onUnmounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -53,8 +54,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频片段删除/保留"
-            desc="选择视频后，选择片段，移除或保留这些片段"
+            :title="t('app.videoKeepPartTitle')"
+            :desc="t('app.videoKeepPartDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -65,18 +66,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频',
-                    description: '选择需要进行片段处理的视频文件',
+                    label: t('app.stepSelectVideo'),
+                    description: t('app.stepSelectVideoDesc'),
                 },
                 {
                     key: 2,
-                    label: '选择片段',
-                    description: '在时间轴上选择需要保留或删除的片段',
+                    label: t('app.stepSelectSegment'),
+                    description: t('app.stepSelectSegmentDesc'),
                 },
                 {
                     key: 3,
-                    label: '生成视频',
-                    description: '使用FFmpeg处理视频，生成处理后的视频',
+                    label: t('app.stepGenerateVideo'),
+                    description: t('app.stepGenerateVideoDesc'),
                 },
             ]"
         />
@@ -92,7 +93,7 @@ const doRefresh = async () => {
                     :indeterminate="isIndeterminate"
                     @change="onCheckAll"
                 >
-                    全选
+                    {{ $t("common.selectAll") }}
                 </a-checkbox>
                 <TaskBatchDeleteAction
                     :records="checkRecords"

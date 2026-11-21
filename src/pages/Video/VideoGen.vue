@@ -9,6 +9,7 @@ import TaskBatchDeleteAction from "../../components/Server/TaskBatchDeleteAction
 import TaskBatchDownloadAction from "../../components/Server/TaskBatchDownloadAction.vue";
 import TaskCancelAction from "../../components/Server/TaskCancelAction.vue";
 import TaskDeleteAction from "../../components/Server/TaskDeleteAction.vue";
+import TaskRetryAction from "../../components/Server/TaskRetryAction.vue";
 import TaskDownloadAction from "../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../components/Server/TaskDuration.vue";
 import TaskTitleField from "../../components/Server/TaskTitleField.vue";
@@ -112,7 +113,7 @@ const doRefresh = async () => {
                                 :status-msg="r.statusMsg"
                             />
                         </div>
-                        <div class="mt-3 flex gap-1">
+                        <div class="mt-3 flex gap-1 flex-wrap">
                             <ServerNameVersion :record="r" />
                             <VideoGenFormViewBody :data="r.modelConfig" />
                             <ServerTaskResultParam :record="r as any" />
@@ -181,6 +182,10 @@ const doRefresh = async () => {
                             </div>
                             <div class="">
                                 <TaskDownloadAction :record="r" />
+                                <TaskRetryAction
+                                    :record="r"
+                                    @update="doRefresh"
+                                />
                                 <TaskDeleteAction
                                     :record="r"
                                     @update="doRefresh"

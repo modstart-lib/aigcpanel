@@ -21,7 +21,8 @@ const param = ref([]);
 const modelConfig = ref(null);
 
 const onServerUpdate = async (config: any) => {
-    param.value = config.functions.asr?.param || [];
+    // VideoGen uses the params defined by the "videoGen" function
+    param.value = config.functions.videoGen?.param || [];
     modelConfig.value = config;
 };
 
@@ -73,9 +74,9 @@ const getValue = async (): Promise<VideoGenParamType | undefined> => {
     data.videoTemplateName = videoTemplate.name;
     data.videoTemplateUrl = videoTemplate.video;
 
-    data.param = paramForm.value?.getValue();
+    data.param = paramForm.value ? paramForm.value.getValue() : {};
     if (!data.param) {
-        Dialog.tipError(t("error.recognitionParamInvalid"));
+        Dialog.tipError(t("error.videoGenParamInvalid"));
         return;
     }
 
@@ -138,8 +139,19 @@ defineExpose({
                 <VideoTemplateSelector v-model="formData.videoTemplateId" />
             </div>
         </div>
-        <div class="flex items-center">
-            <ParamForm ref="paramForm" :param="param" />
+        <!-- 用户输入信息（声音等）插入 Server 选择与自定义参数之间 -->
+        <div class="mb-2">
+            <slot />
+        </div>
+        <div class="flex items-start mt-2" v-if="param.length > 0">
+            <div class="pt-3 w-5 flex-shrink-0">
+                <a-tooltip :content="$t('model.customParam')" mini>
+                    <i-mdi-tune-variant class="w-4 h-4" />
+                </a-tooltip>
+            </div>
+            <div class="flex-grow min-w-0">
+                <ParamForm ref="paramForm" :param="param" />
+            </div>
         </div>
     </div>
 </template>

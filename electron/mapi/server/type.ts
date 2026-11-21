@@ -7,6 +7,7 @@ export type SendType =
     | never
     // 服务
     | "starting"
+    | "preparing"
     | "stopping"
     | "stopped"
     | "success"

@@ -110,8 +110,19 @@ defineExpose({
                 </div>
             </div>
         </div>
-        <div class="flex items-center mt-2" v-if="param && param.length > 0">
-            <ParamForm ref="paramForm" :param="param" />
+        <!-- 用户输入信息（音频文件等）插入 Server 选择与自定义参数之间 -->
+        <div class="mt-2">
+            <slot />
+        </div>
+        <div class="flex items-start mt-2" v-if="param.length > 0">
+            <div class="pt-3 w-5 flex-shrink-0">
+                <a-tooltip :content="$t('model.customParam')" mini>
+                    <i-mdi-tune-variant class="w-4 h-4" />
+                </a-tooltip>
+            </div>
+            <div class="flex-grow min-w-0">
+                <ParamForm ref="paramForm" :param="param" />
+            </div>
         </div>
     </div>
 </template>

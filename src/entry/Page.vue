@@ -16,7 +16,7 @@
                 </div>
                 <div class="p-1 leading-4">
                     <div
-                        class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-red-500"
+                        class="inline-flex items-center justify-center w-6 h-6 cursor-pointer hover:text-red-500"
                         @click="doClose"
                     >
                         <i-mdi-close class="text-sm" />

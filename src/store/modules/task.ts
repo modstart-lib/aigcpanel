@@ -22,23 +22,14 @@ import { StringUtil, TimeUtil } from "../../lib/util";
 import store from "../index";
 
 export type TaskRecordStatus =
-    | "queue"
-    | "running"
-    | "querying"
-    | "success"
-    | "fail"
-    | "delete";
+    "queue" | "running" | "querying" | "success" | "fail" | "delete";
 
 export type TaskRecordRunStatus = "retry" | "success" | "querying";
 
 export type TaskRecordQueryStatus = "running" | "success" | "fail";
 
 export type TaskChangeType =
-    | "running"
-    | "success"
-    | "fail"
-    | "change"
-    | "requestCancel";
+    "running" | "success" | "fail" | "change" | "requestCancel";
 
 export type TaskRecord = {
     id: string;
@@ -143,10 +134,34 @@ export const taskStore = defineStore("task", {
     actions: {
         async init() {
             await $mapi.storage.get("task", "records", []).then((records) => {
-                this.records = records;
+                this.records = ((records as TaskRecord[]) || []).map((record) =>
+                    this.restoreRecord(record),
+                );
                 this.isInit = true;
                 this._run(true);
             });
+        },
+        /**
+         * Normalize a record restored from storage.
+         *
+         * Records are persisted mid-flight, including the transient scheduling
+         * flags (runCalling / queryCalling / successCalling). Those flags are
+         * only meaningful for the running session: after a restart they are all
+         * stale. If runCalling stays true the record can never be picked up by
+         * the scheduler again, so the task would sit in "queue" (or "running")
+         * forever until the process is started by some other means. Clear the
+         * flags and push an interrupted run back to the queue so it is retried.
+         */
+        restoreRecord(record: TaskRecord): TaskRecord {
+            record.runCalling = false;
+            record.queryCalling = false;
+            record.successCalling = false;
+            record.runAfter = 0;
+            record.queryAfter = 0;
+            if (record.status === "running" || record.status === "querying") {
+                record.status = "queue";
+            }
+            return record;
         },
         async waitInit() {
             while (!this.isInit) {
@@ -359,9 +374,28 @@ export const taskStore = defineStore("task", {
                 clearTimeout(runNextTimer);
                 runNextTimer = null;
             }
-            setTimeout(
+            runNextTimer = setTimeout(
                 () => {
-                    this._runExecute();
+                    runNextTimer = null;
+                    try {
+                        this._runExecute();
+                    } catch (e) {
+                        // A throw would break the single scheduling chain: the
+                        // next tick would never be scheduled and every queued
+                        // task would stay in "queue" forever. Log it and keep the
+                        // chain alive instead.
+                        console.error("Task.RunExecute.Error", e);
+                        try {
+                            $mapi.log
+                                .error("Task.RunExecute.Error", String(e))
+                                .catch(() => {});
+                        } catch {
+                            /* ignore */
+                        }
+                        if (this.records.length > 0) {
+                            this._run(false);
+                        }
+                    }
                 },
                 immediate ? 0 : 1000,
             );

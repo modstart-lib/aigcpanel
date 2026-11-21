@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import {
     NodeFunctionCall,
     NodeRunController,
@@ -11,8 +12,8 @@ import AppIcon from "~icons/mdi/transfer";
 
 export default <NodeFunctionCall>{
     name: "MediaFormatConvert",
-    title: "媒体格式转换",
-    description: "转换媒体文件的格式",
+    title: t("workflow.mediaFormatTitle"),
+    description: t("workflow.mediaFormatDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./MediaFormatConvertNode.vue")),
     inputFields: [
@@ -85,7 +86,7 @@ export default <NodeFunctionCall>{
                     lossless: lossless,
                 };
                 if (!taskRunData.media) {
-                    throw "参数错误：缺少媒体文件";
+                    throw t("workflow.errorMissingMedia");
                 }
                 return await MediaFormatConvertRun(taskRunData);
             },
@@ -96,10 +97,10 @@ export default <NodeFunctionCall>{
     },
     async check(node) {
         if (!node.properties?.data?.targetFormat) {
-            throw "请设置目标格式";
+            throw t("workflow.errorSetTargetFormat");
         }
         if (node.properties?.inputFields?.[0].value === "") {
-            throw "请输入媒体文件参数";
+            throw t("workflow.errorMediaParam");
         }
     },
 };

@@ -1,0 +1,17 @@
+{
+    "app.generateImage": "Generate Video",
+    "app.generateImageDesc": "Generate a new video based on the prompt",
+    "app.imageGenerateService": "Video Generation Service",
+    "app.videoGeneration": "Video Generation",
+    "app.imageLabel": "Image",
+    "app.imageToVideoDesc": "Convert image to video",
+    "app.imageToVideoSettings": "Image-to-Video Settings",
+    "app.inputPromptDesc": "Enter text describing the video",
+    "app.inputPromptLabel": "Input Prompt",
+    "app.processVideo": "Process Video",
+    "app.promptText": "Prompt Text",
+    "app.selectLocalImage": "Select Local Image",
+    "app.selectLocalImageDesc": "Upload and select the image to convert",
+    "app.imageToVideoConfig": "Image to Video Config",
+    "workflow.paramErrorMissing": "Parameter error: missing {items}"
+}

@@ -138,17 +138,26 @@ const list = async (path: string, option?: { isDataPath?: boolean }) => {
         return [];
     }
     const files = fs.readdirSync(fp);
-    return files.map((file) => {
-        const stat = fs.statSync(nodePath.join(fp, file));
-        let f = {
+    const result = [];
+    for (const file of files) {
+        const pathname = nodePath.join(fp, file);
+        let stat: fs.Stats;
+        try {
+            // 对损坏的软链接（目标不存在）statSync 会抛 ENOENT，
+            // 此时跳过该条目，避免整个目录列表崩溃。
+            stat = fs.statSync(pathname);
+        } catch (e) {
+            continue;
+        }
+        result.push({
             name: file,
-            pathname: nodePath.join(fp, file),
+            pathname,
             isDirectory: stat.isDirectory(),
             size: stat.size,
             lastModified: stat.mtimeMs,
-        };
-        return f;
-    });
+        });
+    }
+    return result;
 };
 
 const listAll = async (path: string, option?: { isDataPath?: boolean }) => {
@@ -169,7 +178,13 @@ const listAll = async (path: string, option?: { isDataPath?: boolean }) => {
         let files = [];
         const list = fs.readdirSync(path);
         for (let file of list) {
-            const stat = fs.statSync(nodePath.join(path, file));
+            let stat: fs.Stats | null = null;
+            try {
+                // 对损坏的软链接（目标不存在）statSync 会抛 ENOENT，跳过避免崩溃
+                stat = fs.statSync(nodePath.join(path, file));
+            } catch (e) {
+                continue;
+            }
             let fPath = nodePath.join(basePath, file);
             fPath = fPath.replace(/\\/g, "/");
             let f = {
@@ -533,6 +548,29 @@ const copy = async (
         fs.mkdirSync(dir, { recursive: true });
     }
     fs.copyFileSync(fullPathOld, fullPathNew);
+};
+
+// Effective data root directory (may be redirected via AIGCPANEL_DATA_ROOT)
+const dataRoot = async (): Promise<string> => {
+    await waitAppEnvReady();
+    return root();
+};
+
+// Default Electron data root directory (<userData>/data when not redirected)
+const dataRootDefault = async (): Promise<string> => {
+    await waitAppEnvReady();
+    return AppEnv.dataRootDefault;
+};
+
+// Whether the effective data root has been customized (differs from the default)
+const isDataRootCustom = async (): Promise<boolean> => {
+    await waitAppEnvReady();
+    if (!AppEnv.dataRootDefault) {
+        return false;
+    }
+    // Only trim trailing path separators to avoid false mismatches between Windows and *nix
+    const normalize = (p: string) => (p || "").replace(/[\\/]+$/, "");
+    return normalize(AppEnv.dataRoot) !== normalize(AppEnv.dataRootDefault);
 };
 
 const hubRootDefault = async () => {
@@ -1277,6 +1315,9 @@ export const FileIndex = {
     stat,
     textToName,
     pathToName,
+    dataRoot,
+    dataRootDefault,
+    isDataRootCustom,
     hubRootDefault,
     hubRoot,
     hubSave,

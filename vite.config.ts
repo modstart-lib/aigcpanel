@@ -13,6 +13,7 @@ import electron from "vite-plugin-electron";
 import renderer from "vite-plugin-electron-renderer";
 import pkg from "./package.json";
 import { AppConfig } from "./src/config";
+import { loadDotEnv } from "./test/helpers/env";
 
 const _require = createRequire(import.meta.url);
 const mdiIcons = _require("@iconify-json/mdi/icons.json");
@@ -23,6 +24,14 @@ dayjs.extend(timezone);
 // https://vitejs.dev/config/
 export default defineConfig(({command}) => {
     fs.rmSync("dist-electron", {recursive: true, force: true});
+
+    // 开发环境启动时自动加载 .env 到 process.env（正式发布构建不加载）
+    if (process.env.VITE_RELEASE !== "1") {
+        const envCount = loadDotEnv();
+        if (envCount > 0) {
+            console.log(`[env] 已从 .env 加载 ${envCount} 个环境变量`);
+        }
+    }
 
     const isServe = command === "serve";
     const isBuild = command === "build";

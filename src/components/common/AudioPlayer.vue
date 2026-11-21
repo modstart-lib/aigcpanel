@@ -13,6 +13,7 @@ import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import { AudioUtil } from "../../lib/audio";
 import { Dialog } from "../../lib/dialog";
 import { TimeUtil } from "../../lib/util";
+import { t } from "../../lang";
 
 const props = withDefaults(
     defineProps<{
@@ -21,6 +22,14 @@ const props = withDefaults(
         trimEnable?: boolean;
         downloadEnable?: boolean;
         showWave?: boolean;
+        /**
+         * Decode at the audio's original sample rate instead of the default 16k.
+         * WaveSurfer only applies sampleRate to decoding (waveform rendering) and it
+         * never affects playback, but getDecodedData() returns the resampled buffer.
+         * Turn this on wherever the decoded buffer is exported (voice clone reference,
+         * trimming) so the output keeps the original quality.
+         */
+        decodeOriginalRate?: boolean;
     }>(),
     {
         url: "",
@@ -28,6 +37,7 @@ const props = withDefaults(
         trimEnable: false,
         downloadEnable: false,
         showWave: false,
+        decodeOriginalRate: false,
     },
 );
 
@@ -47,6 +57,8 @@ const isPlaying = ref(false);
 const isTrimming = ref(false);
 
 const recordUrl = ref<string | null>(null);
+// Original uploaded file, kept so it can be saved verbatim without re-encoding.
+const sourceFile = ref<File | null>(null);
 const isRecording = ref(false);
 const recordInputDeviceSelect = ref(null);
 const recordInputDevices = ref<{ id: string; name: string }[]>([]);
@@ -93,7 +105,9 @@ onMounted(() => {
         plugins: [regions],
         autoplay: false,
         cursorWidth: 0,
-        sampleRate: 16000,
+        // undefined lets the browser decode at the source sample rate; a number forces
+        // a downsample that would degrade any audio exported via getDecodedData().
+        sampleRate: props.decodeOriginalRate ? undefined : 16000,
     });
     waveRecord.value = wave.value.registerPlugin(
         RecordPlugin.create({
@@ -102,7 +116,10 @@ onMounted(() => {
         }),
     );
     waveRecord.value.on("record-end", (blob) => {
+        // A fresh recording replaces any previously uploaded source file.
+        sourceFile.value = null;
         recordUrl.value = URL.createObjectURL(blob);
+        checkRecordSilent(blob);
     });
     wave.value.on("play", () => {
         isPlaying.value = true;
@@ -227,6 +244,17 @@ const doPlay = () => {
 const doPause = () => {
     wave.value?.pause();
 };
+// Stop playback (reset to the beginning) and stop recording if active.
+const doStop = () => {
+    wave.value?.stop();
+    if (
+        waveRecord.value &&
+        (waveRecord.value.isRecording() || waveRecord.value.isPaused())
+    ) {
+        waveRecord.value.stopRecording();
+        isRecording.value = false;
+    }
+};
 const onSeek = (value: number) => {
     wave.value?.seekTo(value / timeTotal.value);
 };
@@ -241,6 +269,8 @@ const doTrimSave = async () => {
         region.start,
         region.end,
     );
+    // The trimmed result no longer matches the original file.
+    sourceFile.value = null;
     isTrimming.value = false;
     regions.clearRegions();
     wave.value?.empty();
@@ -295,7 +325,43 @@ const doRecordStart = async () => {
         isRecording.value = true;
         waveVisible.value = true;
     } catch (e) {
-        Dialog.tipError(`${e}`);
+        Dialog.tipError(`${t("voice.recordStartFail")}: ${e}`);
+    }
+};
+
+// Detect silent recording: if the decoded peak level is too low,
+// the microphone is likely muted, blocked or receiving no signal.
+const SILENT_PEAK_THRESHOLD = 0.005;
+const checkRecordSilent = async (blob: Blob) => {
+    try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioContext = new AudioContext();
+        try {
+            const audioBuffer = await audioContext.decodeAudioData(
+                arrayBuffer.slice(0),
+            );
+            let peak = 0;
+            for (
+                let channel = 0;
+                channel < audioBuffer.numberOfChannels;
+                channel++
+            ) {
+                const data = audioBuffer.getChannelData(channel);
+                for (let i = 0; i < data.length; i++) {
+                    const v = Math.abs(data[i]);
+                    if (v > peak) peak = v;
+                }
+            }
+            if (peak < SILENT_PEAK_THRESHOLD) {
+                Dialog.tipError(t("voice.recordSilent"));
+            }
+        } finally {
+            if (audioContext.state !== "closed") {
+                await audioContext.close().catch(() => {});
+            }
+        }
+    } catch (e) {
+        // ignore decode errors (e.g. blob format unsupported)
     }
 };
 
@@ -316,6 +382,8 @@ const doRecordClean = async () => {
 };
 
 const setRecordFromFile = async (file: File) => {
+    // Keep the original file so callers can persist it as-is (no quality loss).
+    sourceFile.value = file;
     recordUrl.value = URL.createObjectURL(file);
     recordVisible.value = false;
 };
@@ -324,9 +392,27 @@ const getAudioBuffer = () => {
     return wave.value?.getDecodedData() as AudioBuffer;
 };
 
+/**
+ * The original uploaded file when the current audio is an untouched upload,
+ * otherwise null (e.g. after recording or trimming).
+ */
+const getOriginalFile = () => {
+    return sourceFile.value;
+};
+
+/** Current audio source: "url" | "trim" | "record" | null */
+const getSourceType = () => {
+    return waveUrlSource.value;
+};
+
 defineExpose({
     setRecordFromFile,
     getAudioBuffer,
+    getOriginalFile,
+    getSourceType,
+    doPlay,
+    doPause,
+    doStop,
 });
 </script>
 

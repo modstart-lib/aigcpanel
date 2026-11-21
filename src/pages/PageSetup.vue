@@ -71,7 +71,9 @@ const doCheck = async () => {
                         class="flex items-start p-2 rounded-lg cursor-pointer hover:bg-gray-100 border"
                         @click="recordActiveIndex = rIndex"
                         :class="
-                            rIndex === recordActiveIndex ? 'bg-gray-200' : ''
+                            rIndex === recordActiveIndex
+                                ? 'menu-item-active'
+                                : ''
                         "
                     >
                         <div class="mr-1 pt-3">

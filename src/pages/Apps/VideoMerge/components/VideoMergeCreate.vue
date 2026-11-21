@@ -29,7 +29,7 @@ const doSubmit = async () => {
         return;
     }
     if (!formData.value.videos || formData.value.videos.length < 2) {
-        Dialog.tipError("请至少选择2个视频文件");
+        Dialog.tipError(t("error.atLeastTwoVideos"));
         return;
     }
 
@@ -62,7 +62,7 @@ const doSubmit = async () => {
     <div class="rounded-xl shadow border p-4">
         <div class="mb-4 flex items-start">
             <div class="pt-1 w-5">
-                <a-tooltip :content="'视频文件'" mini>
+                <a-tooltip :content="t('app.videoFile')" mini>
                     <icon-video-camera />
                 </a-tooltip>
             </div>
@@ -77,7 +77,7 @@ const doSubmit = async () => {
         <div class="flex">
             <a-button class="mr-2" type="primary" @click="doSubmit">
                 <icon-send class="mr-2" />
-                提交任务
+                {{ $t("common.submitTask") }}
             </a-button>
         </div>
     </div>

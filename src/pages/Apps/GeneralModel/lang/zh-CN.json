@@ -1,0 +1,21 @@
+{
+    "general.model.group": "通用",
+    "general.model.title": "通用模型",
+    "general.model.desc": "调用系统无法识别的其他类型模型，按 config.json 定义的参数提交任务。",
+    "general.model.appDesc": "调用系统无法识别的其他类型模型，按其参数直接提交任务。",
+    "general.call": "通用模型调用",
+    "general.callTip": "选择系统无法识别的模型，按其 config.json 中定义的参数直接进行任务调用。",
+    "general.config": "通用模型配置",
+    "general.selectModel": "请选择通用模型",
+    "general.selectFunc": "请选择要调用的功能",
+    "general.selectFunction": "选择功能",
+    "general.submit": "提交任务",
+    "general.submitted": "任务已提交",
+    "general.noTask": "暂无通用模型任务",
+    "general.invalidParam": "参数不合法",
+    "general.runFail": "通用模型执行失败",
+    "general.filterModel": "按模型筛选",
+    "general.filterComfyUI": "按 ComfyUI 筛选",
+    "general.all": "全部",
+    "general.taskSuffix": "任务"
+}

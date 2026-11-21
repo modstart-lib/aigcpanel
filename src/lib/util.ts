@@ -21,6 +21,11 @@ export const wait = (
                 resolve(false);
                 return;
             }
+            if (typeof callback !== "function") {
+                clearInterval(timer);
+                resolve(false);
+                return;
+            }
             let res = callback();
             if (res instanceof Promise) {
                 res = await res;
@@ -46,7 +51,9 @@ export function preciseInterval(callback: () => void, interval: number) {
     function step(timestamp: number) {
         if (stop) return;
         if (timestamp >= expected) {
-            callback();
+            if (typeof callback === "function") {
+                callback();
+            }
             // 累积期望的时间，以保持精确的间隔
             expected += interval;
         }

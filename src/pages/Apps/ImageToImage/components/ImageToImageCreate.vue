@@ -73,32 +73,42 @@ const doSubmit = async () => {
 
 <template>
     <div class="rounded-xl shadow border p-4">
-        <div class="mb-4 flex items-start">
-            <div class="pt-1 w-5">
-                <a-tooltip :content="$t('hint.inputInputImage')" mini>
-                    <icon-video-camera />
-                </a-tooltip>
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <FileSelector
-                        :extensions="['png', 'jpg', 'jpeg']"
-                        v-model="formData.image"
-                    />
+        <ImageToImageForm ref="imageToImageForm">
+            <div class="w-full flex flex-col gap-2">
+                <div class="flex items-start w-full">
+                    <div class="pt-1 w-5 flex-shrink-0">
+                        <a-tooltip :content="$t('hint.inputInputImage')" mini>
+                            <icon-image />
+                        </a-tooltip>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <div class="flex items-center gap-2">
+                            <FileSelector
+                                :extensions="['png', 'jpg', 'jpeg']"
+                                v-model="formData.image"
+                            />
+                        </div>
+                        <div v-if="formData.image" class="mt-2">
+                            <ImagePreviewBox :url="formData.image" />
+                        </div>
+                    </div>
                 </div>
-                <div v-if="formData.image" class="mt-2">
-                    <ImagePreviewBox :url="formData.image" />
+                <div class="flex items-start w-full">
+                    <div class="pt-1 w-5 flex-shrink-0">
+                        <a-tooltip :content="$t('hint.inputPrompt')" mini>
+                            <i-mdi-text-box-outline class="w-4 h-4" />
+                        </a-tooltip>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <a-textarea
+                            v-model="formData.prompt"
+                            :placeholder="$t('hint.inputPrompt')"
+                            :auto-size="{ minRows: 2, maxRows: 10 }"
+                        />
+                    </div>
                 </div>
             </div>
-        </div>
-        <ImageToImageForm ref="imageToImageForm" />
-        <div class="mb-4">
-            <a-textarea
-                v-model="formData.prompt"
-                :placeholder="$t('hint.inputPrompt')"
-                :auto-size="{ minRows: 2, maxRows: 10 }"
-            />
-        </div>
+        </ImageToImageForm>
         <div class="flex">
             <a-button class="mr-2" type="primary" @click="doSubmit">
                 <i-mdi-send class="mr-2" />

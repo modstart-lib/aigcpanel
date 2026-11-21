@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -165,6 +166,7 @@ const onSave = async (times: VideoEditorTimeRangeRecord[]) => {
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

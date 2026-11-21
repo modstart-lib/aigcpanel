@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import {
     NodeFunctionCall,
     NodeRunController,
@@ -11,8 +12,8 @@ import AppIcon from "~icons/mdi/console";
 
 export default <NodeFunctionCall>{
     name: "Ffmpeg",
-    title: "ffmpeg处理",
-    description: "使用ffmpeg进行视频处理",
+    title: t("workflow.ffmpegTitle"),
+    description: t("workflow.ffmpegDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./FfmpegNode.vue")),
     inputFields: [
@@ -92,7 +93,7 @@ export default <NodeFunctionCall>{
     },
     async check(node) {
         if (!node.properties?.data?.commands) {
-            throw "请输入FFmpeg命令";
+            throw t("error.ffmpegCommandRequired");
         }
     },
 };

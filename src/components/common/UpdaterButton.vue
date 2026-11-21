@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { AppConfig } from "../../config";
-import { doCheckForUpdate } from "./util";
+import { t } from "../../lang";
+import { updaterStore } from "../../store/modules/updater";
 
-const updaterCheckLoading = ref(false);
+const store = updaterStore();
 const checkAtLaunch = ref<"yes" | "no">("no");
 
 onMounted(() => {
@@ -20,9 +21,7 @@ const onCheckAtLaunchChange = async (value: boolean) => {
 };
 
 const doVersionCheck = async () => {
-    updaterCheckLoading.value = true;
-    await doCheckForUpdate(true);
-    updaterCheckLoading.value = false;
+    await store.check(true);
 };
 </script>
 
@@ -32,10 +31,28 @@ const doVersionCheck = async () => {
             v-if="!!AppConfig.updaterUrl"
             size="mini"
             class="mr-2"
-            :loading="updaterCheckLoading"
+            :loading="store.checking"
             @click="doVersionCheck()"
         >
             {{ $t("update.check") }}
+        </a-button>
+        <a-button
+            v-if="store.updateAvailable && !store.isReady"
+            type="primary"
+            size="mini"
+            class="mr-2"
+            @click="store.show()"
+        >
+            {{ $t("update.downloadUpdate") }}
+        </a-button>
+        <a-button
+            v-if="store.isReady"
+            type="primary"
+            size="mini"
+            class="mr-2"
+            @click="store.show()"
+        >
+            {{ $t("update.restartUpdate") }}
         </a-button>
         <a-checkbox
             :model-value="checkAtLaunch === 'yes'"

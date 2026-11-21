@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -79,7 +80,7 @@ const onConfirm = async (taskId: number, records: any[]) => {
             </div>
             <div class="flex-grow">
                 <TaskJobResultStepView :record="record" step="ToAudio">
-                    <div class="flex gap-1">
+                    <div class="flex gap-1 flex-wrap">
                         <VideoInfo :data="record.jobResult?.ToAudio! as any" />
                     </div>
                 </TaskJobResultStepView>
@@ -168,6 +169,7 @@ const onConfirm = async (taskId: number, records: any[]) => {
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

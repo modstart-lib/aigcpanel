@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { t } from "../../../../lang";
 import { Dialog } from "../../../../lib/dialog";
 
@@ -15,35 +15,78 @@ type VideoSizeConvertForm = {
     fillMode: "blur" | "black" | "crop" | "stretch";
 };
 
-const sizePresets = [
-    { label: "4K (3840x2160)", width: 3840, height: 2160 },
-    { label: "4K竖屏 (2160x3840)", width: 2160, height: 3840 },
-    { label: "1440P (2560x1440)", width: 2560, height: 1440 },
-    { label: "1440P竖屏 (1440x2560)", width: 1440, height: 2560 },
-    { label: "1080P (1920x1080)", width: 1920, height: 1080 },
-    { label: "1080P竖屏 (1080x1920)", width: 1080, height: 1920 },
-    { label: "720P (1280x720)", width: 1280, height: 720 },
-    { label: "720P竖屏 (720x1280)", width: 720, height: 1280 },
-    { label: "480P (854x480)", width: 854, height: 480 },
-    { label: "480P竖屏 (480x854)", width: 480, height: 854 },
-    { label: "方形1080 (1080x1080)", width: 1080, height: 1080 },
-    { label: "方形720 (720x720)", width: 720, height: 720 },
-    { label: "方形480 (480x480)", width: 480, height: 480 },
-];
+const presetPortrait = computed(() => t("app.presetPortrait"));
+const presetSquare = computed(() => t("app.presetSquare"));
+
+const sizePresets = computed(() => [
+    { key: "4k", label: "4K (3840x2160)", width: 3840, height: 2160 },
+    {
+        key: "4k-portrait",
+        label: `4K${presetPortrait.value} (2160x3840)`,
+        width: 2160,
+        height: 3840,
+    },
+    { key: "1440p", label: "1440P (2560x1440)", width: 2560, height: 1440 },
+    {
+        key: "1440p-portrait",
+        label: `1440P${presetPortrait.value} (1440x2560)`,
+        width: 1440,
+        height: 2560,
+    },
+    { key: "1080p", label: "1080P (1920x1080)", width: 1920, height: 1080 },
+    {
+        key: "1080p-portrait",
+        label: `1080P${presetPortrait.value} (1080x1920)`,
+        width: 1080,
+        height: 1920,
+    },
+    { key: "720p", label: "720P (1280x720)", width: 1280, height: 720 },
+    {
+        key: "720p-portrait",
+        label: `720P${presetPortrait.value} (720x1280)`,
+        width: 720,
+        height: 1280,
+    },
+    { key: "480p", label: "480P (854x480)", width: 854, height: 480 },
+    {
+        key: "480p-portrait",
+        label: `480P${presetPortrait.value} (480x854)`,
+        width: 480,
+        height: 854,
+    },
+    {
+        key: "square-1080",
+        label: `${presetSquare.value}1080 (1080x1080)`,
+        width: 1080,
+        height: 1080,
+    },
+    {
+        key: "square-720",
+        label: `${presetSquare.value}720 (720x720)`,
+        width: 720,
+        height: 720,
+    },
+    {
+        key: "square-480",
+        label: `${presetSquare.value}480 (480x480)`,
+        width: 480,
+        height: 480,
+    },
+]);
 
 const selectedPreset = ref<string>("");
 
 const updatePreset = () => {
-    const preset = sizePresets.find(
+    const preset = sizePresets.value.find(
         (p) =>
             p.width === formData.value.targetWidth &&
             p.height === formData.value.targetHeight,
     );
-    selectedPreset.value = preset ? preset.label : "";
+    selectedPreset.value = preset ? preset.key : "";
 };
 
 const onPresetChange = (value: string) => {
-    const preset = sizePresets.find((p) => p.label === value);
+    const preset = sizePresets.value.find((p) => p.key === value);
     if (preset) {
         formData.value.targetWidth = preset.width;
         formData.value.targetHeight = preset.height;
@@ -123,8 +166,8 @@ defineExpose({
             >
                 <a-option
                     v-for="preset in sizePresets"
-                    :key="preset.label"
-                    :value="preset.label"
+                    :key="preset.key"
+                    :value="preset.key"
                 >
                     {{ preset.label }}
                 </a-option>

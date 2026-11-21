@@ -10,6 +10,9 @@ const props = defineProps<{
     record: TaskRecord;
     name?: string;
     title?: string;
+    // Allow downloading an intermediate result even when the task itself failed,
+    // e.g. the sound of a multi-step flow whose later step did not finish.
+    allowPartial?: boolean;
 }>();
 
 const canDownload = computed(() => {
@@ -17,7 +20,7 @@ const canDownload = computed(() => {
         return false;
     }
     return (
-        props.record.status === "success" &&
+        (props.record.status === "success" || props.allowPartial) &&
         props.record.result[props.name || "url"]
     );
 });

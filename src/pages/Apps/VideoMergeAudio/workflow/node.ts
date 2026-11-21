@@ -12,8 +12,8 @@ import { VideoMergeAudioRun } from "../task";
 
 export default <NodeFunctionCall>{
     name: "VideoMergeAudio",
-    title: "视频添加音频",
-    description: "将音频文件合并到视频中",
+    title: t("workflow.videoMergeAudioTitle"),
+    description: t("workflow.videoMergeAudioDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoMergeAudioNode.vue")),
     inputFields: [

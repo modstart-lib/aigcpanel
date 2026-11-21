@@ -12,8 +12,8 @@ import { VideoSizeConvertRun } from "../task";
 
 export default <NodeFunctionCall>{
     name: "VideoSizeConvert",
-    title: "视频尺寸转换",
-    description: "转换视频的尺寸",
+    title: t("workflow.videoSizeConvertTitle"),
+    description: t("workflow.videoSizeConvertDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoSizeConvertNode.vue")),
     inputFields: [

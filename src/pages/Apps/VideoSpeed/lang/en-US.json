@@ -3,5 +3,15 @@
     "common.speedValue": "Speed {speed}x",
     "common.playbackSpeed": "Playback Speed",
     "common.customSpeed": "Custom Speed",
-    "error.validPlaybackSpeed": "Please set a valid playback speed"
+    "error.validPlaybackSpeed": "Please set a valid playback speed",
+    "app.videoSpeedTitle": "Global Speed Change",
+    "app.videoSpeedDesc": "Adjust the video playback speed with speed-up, slow-down and speed nodes",
+    "app.videoSpeedStepSelectVideo": "Select Video",
+    "app.videoSpeedStepSelectVideoDesc": "Select the video file to change speed",
+    "app.videoSpeedStepSetSpeed": "Set Speed",
+    "app.videoSpeedStepSetSpeedDesc": "Set the playback speed multiplier or add speed nodes",
+    "app.videoSpeedStepGenerateVideo": "Generate Video",
+    "app.videoSpeedStepGenerateVideoDesc": "Use FFmpeg to process the video and generate the speed effect",
+    "workflow.videoSpeedTitle": "Global Speed Change",
+    "workflow.videoSpeedDesc": "Change the playback speed of the video"
 }

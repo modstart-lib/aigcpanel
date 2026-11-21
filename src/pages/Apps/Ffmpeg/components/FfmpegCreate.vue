@@ -68,9 +68,9 @@ const doSubmit = async () => {
     <div class="rounded-xl shadow border p-4">
         <div v-for="i in [1, 2, 3, 4, 5]" class="mb-4 flex items-start">
             <div class="pt-1 w-20">
-                <a-tooltip :content="'输入文件' + i" mini>
+                <a-tooltip :content="t('app.inputFileTooltip', { i })" mini>
                     <icon-video-camera />
-                    输入{{ i }}
+                    {{ t("app.inputFileLabel", { i }) }}
                 </a-tooltip>
             </div>
             <div class="flex items-center gap-2">
@@ -84,7 +84,7 @@ const doSubmit = async () => {
         <div class="flex">
             <a-button class="mr-2" type="primary" @click="doSubmit">
                 <icon-send class="mr-2" />
-                {{ "提交任务" }}
+                {{ $t("common.submitTask") }}
             </a-button>
         </div>
     </div>

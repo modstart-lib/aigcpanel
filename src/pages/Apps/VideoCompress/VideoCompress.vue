@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -43,8 +44,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频压缩"
-            desc="对视频进行压缩处理，调整编码、分辨率和压缩程度"
+            :title="t('app.videoCompressTitle')"
+            :desc="t('app.videoCompressDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -55,18 +56,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择文件',
-                    description: '选择需要压缩的视频文件',
+                    label: t('app.stepSelectFile'),
+                    description: t('app.stepSelectFileDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置压缩参数',
-                    description: '选择编码、分辨率和压缩程度',
+                    label: t('app.stepSetCompressParams'),
+                    description: t('app.stepSetCompressParamsDesc'),
                 },
                 {
                     key: 3,
-                    label: '处理文件',
-                    description: '使用FFmpeg进行视频压缩处理',
+                    label: t('app.stepProcessFile'),
+                    description: t('app.stepProcessFileDesc'),
                 },
             ]"
         />
@@ -82,7 +83,7 @@ const doRefresh = async () => {
                     :indeterminate="isIndeterminate"
                     @change="onCheckAll"
                 >
-                    全选
+                    {{ $t("common.selectAll") }}
                 </a-checkbox>
                 <TaskBatchDeleteAction
                     :records="checkRecords"

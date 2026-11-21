@@ -48,6 +48,10 @@ export const functionArgsMap: Record<string, string[]> = {
     asr: ["audio"],
     textToImage: ["prompt"],
     imageToImage: ["image", "prompt"],
+    textToVideo: ["prompt"],
+    imageToVideo: ["images", "prompt"],
+    comfyui: ["comfyuiName", "param"],
+    general: ["generalName", "param"],
     live: [],
 };
 
@@ -58,4 +62,8 @@ export const functionBizMap: Record<string, string> = {
     asr: "SoundAsr",
     textToImage: "TextToImage",
     imageToImage: "ImageToImage",
+    textToVideo: "TextToVideo",
+    imageToVideo: "ImageToVideo",
+    comfyui: "GeneralComfyUI",
+    general: "GeneralModel",
 };

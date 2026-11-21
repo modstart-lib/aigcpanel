@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { t } from "../../lang";
+import { testActionSet, testActionUnset } from "../../utils/test";
+import MarkdownDocViewer from "../common/MarkdownDocViewer.vue";
+import cliDocContent from "../../docs/cli-doc.md?raw";
 
 const platform = window.$mapi.app.platformName() as "win" | "osx" | "linux";
 
@@ -13,143 +16,136 @@ const installMsg = ref("");
 const isInstalled = ref(false);
 const docVisible = ref(false);
 
-const cliTaskDocs: Array<{ biz: string; title: string; example: string }> = [
+const cliToolsDocs: Array<{ biz: string; title: string; example: string }> = [
     {
         biz: "SoundGenerate",
         title: "语音合成",
-        example: 'aigcpanel task --biz SoundGenerate --text "你好世界"',
+        example: `aigcpanel tools --name SoundGenerate --param '{"text":"你好世界"}'`,
     },
     {
         biz: "SoundAsr",
         title: "语音识别",
-        example: "aigcpanel task --biz SoundAsr --file /path/to/audio.wav",
+        example: `aigcpanel tools --name SoundAsr --param '{"file":"/path/to/audio.wav"}'`,
     },
     {
         biz: "VideoGen",
         title: "数字人合成",
-        example: 'aigcpanel task --biz VideoGen --text "欢迎使用"',
+        example: `aigcpanel tools --name VideoGen --param '{"text":"欢迎使用"}'`,
     },
     {
         biz: "VideoGenFlow",
         title: "视频生成流",
-        example: 'aigcpanel task --biz VideoGenFlow --text "欢迎使用"',
+        example: `aigcpanel tools --name VideoGenFlow --param '{"text":"欢迎使用"}'`,
     },
     {
         biz: "LongTextTts",
         title: "长文本转音频",
-        example:
-            'aigcpanel task --biz LongTextTts --text "这是一段较长的文本内容"',
+        example: `aigcpanel tools --name LongTextTts --param '{"text":"这是一段较长的文本内容"}'`,
     },
     {
         biz: "SubtitleTts",
         title: "字幕转音频",
-        example:
-            "aigcpanel task --biz SubtitleTts --file /path/to/subtitle.srt",
+        example: `aigcpanel tools --name SubtitleTts --param '{"file":"/path/to/subtitle.srt"}'`,
     },
     {
         biz: "SoundReplace",
         title: "声音替换",
-        example: "aigcpanel task --biz SoundReplace --file /path/to/video.mp4",
+        example: `aigcpanel tools --name SoundReplace --param '{"file":"/path/to/video.mp4"}'`,
     },
     {
         biz: "TextToImage",
         title: "文生图",
-        example: 'aigcpanel task --biz TextToImage --prompt "美丽的山水风景"',
+        example: `aigcpanel tools --name TextToImage --param '{"prompt":"美丽的山水风景"}'`,
     },
     {
         biz: "ImageToImage",
         title: "图生图",
-        example:
-            'aigcpanel task --biz ImageToImage --file /path/to/image.png --prompt "油画风格"',
+        example: `aigcpanel tools --name ImageToImage --param '{"file":"/path/to/image.png","prompt":"油画风格"}'`,
     },
     {
         biz: "AudioNormal",
         title: "声音归一化",
-        example: "aigcpanel task --biz AudioNormal --file /path/to/audio.wav",
+        example: `aigcpanel tools --name AudioNormal --param '{"file":"/path/to/audio.wav"}'`,
     },
     {
         biz: "Ffmpeg",
         title: "Ffmpeg处理",
-        example: "aigcpanel task --biz Ffmpeg --file /path/to/input.mp4",
+        example: `aigcpanel tools --name Ffmpeg --param '{"file":"/path/to/input.mp4"}'`,
     },
     {
         biz: "MediaFormatConvert",
         title: "媒体格式转换",
-        example:
-            "aigcpanel task --biz MediaFormatConvert --file /path/to/video.mp4 --targetFormat mp4",
+        example: `aigcpanel tools --name MediaFormatConvert --param '{"file":"/path/to/video.mp4","targetFormat":"mp4"}'`,
     },
     {
         biz: "VideoBackground",
         title: "视频背景",
-        example:
-            "aigcpanel task --biz VideoBackground --file /path/to/video.mp4 --image /path/to/bg.png",
+        example: `aigcpanel tools --name VideoBackground --param '{"file":"/path/to/video.mp4","image":"/path/to/bg.png"}'`,
+    },
+    {
+        biz: "VideoBackgroundReplace",
+        title: "更换视频背景",
+        example: `aigcpanel tools --name VideoBackgroundReplace --param '{"video":"/path/to/green.mp4","image":"/path/to/bg.png","keyColor":"#00FF00","similarity":0.3,"blend":0.1}'`,
     },
     {
         biz: "VideoCompress",
         title: "视频压缩",
-        example: "aigcpanel task --biz VideoCompress --file /path/to/video.mp4",
+        example: `aigcpanel tools --name VideoCompress --param '{"file":"/path/to/video.mp4"}'`,
     },
     {
         biz: "VideoKeepPart",
         title: "视频片段删除/保留",
-        example: "aigcpanel task --biz VideoKeepPart --file /path/to/video.mp4",
+        example: `aigcpanel tools --name VideoKeepPart --param '{"file":"/path/to/video.mp4"}'`,
     },
     {
         biz: "VideoMark",
         title: "视频标注",
-        example: "aigcpanel task --biz VideoMark --file /path/to/video.mp4",
+        example: `aigcpanel tools --name VideoMark --param '{"file":"/path/to/video.mp4"}'`,
     },
     {
         biz: "VideoMerge",
         title: "视频合并",
-        example:
-            "aigcpanel task --biz VideoMerge --file /path/to/video1.mp4 --file2 /path/to/video2.mp4",
+        example: `aigcpanel tools --name VideoMerge --param '{"file":"/path/to/video1.mp4","file2":"/path/to/video2.mp4"}'`,
     },
     {
         biz: "VideoMergeAudio",
         title: "视频添加音频",
-        example:
-            "aigcpanel task --biz VideoMergeAudio --file /path/to/video.mp4 --audio /path/to/audio.wav",
+        example: `aigcpanel tools --name VideoMergeAudio --param '{"file":"/path/to/video.mp4","audio":"/path/to/audio.wav"}'`,
     },
     {
         biz: "VideoMergeImage",
         title: "片头片尾图片",
-        example:
-            "aigcpanel task --biz VideoMergeImage --file /path/to/video.mp4 --image /path/to/image.png",
+        example: `aigcpanel tools --name VideoMergeImage --param '{"file":"/path/to/video.mp4","image":"/path/to/image.png"}'`,
     },
     {
         biz: "VideoQuickCut",
         title: "快速剪辑",
-        example: "aigcpanel task --biz VideoQuickCut --file /path/to/video.mp4",
+        example: `aigcpanel tools --name VideoQuickCut --param '{"file":"/path/to/video.mp4"}'`,
     },
     {
         biz: "VideoSizeConvert",
         title: "视频尺寸转换",
-        example:
-            "aigcpanel task --biz VideoSizeConvert --file /path/to/video.mp4 --targetWidth 1280 --targetHeight 720",
+        example: `aigcpanel tools --name VideoSizeConvert --param '{"file":"/path/to/video.mp4","targetWidth":1280,"targetHeight":720}'`,
     },
     {
         biz: "VideoSpeed",
         title: "视频变速",
-        example:
-            "aigcpanel task --biz VideoSpeed --file /path/to/video.mp4 --speed 1.5",
+        example: `aigcpanel tools --name VideoSpeed --param '{"file":"/path/to/video.mp4","speed":1.5}'`,
     },
     {
         biz: "VideoSpeedPart",
         title: "视频片段变速",
-        example:
-            "aigcpanel task --biz VideoSpeedPart --file /path/to/video.mp4",
+        example: `aigcpanel tools --name VideoSpeedPart --param '{"file":"/path/to/video.mp4"}'`,
     },
     {
         biz: "VideoSubtitle",
         title: "视频添加字幕",
-        example:
-            "aigcpanel task --biz VideoSubtitle --file /path/to/video.mp4 --subtitle /path/to/subtitle.srt",
+        example: `aigcpanel tools --name VideoSubtitle --param '{"file":"/path/to/video.mp4","subtitle":"/path/to/subtitle.srt"}'`,
     },
     {
         biz: "VideoZoom",
         title: "视频片段放大",
-        example: "aigcpanel task --biz VideoZoom --file /path/to/video.mp4",
+        example: `aigcpanel tools --name VideoZoom --param '{"file":"/path/to/video.mp4"}'`,
     },
 ];
 
@@ -162,6 +158,16 @@ onMounted(async () => {
         cliBinPath.value =
             await window.$mapi.app.resourcePathResolve("bin/aigcpanel.exe");
     }
+    testActionSet("Setting.setCliPathDemo", (arg?: any) => {
+        const home = arg?.home || "/Users/demo";
+        cliBinPath.value =
+            platform === "win"
+                ? `C:\\demo\\aigcpanel\\resources\\bin\\aigcpanel.exe`
+                : `${home}/aigcpanel/resources/bin/aigcpanel`;
+    });
+});
+onBeforeUnmount(() => {
+    testActionUnset("Setting.setCliPathDemo");
 });
 
 async function checkInstalled() {
@@ -232,19 +238,20 @@ const doInstall = async () => {
                         <div class="mt-2 text-gray-400">
                             # 查看已安装模型列表
                         </div>
-                        <div>aigcpanel model_list</div>
+                        <div>aigcpanel serverList</div>
                         <div class="mt-2 text-gray-400">
-                            # 提交任务（以视频压缩为例）
+                            # 调用工具（以视频压缩为例）
                         </div>
                         <div>
-                            aigcpanel task --biz VideoCompress --file
-                            /path/to/video.mp4
+                            aigcpanel tools --name VideoCompress --param
+                            '{"file":"/path/to/video.mp4"}'
                         </div>
                         <div class="mt-2 text-gray-400">
-                            # 提交任务（以语音合成为例）
+                            # 调用工具（以语音合成为例）
                         </div>
                         <div>
-                            aigcpanel task --biz SoundGenerate --text "你好"
+                            aigcpanel tools --name SoundGenerate --param
+                            '{"text":"你好"}'
                         </div>
                     </div>
                     <div class="mt-3 text-sm text-gray-500">
@@ -336,19 +343,20 @@ const doInstall = async () => {
                         <div class="mt-2 text-gray-400">
                             :: 查看已安装模型列表
                         </div>
-                        <div>aigcpanel model_list</div>
+                        <div>aigcpanel serverList</div>
                         <div class="mt-2 text-gray-400">
-                            :: 提交任务（以视频压缩为例）
+                            :: 调用工具（以视频压缩为例）
                         </div>
                         <div>
-                            aigcpanel task --biz VideoCompress --file
-                            C:\path\to\video.mp4
+                            aigcpanel tools --name VideoCompress --param
+                            '{"file":"C:\\path\\to\\video.mp4"}'
                         </div>
                         <div class="mt-2 text-gray-400">
-                            :: 提交任务（以语音合成为例）
+                            :: 调用工具（以语音合成为例）
                         </div>
                         <div>
-                            aigcpanel task --biz SoundGenerate --text "你好"
+                            aigcpanel tools --name SoundGenerate --param
+                            '{"text":"你好"}'
                         </div>
                     </div>
                     <div class="mt-3 text-sm text-gray-500">
@@ -367,177 +375,17 @@ const doInstall = async () => {
         <!-- 完整文档弹窗 -->
         <a-modal
             v-model:visible="docVisible"
-            :width="'min(800px, 90vw)'"
+            :width="'min(900px, 92vw)'"
             :footer="false"
             title-align="start"
+            modal-class="modal-independent-scroll"
+            :body-style="{ padding: '0', height: 'calc(100vh - 12rem)' }"
+            :modal-style="{ 'max-height': 'calc(100vh - 4rem)' }"
         >
             <template #title
                 ><div class="font-bold">CLI 工具完整文档</div></template
             >
-            <div
-                class="p-4 space-y-6 text-sm overflow-y-auto"
-                style="max-height: calc(100vh - 15rem)"
-            >
-                <div>
-                    <div class="font-bold text-base mb-2">命令列表</div>
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 dark:bg-gray-800">
-                                <th
-                                    class="text-left p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    命令
-                                </th>
-                                <th
-                                    class="text-left p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    说明
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700 font-mono"
-                                >
-                                    version
-                                </td>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    查看 CLI 版本号
-                                </td>
-                            </tr>
-                            <tr>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700 font-mono"
-                                >
-                                    model_list
-                                </td>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    列出已安装的 AI 模型
-                                </td>
-                            </tr>
-                            <tr>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700 font-mono"
-                                >
-                                    task
-                                </td>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    提交任务并等待结果
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div>
-                    <div class="font-bold text-base mb-2">task 命令参数</div>
-                    <div
-                        class="bg-gray-100 dark:bg-gray-800 rounded p-3 font-mono mb-2"
-                    >
-                        aigcpanel task --biz &lt;任务类型&gt; [--key value ...]
-                    </div>
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 dark:bg-gray-800">
-                                <th
-                                    class="text-left p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    参数
-                                </th>
-                                <th
-                                    class="text-left p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    说明
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700 font-mono"
-                                >
-                                    --biz
-                                </td>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    必填，任务类型名称
-                                </td>
-                            </tr>
-                            <tr>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700 font-mono"
-                                >
-                                    --key value
-                                </td>
-                                <td
-                                    class="p-2 border border-gray-200 dark:border-gray-700"
-                                >
-                                    任务参数，作为 modelConfig 传入
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div>
-                    <div class="font-bold text-base mb-2">使用示例</div>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="text-gray-500 mb-1">查看版本</div>
-                            <div
-                                class="bg-gray-100 dark:bg-gray-800 rounded p-2 font-mono"
-                            >
-                                aigcpanel version
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-gray-500 mb-1">查看模型列表</div>
-                            <div
-                                class="bg-gray-100 dark:bg-gray-800 rounded p-2 font-mono"
-                            >
-                                aigcpanel model_list
-                            </div>
-                        </div>
-                        <div v-for="doc in cliTaskDocs" :key="doc.biz">
-                            <div class="text-gray-500 mb-1">
-                                {{ doc.title }}（{{ doc.biz }}）
-                            </div>
-                            <div
-                                class="bg-gray-100 dark:bg-gray-800 rounded p-2 font-mono break-all"
-                            >
-                                {{ doc.example }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div class="font-bold text-base mb-2">认证配置</div>
-                    <div class="text-gray-500">
-                        CLI 工具通过读取本地配置文件与 AigcPanel
-                        服务通信，配置文件在启动 AigcPanel 后自动生成：
-                    </div>
-                    <div
-                        class="bg-gray-100 dark:bg-gray-800 rounded p-2 font-mono mt-2"
-                    >
-                        <template v-if="platform === 'osx'"
-                            >~/Library/Application
-                            Support/aigcpanel/cli-auth.json</template
-                        >
-                        <template v-else-if="platform === 'linux'"
-                            >~/.config/aigcpanel/cli-auth.json</template
-                        >
-                        <template v-else
-                            >%APPDATA%\aigcpanel\cli-auth.json</template
-                        >
-                    </div>
-                </div>
-            </div>
+            <MarkdownDocViewer :content="cliDocContent" />
         </a-modal>
     </div>
 </template>

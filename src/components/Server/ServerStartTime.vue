@@ -22,6 +22,20 @@ onBeforeUnmount(() => {
 
 const startTime = computed(() => {
     const record = props.record;
+    // 自启动模型（如 ComfyUI）record.status 恒为 RUNNING 且会随任务被反复拉起/空闲退出，
+    // 只有 autoStartStatus 为 RUNNING（服务真正被任务拉起使用中）时才显示启动时间，
+    // 否则（空闲/已退出）继续显示读秒无意义。
+    if (record.autoStart) {
+        if (
+            record.runtime?.autoStartStatus !== EnumServerStatus.RUNNING ||
+            !record.runtime?.startTimestampMS
+        ) {
+            return null;
+        }
+        const time = nowMS.value - record.runtime.startTimestampMS;
+        return TimeUtil.secondsToTime(time / 1000);
+    }
+    // 手动启动模型：状态由启停事件驱动，仅在启动中/运行中且记录到启动时间时显示
     if (
         record.status === EnumServerStatus.STARTING ||
         record.status === EnumServerStatus.RUNNING

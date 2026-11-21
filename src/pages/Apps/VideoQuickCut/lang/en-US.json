@@ -22,5 +22,17 @@
     "msg.continueEditVideo": "Task resumed, starting video editing",
     "msg.confirmSegments": "Confirm {count} segments, continue editing video?",
     "msg.playedLastSelected": "Played to the last selected segment",
-    "msg.taskNotCompleteConfirmSegments": "Task incomplete, manual segment confirmation required"
+    "msg.taskNotCompleteConfirmSegments": "Task incomplete, manual segment confirmation required",
+    "app.videoQuickCutTitle": "Quick Editing",
+    "app.videoQuickCutDesc": "Quickly edit videos via speech recognition, including or removing content segments",
+    "app.videoQuickCutStepSelectVideo": "Select Video",
+    "app.videoQuickCutStepSelectVideoDesc": "Select the video file to quickly edit",
+    "app.videoQuickCutStepSpeechRecognition": "Speech Recognition",
+    "app.videoQuickCutStepSpeechRecognitionDesc": "Recognize speech in the video and generate subtitle content",
+    "app.videoQuickCutStepConfirmEdit": "Confirm Editing",
+    "app.videoQuickCutStepConfirmEditDesc": "Confirm the segments to include or remove based on the recognition result",
+    "app.videoQuickCutStepGenerateVideo": "Generate Video",
+    "app.videoQuickCutStepGenerateVideoDesc": "Merge and generate a new video file based on the editing config",
+    "workflow.videoQuickCutTitle": "Quick Editing",
+    "workflow.videoQuickCutDesc": "Quickly edit videos"
 }

@@ -28,13 +28,17 @@
     //--color-bg-page-nav: #2A3A5D;
     --color-bg-page-nav: #FFFFFF;
     //--color-bg-page-nav-active: #5154E0;
-    --color-bg-page-nav-active: #FFFFFF;
+    --color-bg-page-nav-active: #E1EAFF;
     //--color-text-page-nav: #FFFFFF;
     --color-text-page-nav: #000000;
     //--color-text-page-nav-active: #EEEEEE;
     --color-text-page-nav-active: #265BD7;
     //--color-border-page-nav: #2A3A5D;
     --color-border-page-nav: #EEEEEE;
+
+    // 二级菜单选中态（品牌浅蓝底 + 品牌蓝字）
+    --color-bg-menu-active: #E1EAFF;
+    --color-text-menu-active: #265BD7;
 
     --color-background: #F8F8F8;
     --color-text: #111111;
@@ -60,6 +64,9 @@ body[data-theme="dark"] {
     --color-text-page-nav: #CCCCCC;
     --color-bg-page-nav: #17171A;
     --color-bg-page-nav-active: #2d3443;
+    --color-text-page-nav-active: #9DBEFF;
+    --color-bg-menu-active: #2d3443;
+    --color-text-menu-active: #9DBEFF;
 }
 
 html {
@@ -161,8 +168,27 @@ body[data-theme="dark"] {
 /////////// global start ///////////
 
 .text-link {
-    color: #007bff;
+    color: var(--color-primary);
     cursor: pointer;
+}
+
+// 二级菜单选中态（Video/Live/Tool/Setting/PageSetup 统一使用）
+.menu-item-active {
+    background-color: var(--color-bg-menu-active);
+    color: var(--color-text-menu-active);
+}
+
+// 浅色主题下提升辅助灰字对比度（text-gray-400 在浅底约 2.5:1 → #6b7280 约 4.8:1）
+// 暗色主题保持不变（Tailwind gray-400 在深底约 7:1）
+body:not([data-theme="dark"]) {
+    .text-gray-400 {
+        color: #6b7280;
+    }
+
+    .arco-input-wrapper .arco-input::placeholder,
+    .arco-textarea::placeholder {
+        color: #6b7280;
+    }
 }
 
 .hover\:text-primary {
@@ -199,6 +225,26 @@ body[data-theme="dark"] {
 
 
 /////////// arco start ///////////
+// 弹窗由内容撑高，超出视口时滚动整个弹窗，并在首尾留出空白。
+.arco-modal-wrapper:not(:has(.arco-modal-fullscreen)):not(:has(.modal-independent-scroll)) {
+    box-sizing: border-box;
+    padding-bottom: 48px;
+
+    &.arco-modal-wrapper-align-center::after {
+        display: none;
+    }
+
+    .arco-modal:not(.arco-modal-fullscreen) {
+        top: 48px !important;
+        vertical-align: top;
+        margin-bottom: 48px;
+    }
+
+    .arco-modal-body {
+        overflow: visible;
+    }
+}
+
 .arco-btn, .arco-input-wrapper, .arco-textarea-wrapper, .arco-input-tag, .arco-radio-group-button, .arco-alert {
     border-radius: 0.5rem;
 }
@@ -251,5 +297,14 @@ body[data-theme="dark"] {
     }
 }
 
-/////////// arco end ///////////
+// 禁用按钮统一「浅灰底 + 中灰字」，避免 Arco 默认 text-4 过淡不可辨
+.arco-btn.arco-btn-disabled,
+.arco-btn.arco-btn-disabled:hover,
+.arco-btn.arco-btn-disabled:focus,
+.arco-btn.arco-btn-disabled:active {
+    color: var(--color-text-3) !important;
+    background-color: var(--color-fill-2) !important;
+    border-color: transparent !important;
+}
 
+/////////// arco end ///////////

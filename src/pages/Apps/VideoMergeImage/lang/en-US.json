@@ -17,5 +17,15 @@
     "error.selectImageFile": "Please select an image",
     "error.inputImageParam2": "Please enter image parameter",
     "error.inputImagePositionDuration": "Please enter image position and duration",
-    "error.videoInfo": "Unable to get video information"
+    "error.videoInfo": "Unable to get video information",
+    "app.videoMergeImageTitle": "Intro/Outro Images",
+    "app.videoMergeImageDesc": "Merge images at the beginning or end of the video, with configurable display duration",
+    "app.videoMergeImageStepSelectVideoAndImage": "Select Video and Image",
+    "app.videoMergeImageStepSelectVideoAndImageDesc": "Select the video file and image file to merge",
+    "app.videoMergeImageStepSetMergeParams": "Set Merge Parameters",
+    "app.videoMergeImageStepSetMergeParamsDesc": "Set the intro/outro images and display duration",
+    "app.videoMergeImageStepGenerateVideo": "Generate Video",
+    "app.videoMergeImageStepGenerateVideoDesc": "Use FFmpeg to process the video and generate the merged result",
+    "workflow.videoMergeImageTitle": "Intro/Outro Images",
+    "workflow.videoMergeImageDesc": "Add intro and outro images to the video"
 }

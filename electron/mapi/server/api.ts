@@ -252,10 +252,35 @@ const requestEventSource = async (
     }
 };
 
+// 透传环境变量：外部调用方（如 CLI）通过请求 env 字段传入的 AIGCPANEL_* 变量，
+// launcher 启动服务时合并到服务进程环境（如 AIGCPANEL_SKIP_LONG 测试开关）
+let extraEnv: Record<string, string> = {};
+
+const setExtraEnv = (env: Record<string, string>) => {
+    if (!env || typeof env !== "object") {
+        return;
+    }
+    // 仅保留 AIGCPANEL_ 前缀（安全：避免外部请求注入任意环境变量）
+    const filtered: Record<string, string> = {};
+    for (const k in env) {
+        const v = env[k];
+        if (k.startsWith("AIGCPANEL_") && v !== undefined && v !== null) {
+            filtered[k] = String(v);
+        }
+    }
+    extraEnv = filtered;
+};
+
 const env = async () => {
     const result = {};
     result["AIGCPANEL_SERVER_API_TOKEN"] = await User.getApiToken();
     result["AIGCPANEL_SERVER_UUID"] = platformUUID();
+    // 合并透传的 AIGCPANEL_* 环境变量（不覆盖服务端固定变量）
+    for (const k in extraEnv) {
+        if (!(k in result)) {
+            result[k] = extraEnv[k];
+        }
+    }
     return result;
 };
 
@@ -398,6 +423,39 @@ const extractResultFromLogs = (dataId: string, logs: string) => {
     return result;
 };
 
+// 离线授权标记：启动器授权失败时输出 AigcPanelOfflineAuth[<base64 JSON>]，
+// 客户端据此弹出「请输入离线授权码」弹窗（见 aigcpanel-server-launcher
+// server/common/offline_auth.go）。
+const OFFLINE_AUTH_MARKER = "AigcPanelOfflineAuth[";
+
+const extractOfflineAuthRequired = (logs: string) => {
+    let result: {
+        machineId?: string;
+        packageName?: string;
+        version?: string;
+        reason?: string;
+    } | null = null;
+    logs.split("\n").forEach((line) => {
+        const index = line.indexOf(OFFLINE_AUTH_MARKER);
+        if (index === -1) {
+            return;
+        }
+        const start = index + OFFLINE_AUTH_MARKER.length;
+        const end = line.indexOf("]", start);
+        if (end === -1) {
+            return;
+        }
+        try {
+            result = JSON.parse(
+                EncodeUtil.base64Decode(line.substring(start, end)),
+            );
+        } catch (e) {
+            // 标记行不完整（被 stdout 分片截断）时忽略，等待后续数据
+        }
+    });
+    return result;
+};
+
 const availablePort = async (
     port: number,
     setting: {
@@ -451,6 +509,7 @@ export default {
     platformName: platformName(),
     platformArch: platformArch(),
     env,
+    setExtraEnv,
     sleep,
     base64Encode: EncodeUtil.base64Encode,
     base64Decode: EncodeUtil.base64Decode,
@@ -459,6 +518,7 @@ export default {
     launcherPrepareConfigJson,
     launcherSubmitConfigJsonAndQuery,
     extractResultFromLogs,
+    extractOfflineAuthRequired,
     availablePort,
     getPathEnv,
 };

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="wsTitle wsDesc">
+  <title id="wsTitle">五个工作区共用一层 AI 模型</title>
+  <desc id="wsDesc">上排是数字人合成、语音处理、工具箱、智能直播、可视化工作流五个工作区；下面一层是 AI 模型，可以是本地启动包、云端模型或远程 API，五个工作区都从这一层取模型。</desc>
+
+  <defs>
+    <marker id="wsArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 Z" fill="#B9C6E2"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="390" rx="26" fill="#ECF0F7"/>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif">
+
+    <!-- workspace tiles -->
+    <g>
+      <!-- 数字人合成 -->
+      <rect x="48" y="44" width="208" height="140" rx="14" fill="#FFFFFF" stroke="#E3E9F4"/>
+      <rect x="68" y="64" width="36" height="36" rx="10" fill="#E4EBFB"/>
+      <circle cx="86" cy="79" r="4.5" fill="#265BD7"/>
+      <path d="M 78 92 A 8 8 0 0 1 94 92" fill="none" stroke="#265BD7" stroke-width="2" stroke-linecap="round"/>
+      <text x="68" y="140" font-size="21" font-weight="600" fill="#101828">数字人合成</text>
+      <text x="68" y="166" font-size="16" fill="#6B7489">形象换口型</text>
+
+      <!-- 语音处理 -->
+      <rect x="272" y="44" width="208" height="140" rx="14" fill="#FFFFFF" stroke="#E3E9F4"/>
+      <rect x="292" y="64" width="36" height="36" rx="10" fill="#E9E9FD"/>
+      <rect x="303" y="76" width="3" height="10" rx="1.5" fill="#6366F1"/>
+      <rect x="310" y="72" width="3" height="18" rx="1.5" fill="#6366F1"/>
+      <rect x="317" y="79" width="3" height="8" rx="1.5" fill="#6366F1"/>
+      <text x="292" y="140" font-size="21" font-weight="600" fill="#101828">语音处理</text>
+      <text x="292" y="166" font-size="16" fill="#6B7489">合成 · 复刻 · 识别</text>
+
+      <!-- 工具箱 -->
+      <rect x="496" y="44" width="208" height="140" rx="14" fill="#FFFFFF" stroke="#E3E9F4"/>
+      <rect x="516" y="64" width="36" height="36" rx="10" fill="#FDF1DC"/>
+      <rect x="527" y="75" width="6" height="6" rx="2" fill="#F59E0B"/>
+      <rect x="536" y="75" width="6" height="6" rx="2" fill="#F59E0B"/>
+      <rect x="527" y="84" width="6" height="6" rx="2" fill="#F59E0B"/>
+      <rect x="536" y="84" width="6" height="6" rx="2" fill="#F59E0B"/>
+      <text x="516" y="140" font-size="21" font-weight="600" fill="#101828">工具箱</text>
+      <text x="516" y="166" font-size="16" fill="#6B7489">27 个音视频工具</text>
+
+      <!-- 智能直播 -->
+      <rect x="720" y="44" width="208" height="140" rx="14" fill="#FFFFFF" stroke="#E3E9F4"/>
+      <rect x="740" y="64" width="36" height="36" rx="10" fill="#FDE7E5"/>
+      <circle cx="758" cy="82" r="3" fill="#E23D33"/>
+      <path d="M 751 76 A 9 9 0 0 0 751 88" fill="none" stroke="#E23D33" stroke-width="2" stroke-linecap="round"/>
+      <path d="M 765 76 A 9 9 0 0 1 765 88" fill="none" stroke="#E23D33" stroke-width="2" stroke-linecap="round"/>
+      <text x="740" y="140" font-size="21" font-weight="600" fill="#101828">智能直播</text>
+      <text x="740" y="166" font-size="16" fill="#6B7489">弹幕驱动播报</text>
+
+      <!-- 可视化工作流 -->
+      <rect x="944" y="44" width="208" height="140" rx="14" fill="#FFFFFF" stroke="#E3E9F4"/>
+      <rect x="964" y="64" width="36" height="36" rx="10" fill="#EDE8FE"/>
+      <circle cx="974" cy="78" r="3" fill="#7C5CFF"/>
+      <circle cx="990" cy="78" r="3" fill="#7C5CFF"/>
+      <circle cx="982" cy="90" r="3" fill="#7C5CFF"/>
+      <path d="M 977 78 L 987 78 M 976 80 L 981 87 M 988 80 L 983 87" fill="none" stroke="#7C5CFF" stroke-width="1.6"/>
+      <text x="964" y="140" font-size="21" font-weight="600" fill="#101828">可视化工作流</text>
+      <text x="964" y="166" font-size="16" fill="#6B7489">节点串联全流程</text>
+    </g>
+
+    <!-- connectors from the model layer up into each workspace -->
+    <g fill="none" stroke="#B9C6E2" stroke-width="2">
+      <path d="M 152 226 L 152 192" marker-end="url(#wsArrow)"/>
+      <path d="M 376 226 L 376 192" marker-end="url(#wsArrow)"/>
+      <path d="M 600 226 L 600 192" marker-end="url(#wsArrow)"/>
+      <path d="M 824 226 L 824 192" marker-end="url(#wsArrow)"/>
+      <path d="M 1048 226 L 1048 192" marker-end="url(#wsArrow)"/>
+    </g>
+
+    <!-- model layer -->
+    <rect x="48" y="228" width="1104" height="112" rx="16" fill="#FFFFFF" stroke="#E1E7F2"/>
+    <text x="76" y="284" font-size="22" font-weight="700" fill="#101828">AI 模型</text>
+    <text x="76" y="310" font-size="16" fill="#6B7489">装一次，五个工作区共用</text>
+
+    <g>
+      <circle cx="428" cy="278" r="5" fill="#265BD7"/>
+      <text x="444" y="283" font-size="18" font-weight="600" fill="#101828">本地启动包</text>
+      <text x="444" y="307" font-size="15" fill="#6B7489">权重可按需下载</text>
+
+      <circle cx="700" cy="278" r="5" fill="#12B76A"/>
+      <text x="716" y="283" font-size="18" font-weight="600" fill="#101828">云端模型</text>
+      <text x="716" y="307" font-size="15" fill="#6B7489">免显卡，选中即用</text>
+
+      <circle cx="960" cy="278" r="5" fill="#7C5CFF"/>
+      <text x="976" y="283" font-size="18" font-weight="600" fill="#101828">远程 API</text>
+      <text x="976" y="307" font-size="15" fill="#6B7489">接自己的服务</text>
+    </g>
+  </g>
+</svg>

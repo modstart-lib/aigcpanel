@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -46,8 +47,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="媒体格式转换"
-            desc="转换视频和音频格式，支持多种编码和格式"
+            :title="t('app.mediaFormatTitle')"
+            :desc="t('app.mediaFormatDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -58,18 +59,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择媒体',
-                    description: '选择需要进行格式转换的视频或音频文件',
+                    label: t('app.stepSelectMedia'),
+                    description: t('app.stepSelectMediaDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置格式',
-                    description: '选择目标格式和编码参数',
+                    label: t('app.stepSetFormat'),
+                    description: t('app.stepSetFormatDesc'),
                 },
                 {
                     key: 3,
-                    label: '转换媒体',
-                    description: '使用FFmpeg处理媒体，转换为指定格式',
+                    label: t('app.stepConvertMedia'),
+                    description: t('app.stepConvertMediaDesc'),
                 },
             ]"
         />
@@ -85,7 +86,7 @@ const doRefresh = async () => {
                     :indeterminate="isIndeterminate"
                     @change="onCheckAll"
                 >
-                    全选
+                    {{ $t("common.selectAll") }}
                 </a-checkbox>
                 <TaskBatchDeleteAction
                     :records="checkRecords"

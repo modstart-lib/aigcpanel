@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -46,8 +47,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频添加音频"
-            desc="将音频文件合并到视频中，支持音量调节"
+            :title="t('app.videoMergeAudioTitle')"
+            :desc="t('app.videoMergeAudioDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -58,18 +59,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择文件',
-                    description: '选择需要处理的视频文件和音频文件',
+                    label: t('app.videoMergeAudioStepSelectFile'),
+                    description: t('app.videoMergeAudioStepSelectFileDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置音量',
-                    description: '调整音频的音量大小',
+                    label: t('app.videoMergeAudioStepSetVolume'),
+                    description: t('app.videoMergeAudioStepSetVolumeDesc'),
                 },
                 {
                     key: 3,
-                    label: '合并处理',
-                    description: '使用FFmpeg将音频合并到视频中',
+                    label: t('app.videoMergeAudioStepMergeProcess'),
+                    description: t('app.videoMergeAudioStepMergeProcessDesc'),
                 },
             ]"
         />

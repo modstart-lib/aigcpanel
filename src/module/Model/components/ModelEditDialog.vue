@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useModelStore } from "../store/model";
-import { Model } from "../types";
+import {
+    Model,
+    ModelType,
+    modelTypeNormalize,
+    modelTypeOptions,
+} from "../types";
 
 const modelStore = useModelStore();
 const props = defineProps({
@@ -17,6 +22,7 @@ const data = ref({
     id: "",
     name: "",
     group: "",
+    type: "text" as ModelType,
     caps: {
         vision: false,
         tools: false,
@@ -26,11 +32,15 @@ const show = (model: Model) => {
     data.value.id = model.id;
     data.value.name = model.name;
     data.value.group = model.group;
+    data.value.type = modelTypeNormalize(model.type);
     data.value.caps = {
         vision: model.caps?.vision || false,
         tools: model.caps?.tools || false,
     };
     visible.value = true;
+};
+const fill = (param: Record<string, any>) => {
+    Object.assign(data.value, param);
 };
 const doSubmit = () => {
     if (!data.value.id) {
@@ -40,12 +50,15 @@ const doSubmit = () => {
         id: data.value.id,
         name: data.value.name,
         group: data.value.group,
+        type: data.value.type,
         caps: data.value.caps,
     });
     visible.value = false;
 };
 defineExpose({
     show,
+    fill,
+    doSubmit,
 });
 </script>
 
@@ -68,7 +81,7 @@ defineExpose({
                 $t("common.confirm")
             }}</a-button>
         </template>
-        <div style="max-height: 50vh" class="overflow-y-auto">
+        <div>
             <a-form :model="data" label-align="left" class="mt-4">
                 <a-form-item :label="$t('model.id')" name="title" required>
                     <a-input
@@ -89,6 +102,20 @@ defineExpose({
                         v-model:model-value="data.group"
                         :placeholder="$t('placeholder.chatgpt')"
                     />
+                </a-form-item>
+                <a-form-item :label="$t('model.type')" name="modelType">
+                    <a-radio-group
+                        v-model:model-value="data.type"
+                        type="button"
+                    >
+                        <a-radio
+                            v-for="o in modelTypeOptions()"
+                            :key="o.value"
+                            :value="o.value"
+                        >
+                            {{ o.title }}
+                        </a-radio>
+                    </a-radio-group>
                 </a-form-item>
                 <a-form-item :label="$t('model.capability')" name="caps">
                     <div class="flex gap-4">

@@ -11,9 +11,9 @@ const props = defineProps<{
         <a-tag class="rounded-lg">{{
             data.action
                 ? data.action === "keep"
-                    ? "保留选中片段"
-                    : "删除选中片段"
-                : "未配置"
+                    ? $t("app.keepSelectedSegments")
+                    : $t("app.removeSelectedSegments")
+                : $t("common.notConfigured")
         }}</a-tag>
     </div>
 </template>

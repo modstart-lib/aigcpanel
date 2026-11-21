@@ -104,20 +104,21 @@ const isSubmitting = ref(false);
 
 <template>
     <div class="rounded-xl shadow border p-4">
-        <div class="mb-4 flex items-start">
-            <div class="mr-1 pt-1">
-                <a-tooltip :content="$t('voice.file')" mini>
-                    <i-mdi-volume-high class="w-4 h-4" />
-                </a-tooltip>
+        <SoundAsrForm ref="soundAsrForm">
+            <div class="flex items-start">
+                <div class="mr-1 pt-1">
+                    <a-tooltip :content="$t('voice.file')" mini>
+                        <i-mdi-volume-high class="w-4 h-4" />
+                    </a-tooltip>
+                </div>
+                <div>
+                    <FileSelector
+                        :extensions="['mp3', 'wav']"
+                        v-model="formData.audio"
+                    />
+                </div>
             </div>
-            <div>
-                <FileSelector
-                    :extensions="['mp3', 'wav']"
-                    v-model="formData.audio"
-                />
-            </div>
-        </div>
-        <SoundAsrForm ref="soundAsrForm" />
+        </SoundAsrForm>
         <div class="flex">
             <a-button
                 class="mr-2"

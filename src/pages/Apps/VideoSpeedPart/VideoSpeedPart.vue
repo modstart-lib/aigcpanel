@@ -54,8 +54,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频片段变速"
-            desc="标记视频的片段，然后对片段进行加速"
+            :title="t('app.videoSpeedPartTitle')"
+            :desc="t('app.videoSpeedPartDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -66,18 +66,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频',
-                    description: '选择需要进行片段加速处理的视频文件',
+                    label: t('app.videoSpeedPartStepSelectVideo'),
+                    description: t('app.videoSpeedPartStepSelectVideoDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置加速节点',
-                    description: '在时间轴上添加加速节点，设置加速区域和时间',
+                    label: t('app.videoSpeedPartStepSetSpeedNodes'),
+                    description: t('app.videoSpeedPartStepSetSpeedNodesDesc'),
                 },
                 {
                     key: 3,
-                    label: '生成视频',
-                    description: '使用FFmpeg处理视频，生成片段加速效果',
+                    label: t('app.videoSpeedPartStepGenerateVideo'),
+                    description: t('app.videoSpeedPartStepGenerateVideoDesc'),
                 },
             ]"
         />

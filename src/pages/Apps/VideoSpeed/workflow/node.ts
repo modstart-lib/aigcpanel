@@ -12,8 +12,8 @@ import { VideoSpeedRun } from "../task";
 
 export default <NodeFunctionCall>{
     name: "VideoSpeed",
-    title: "视频全局变速",
-    description: "改变视频的播放速度",
+    title: t("workflow.videoSpeedTitle"),
+    description: t("workflow.videoSpeedDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoSpeedNode.vue")),
     inputFields: [

@@ -7,6 +7,9 @@ export const AppEnv = {
     appData: null as string,
     userData: null as string,
     dataRoot: null as string,
+    // Default Electron data root (<userData>/data when AIGCPANEL_DATA_ROOT is not set).
+    // Compared with dataRoot to tell whether the effective data directory is customized.
+    dataRootDefault: null as string,
 };
 
 export const AppRuntime = {

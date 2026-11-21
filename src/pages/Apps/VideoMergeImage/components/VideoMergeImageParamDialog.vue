@@ -48,7 +48,7 @@ defineExpose({
             $t('common.positionEnd') +
             $t('common.setting')
         "
-        width="800px"
+        width="min(800px, 95vw)"
         :destroyOnClose="true"
     >
         <template #footer>
@@ -58,11 +58,7 @@ defineExpose({
                 }}</a-button>
             </div>
         </template>
-        <div
-            v-if="visible"
-            class="space-y-4 overflow-y-auto"
-            style="max-height: calc(100vh - 10rem)"
-        >
+        <div v-if="visible" class="space-y-4">
             <VideoMergeImageParamForm ref="paramForm" />
         </div>
     </a-modal>

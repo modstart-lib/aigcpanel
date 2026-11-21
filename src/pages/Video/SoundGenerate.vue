@@ -19,6 +19,7 @@ import SoundGenerateFormViewBody from "./components/SoundGenerateFormViewBody.vu
 import ServerNameVersion from "../../components/Server/ServerNameVersion.vue";
 import ServerTaskResultParam from "../../components/Server/ServerTaskResultParam.vue";
 import TaskContinueAction from "../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../components/Server/TaskRetryAction.vue";
 import ListerTop from "../../components/common/ListerTop.vue";
 import MEmpty from "../../components/common/MEmpty.vue";
 import PageHeader from "../../components/PageHeader.vue";
@@ -138,6 +139,10 @@ onMounted(async () => {
                                 />
                                 <TaskCancelAction :record="r" />
                                 <TaskContinueAction
+                                    :record="r"
+                                    @update="doRefresh"
+                                />
+                                <TaskRetryAction
                                     :record="r"
                                     @update="doRefresh"
                                 />

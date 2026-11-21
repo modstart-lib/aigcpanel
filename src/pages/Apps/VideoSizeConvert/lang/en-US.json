@@ -9,5 +9,17 @@
     "common.stretchFill": "Stretch Fill",
     "error.validTargetWidth": "Please set a valid target width",
     "error.validTargetHeight": "Please set a valid target height",
-    "error.inputSizeParam": "Please enter size parameter"
+    "error.inputSizeParam": "Please enter size parameter",
+    "app.videoSizeConvertTitle": "Video Size Conversion",
+    "app.videoSizeConvertDesc": "Adjust the video size with landscape/portrait presets and multiple fill modes",
+    "app.videoSizeConvertStepSelectVideo": "Select Video",
+    "app.videoSizeConvertStepSelectVideoDesc": "Select the video file to convert",
+    "app.videoSizeConvertStepSetSize": "Set Size",
+    "app.videoSizeConvertStepSetSizeDesc": "Choose the target size and fill mode",
+    "app.videoSizeConvertStepGenerateVideo": "Generate Video",
+    "app.videoSizeConvertStepGenerateVideoDesc": "Use FFmpeg to process the video and generate the specified size",
+    "app.presetPortrait": "Portrait",
+    "app.presetSquare": "Square",
+    "workflow.videoSizeConvertTitle": "Video Size Conversion",
+    "workflow.videoSizeConvertDesc": "Convert the video size"
 }

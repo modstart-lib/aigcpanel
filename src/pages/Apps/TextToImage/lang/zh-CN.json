@@ -11,5 +11,6 @@
     "app.textToImageDesc": "将文本转换为图像",
     "app.textToImageSettings": "文生图设置",
     "app.textToImageConfig": "文生图配置",
-    "workflow.paramErrorMissing": "参数错误：缺少 {items}"
+    "workflow.paramErrorMissing": "参数错误：缺少 {items}",
+    "app.textToImageWorkflow": "文生图工作流"
 }

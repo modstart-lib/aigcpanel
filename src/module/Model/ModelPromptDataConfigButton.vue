@@ -59,7 +59,11 @@ const doRestore = () => {
         </template>
         {{ title }}
     </a-button>
-    <a-modal v-model:visible="visible" width="800px" title-align="start">
+    <a-modal
+        v-model:visible="visible"
+        width="min(800px, 95vw)"
+        title-align="start"
+    >
         <template #title>
             {{ title }}
         </template>
@@ -71,7 +75,7 @@ const doRestore = () => {
                 {{ $t("common.save") }}
             </a-button>
         </template>
-        <div class="-mx- -my-3" style="height: 60vh">
+        <div class="-mx- -my-3">
             <slot></slot>
             <div v-if="help">
                 <a-alert type="info" show-icon class="mb-2">

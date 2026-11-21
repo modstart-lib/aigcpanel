@@ -12,8 +12,8 @@ import { VideoMergeImageRun } from "../task";
 
 export default <NodeFunctionCall>{
     name: "VideoMergeImage",
-    title: "片头片尾图片",
-    description: "为视频添加片头和片尾",
+    title: t("workflow.videoMergeImageTitle"),
+    description: t("workflow.videoMergeImageDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoMergeImageNode.vue")),
     inputFields: [

@@ -1,0 +1,21 @@
+{
+    "general.model.group": "General",
+    "general.model.title": "General Model",
+    "general.model.desc": "Call models that the system cannot recognize, submit tasks by the parameters defined in config.json.",
+    "general.model.appDesc": "Call other model types that the system cannot recognize, submit tasks directly with their parameters.",
+    "general.call": "General Model Call",
+    "general.callTip": "Select a model the system cannot recognize and call it directly with the parameters defined in its config.json.",
+    "general.config": "General Model Config",
+    "general.selectModel": "Please select a general model",
+    "general.selectFunc": "Please select a function to call",
+    "general.selectFunction": "Select function",
+    "general.submit": "Submit Task",
+    "general.submitted": "Task submitted",
+    "general.noTask": "No general model tasks",
+    "general.invalidParam": "Invalid parameter",
+    "general.runFail": "General model execution failed",
+    "general.filterModel": "Filter by model",
+    "general.filterComfyUI": "Filter by ComfyUI",
+    "general.all": "All",
+    "general.taskSuffix": "Task"
+}

@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import {
     NodeFunctionCall,
     NodeRunController,
@@ -11,8 +12,8 @@ import AppIcon from "~icons/mdi/image-filter-hdr";
 
 export default <NodeFunctionCall>{
     name: "VideoBackground",
-    title: "视频背景",
-    description: "为视频添加背景",
+    title: t("workflow.videoBackgroundTitle"),
+    description: t("workflow.videoBackgroundDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoBackgroundNode.vue")),
     inputFields: [
@@ -82,9 +83,12 @@ export default <NodeFunctionCall>{
                 };
                 if (!taskRunData.video || !taskRunData.image) {
                     const missing: string[] = [];
-                    if (!taskRunData.video) missing.push("视频");
-                    if (!taskRunData.image) missing.push("背景图像");
-                    throw `参数错误：缺少 ${missing.join(", ")}`;
+                    if (!taskRunData.video) missing.push(t("workflow.video"));
+                    if (!taskRunData.image)
+                        missing.push(t("workflow.backgroundImage"));
+                    throw t("workflow.errorMissingParams", {
+                        items: missing.join(", "),
+                    });
                 }
                 return await VideoBackgroundRun(taskRunData);
             },
@@ -98,7 +102,7 @@ export default <NodeFunctionCall>{
             !node.properties?.data?.outputWidth ||
             !node.properties?.data?.outputHeight
         ) {
-            return "请设置图像尺寸";
+            return t("workflow.errorSetImageSize");
         }
         return undefined;
     },

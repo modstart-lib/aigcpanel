@@ -4,11 +4,12 @@ import {
     ServerFunctionDataType,
     ServerInfo,
 } from "../mapi/server/type";
-import { AigcServerUtil } from "./util";
+import { AigcServerUtil, replaceDeepStrings } from "./util";
 import { Files } from "../mapi/file/main";
 import axios from "axios";
 import { Base64 } from "js-base64";
 import { Log } from "../mapi/log/main";
+import { t } from "../config/lang";
 
 type LauncherResultType = {
     result: {
@@ -398,6 +399,18 @@ export const RemoteServer = function (config: any) {
             this.send("taskRunning", { id: data.id });
             const configData = await configCalculator(data);
             configData.setting = this.ServerInfo.setting;
+            // 上传 modelConfig 中嵌套的本地文件（如 param 内的 file/audio/image
+            // 字段）：远程模型无法访问本地路径，这里递归替换为远端地址
+            configData.modelConfig = await replaceDeepStrings(
+                configData.modelConfig,
+                async (text) => {
+                    if (!text || /^https?:\/\//i.test(text)) {
+                        return null;
+                    }
+                    const uploaded = await this._uploadIfNeeded(text);
+                    return uploaded !== text ? uploaded : null;
+                },
+            );
             const configJsonPath =
                 await this.ServerApi.launcherPrepareConfigJson(configData);
             const remoteConfigPath = await this._uploadIfNeeded(configJsonPath);
@@ -457,7 +470,10 @@ export const RemoteServer = function (config: any) {
                     if (launcherResult.result.error) {
                         throw launcherResult.result.error;
                     }
-                    throw "执行失败，请查看模型日志";
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
                 }
                 return {
                     url: await downloadUrl(launcherResult.result.url),
@@ -493,7 +509,10 @@ export const RemoteServer = function (config: any) {
                     if (launcherResult.result.error) {
                         throw launcherResult.result.error;
                     }
-                    throw "执行失败，请查看模型日志";
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
                 }
                 return {
                     url: await downloadUrl(launcherResult.result.url),
@@ -531,7 +550,10 @@ export const RemoteServer = function (config: any) {
                     if (launcherResult.result.error) {
                         throw launcherResult.result.error;
                     }
-                    throw "执行失败，请查看模型日志";
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
                 }
                 return {
                     url: await downloadUrl(launcherResult.result.url),
@@ -566,7 +588,10 @@ export const RemoteServer = function (config: any) {
                     if (launcherResult.result.error) {
                         throw launcherResult.result.error;
                     }
-                    throw "执行失败，请查看模型日志";
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
                 }
                 return {
                     records: launcherResult.result.records,
@@ -597,7 +622,10 @@ export const RemoteServer = function (config: any) {
                     if (launcherResult.result.error) {
                         throw launcherResult.result.error;
                     }
-                    throw "执行失败，请查看模型日志";
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
                 }
                 return {
                     url: await downloadUrl(launcherResult.result.url),
@@ -633,7 +661,87 @@ export const RemoteServer = function (config: any) {
                     if (launcherResult.result.error) {
                         throw launcherResult.result.error;
                     }
-                    throw "执行失败，请查看模型日志";
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
+                }
+                return {
+                    url: await downloadUrl(launcherResult.result.url),
+                };
+            },
+        );
+    };
+
+    this.textToVideo = async function (data: ServerFunctionDataType) {
+        return this._callFunc(
+            data,
+            async (data: ServerFunctionDataType) => {
+                return {
+                    id: data.id,
+                    mode: "local",
+                    modelConfig: {
+                        type: "textToVideo",
+                        prompt: data.prompt,
+                        param: data.param,
+                    },
+                };
+            },
+            async (
+                data: ServerFunctionDataType,
+                launcherResult: LauncherResultType,
+            ) => {
+                if (!("url" in launcherResult.result)) {
+                    if (launcherResult.result.error) {
+                        throw launcherResult.result.error;
+                    }
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
+                }
+                return {
+                    url: await downloadUrl(launcherResult.result.url),
+                };
+            },
+        );
+    };
+
+    this.imageToVideo = async function (data: ServerFunctionDataType) {
+        const images = data.images || [];
+        if (images.length) {
+            data.images = [];
+            for (const image of images) {
+                data.images.push(await this._uploadIfNeeded(image));
+            }
+        }
+
+        return this._callFunc(
+            data,
+            async (data: ServerFunctionDataType) => {
+                return {
+                    id: data.id,
+                    mode: "local",
+                    modelConfig: {
+                        type: "imageToVideo",
+                        images: data.images || [],
+                        prompt: data.prompt,
+                        param: data.param,
+                    },
+                };
+            },
+            async (
+                data: ServerFunctionDataType,
+                launcherResult: LauncherResultType,
+            ) => {
+                if (!("url" in launcherResult.result)) {
+                    if (launcherResult.result.error) {
+                        throw launcherResult.result.error;
+                    }
+                    if (launcherResult.result.msg) {
+                        throw launcherResult.result.msg;
+                    }
+                    throw t("error.runFailedCheckLog");
                 }
                 return {
                     url: await downloadUrl(launcherResult.result.url),

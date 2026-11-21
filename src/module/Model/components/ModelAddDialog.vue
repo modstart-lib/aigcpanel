@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useModelStore } from "../store/model";
+import { ModelType, modelTypeOptions } from "../types";
 
 const modelStore = useModelStore();
 const props = defineProps({
@@ -16,6 +17,7 @@ const data = ref({
     id: "",
     name: "",
     group: "",
+    type: "text" as ModelType,
     caps: {
         vision: false,
         tools: false,
@@ -32,8 +34,12 @@ const show = () => {
     data.value.id = "";
     data.value.name = "";
     data.value.group = "";
+    data.value.type = "text";
     data.value.caps = { vision: false, tools: false };
     visible.value = true;
+};
+const fill = (param: Record<string, any>) => {
+    Object.assign(data.value, param);
 };
 const doSubmit = () => {
     if (!data.value.id) {
@@ -44,6 +50,8 @@ const doSubmit = () => {
 };
 defineExpose({
     show,
+    fill,
+    doSubmit,
 });
 </script>
 
@@ -66,7 +74,7 @@ defineExpose({
                 $t("common.confirm")
             }}</a-button>
         </template>
-        <div style="max-height: 50vh" class="overflow-y-auto">
+        <div>
             <a-form :model="data" label-align="left" class="mt-4">
                 <a-form-item :label="$t('model.id')" name="title" required>
                     <a-input
@@ -85,6 +93,20 @@ defineExpose({
                         v-model:model-value="data.group"
                         :placeholder="$t('placeholder.chatgpt')"
                     />
+                </a-form-item>
+                <a-form-item :label="$t('model.type')" name="modelType">
+                    <a-radio-group
+                        v-model:model-value="data.type"
+                        type="button"
+                    >
+                        <a-radio
+                            v-for="o in modelTypeOptions()"
+                            :key="o.value"
+                            :value="o.value"
+                        >
+                            {{ o.title }}
+                        </a-radio>
+                    </a-radio-group>
                 </a-form-item>
                 <a-form-item :label="$t('model.capability')" name="caps">
                     <div class="flex gap-4">

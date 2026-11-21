@@ -54,7 +54,7 @@ defineExpose({
                 {{ $t("voice.replace") }}
             </div>
         </template>
-        <div class="h-[calc(100vh-10rem)] -my-6 -mx-4 p-3 overflow-y-auto">
+        <div class="-my-6 -mx-4 p-3">
             <div
                 v-if="loading && !record"
                 class="flex justify-center items-center p-8"

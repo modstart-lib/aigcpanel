@@ -4,5 +4,15 @@
     "common.manualSetTimeNode": "Manual Set Time Node",
     "common.confirmDone": "Confirm Done",
     "error.validZoomDuration": "Please set a valid zoom duration",
-    "msg.taskNotCompleteConfirmFinal": "Task incomplete, manual final confirmation required"
+    "msg.taskNotCompleteConfirmFinal": "Task incomplete, manual final confirmation required",
+    "app.videoZoomTitle": "Video Segment Zoom",
+    "app.videoZoomDesc": "Quickly zoom in on a segment of the video to view details",
+    "app.stepSelectVideo": "Select Video",
+    "app.stepSelectVideoDesc": "Select the video file to apply the zoom effect",
+    "app.stepSetZoomNode": "Set Zoom Nodes",
+    "app.stepSetZoomNodeDesc": "Add zoom nodes on the timeline to set the zoom area and time",
+    "app.stepGenerateVideo": "Generate Video",
+    "app.stepGenerateVideoDesc": "Use FFmpeg to process the video and generate the dynamic zoom effect",
+    "workflow.videoZoomTitle": "Video Segment Zoom",
+    "workflow.videoZoomDesc": "Zoom in on a specified segment of the video"
 }

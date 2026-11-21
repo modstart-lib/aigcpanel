@@ -15,7 +15,7 @@ export const SoundGenerate: TaskBiz = {
         );
         // console.log('runFunc', serverInfo, record)
         await TaskService.update(bizId, {
-            status: "wait",
+            status: "running",
         });
         let res;
         if (record.modelConfig.type === "SoundTts") {

@@ -12,8 +12,8 @@ import { VideoQuickCutRun } from "../task";
 
 export default <NodeFunctionCall>{
     name: "VideoQuickCut",
-    title: "快速剪辑",
-    description: "快速剪辑视频",
+    title: t("workflow.videoQuickCutTitle"),
+    description: t("workflow.videoQuickCutDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoQuickCutNode.vue")),
     inputFields: [

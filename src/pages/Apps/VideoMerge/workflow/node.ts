@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import {
     NodeFunctionCall,
     NodeRunController,
@@ -11,8 +12,8 @@ import AppIcon from "~icons/mdi/merge";
 
 export default <NodeFunctionCall>{
     name: "VideoMerge",
-    title: "视频合并",
-    description: "将多个视频文件合并为一个视频",
+    title: t("workflow.videoMergeTitle"),
+    description: t("workflow.videoMergeDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoMergeNode.vue")),
     inputFields: [
@@ -61,7 +62,7 @@ export default <NodeFunctionCall>{
                     transitionDuration: transitionDuration,
                 };
                 if (!taskRunData.videos || taskRunData.videos.length < 2) {
-                    throw "至少需要2个视频文件";
+                    throw t("workflow.errorAtLeastTwoVideos");
                 }
                 return await VideoMergeRun(taskRunData);
             },
@@ -72,10 +73,10 @@ export default <NodeFunctionCall>{
     },
     async check(node) {
         if (!node.properties?.data?.transitionEffect) {
-            throw "请输入转场特效";
+            throw t("workflow.errorTransitionEffect");
         }
         if (node.properties?.inputFields?.[0].value === "") {
-            throw "请输入视频参数";
+            throw t("workflow.errorVideoParam");
         }
     },
 };

@@ -3,5 +3,15 @@
     "common.speedValue": "速度 {speed}x",
     "common.playbackSpeed": "播放速度",
     "common.customSpeed": "自定义速度",
-    "error.validPlaybackSpeed": "请设置有效的播放速度"
+    "error.validPlaybackSpeed": "请设置有效的播放速度",
+    "app.videoSpeedTitle": "视频全局变速",
+    "app.videoSpeedDesc": "调整视频播放速度，支持加速、减速和变速节点",
+    "app.videoSpeedStepSelectVideo": "选择视频",
+    "app.videoSpeedStepSelectVideoDesc": "选择需要进行变速处理的视频文件",
+    "app.videoSpeedStepSetSpeed": "设置速度",
+    "app.videoSpeedStepSetSpeedDesc": "设置播放速度倍率或添加变速节点",
+    "app.videoSpeedStepGenerateVideo": "生成视频",
+    "app.videoSpeedStepGenerateVideoDesc": "使用FFmpeg处理视频，生成变速效果",
+    "workflow.videoSpeedTitle": "视频全局变速",
+    "workflow.videoSpeedDesc": "改变视频的播放速度"
 }

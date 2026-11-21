@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { t } from "../../../lang";
 import { Dialog } from "../../../lib/dialog";
+import { testActionSet, testActionUnset } from "../../../utils/test";
 
 const env = ref({
     hubRoot: null as string | null,
@@ -12,7 +13,18 @@ const doLoad = async () => {
     env.value.hubRootDefault = await window.$mapi.file.hubRootDefault();
 };
 
-onMounted(doLoad);
+onMounted(() => {
+    doLoad();
+    testActionSet("Setting.setHubRootDemo", (arg?: any) => {
+        const home = arg?.home || "/Users/demo";
+        const demoData = `${home}/Library/Application Support/aigcpanel/data/hub`;
+        env.value.hubRoot = demoData;
+        env.value.hubRootDefault = demoData;
+    });
+});
+onBeforeUnmount(() => {
+    testActionUnset("Setting.setHubRootDemo");
+});
 
 const doSelectHubRootPath = async (useDefault: boolean) => {
     let dir;

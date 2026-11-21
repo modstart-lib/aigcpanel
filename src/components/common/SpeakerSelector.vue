@@ -2,7 +2,7 @@
     <div>
         <div
             @click="doShow"
-            class="leading-8 h-8 px-3 rounded-lg text-left cursor-pointer bg-gray-100 min-w-64 hover:bg-gray-200"
+            class="leading-8 h-8 px-3 rounded-lg text-left cursor-pointer bg-gray-100 w-full truncate hover:bg-gray-200"
         >
             {{ speakerTitle || $t("voice.selectTimbre") }}
         </div>
@@ -50,10 +50,7 @@
                         </a-button>
                     </div>
                 </div>
-                <div
-                    class="overflow-auto ub-scroll-bar-mini px-3"
-                    style="height: 60vh"
-                >
+                <div class="ub-scroll-bar-mini px-3">
                     <div
                         v-if="filterRecords.length === 0 && speakers.length > 0"
                     >

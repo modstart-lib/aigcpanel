@@ -335,3 +335,150 @@ export const serverImageToImage = async (
     }
     return ret;
 };
+
+export const serverTextToVideo = async (
+    biz: TaskBiz,
+    bizId: string,
+    textToVideo: TextToVideoParamType,
+    result: {},
+    prompt: string,
+    option?: ServerCallOptionType,
+): Promise<{
+    type: string;
+    start: number;
+    end: number;
+    url: string;
+}> => {
+    option = Object.assign(
+        {
+            cache: true,
+        },
+        option,
+    ) as ServerCallOptionType;
+    if (option.cache) {
+        const cacheUrl = await $mapi.file.cacheGetPath({ textToVideo, prompt });
+        if (cacheUrl) {
+            return {
+                type: "success",
+                start: 0,
+                end: 0,
+                url: cacheUrl,
+            };
+        }
+    }
+    const server = await serverStore.getByNameVersion(
+        textToVideo.serverName,
+        textToVideo.serverVersion,
+    );
+    if (!server) {
+        throw "TextToVideo server not found: " + textToVideo.serverName;
+    }
+    const serverInfo = await serverStore.serverInfo(server);
+    const res = await serverStore.call(serverInfo, "textToVideo", {
+        id: serverStore.generateTaskId(biz, bizId),
+        result: result,
+        param: textToVideo.param,
+        prompt: prompt,
+    });
+    if (res.code) {
+        throw res.msg || "TextToVideo fail";
+    }
+    const ret = {
+        type: res.data.type,
+        start: 0,
+        end: 0,
+        url: "",
+    };
+    switch (res.data.type) {
+        case "success":
+            ret.url = res.data.data.url;
+            if (!ret.url) {
+                throw t("error.textToVideoResultEmpty");
+            }
+            await $mapi.file.cacheSet({ textToVideo, prompt }, ret.url);
+            break;
+        case "retry":
+            break;
+        default:
+            throw `unknown res.data.type : ${res.data.type}`;
+    }
+    return ret;
+};
+
+export const serverImageToVideo = async (
+    biz: TaskBiz,
+    bizId: string,
+    imageToVideo: ImageToVideoParamType,
+    result: {},
+    prompt: string,
+    images: string[],
+    option?: ServerCallOptionType,
+): Promise<{
+    type: string;
+    start: number;
+    end: number;
+    url: string;
+}> => {
+    option = Object.assign(
+        {
+            cache: true,
+        },
+        option,
+    ) as ServerCallOptionType;
+    if (option.cache) {
+        const cacheUrl = await $mapi.file.cacheGetPath({
+            imageToVideo,
+            prompt,
+            images,
+        });
+        if (cacheUrl) {
+            return {
+                type: "success",
+                start: 0,
+                end: 0,
+                url: cacheUrl,
+            };
+        }
+    }
+    const server = await serverStore.getByNameVersion(
+        imageToVideo.serverName,
+        imageToVideo.serverVersion,
+    );
+    if (!server) {
+        throw "ImageToVideo server not found: " + imageToVideo.serverName;
+    }
+    const serverInfo = await serverStore.serverInfo(server);
+    const res = await serverStore.call(serverInfo, "imageToVideo", {
+        id: serverStore.generateTaskId(biz, bizId),
+        result: result,
+        param: imageToVideo.param,
+        prompt: prompt,
+        images: images,
+    });
+    if (res.code) {
+        throw res.msg || "ImageToVideo fail";
+    }
+    const ret = {
+        type: res.data.type,
+        start: 0,
+        end: 0,
+        url: "",
+    };
+    switch (res.data.type) {
+        case "success":
+            ret.url = res.data.data.url;
+            if (!ret.url) {
+                throw t("error.imageToVideoResultEmpty");
+            }
+            await $mapi.file.cacheSet(
+                { imageToVideo, prompt, images },
+                ret.url,
+            );
+            break;
+        case "retry":
+            break;
+        default:
+            throw `unknown res.data.type : ${res.data.type}`;
+    }
+    return ret;
+};

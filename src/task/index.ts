@@ -9,6 +9,10 @@ import {
     ImageToImageCleaner,
 } from "../pages/Apps/ImageToImage/task";
 import {
+    ImageToVideo,
+    ImageToVideoCleaner,
+} from "../pages/Apps/ImageToVideo/task";
+import {
     LongTextTts,
     LongTextTtsCleaner,
 } from "../pages/Apps/LongTextTts/task";
@@ -29,9 +33,17 @@ import {
     TextToImageCleaner,
 } from "../pages/Apps/TextToImage/task";
 import {
+    TextToVideo,
+    TextToVideoCleaner,
+} from "../pages/Apps/TextToVideo/task";
+import {
     VideoBackground,
     VideoBackgroundCleaner,
 } from "../pages/Apps/VideoBackground/task";
+import {
+    VideoBackgroundReplace,
+    VideoBackgroundReplaceCleaner,
+} from "../pages/Apps/VideoBackgroundReplace/task";
 import {
     VideoCompress,
     VideoCompressCleaner,
@@ -69,6 +81,14 @@ import {
     VideoSubtitleCleaner,
 } from "../pages/Apps/VideoSubtitle/task";
 import { VideoZoom, VideoZoomCleaner } from "../pages/Apps/VideoZoom/task";
+import {
+    GeneralModel,
+    GeneralModelCleaner,
+} from "../pages/Apps/GeneralModel/task";
+import {
+    GeneralComfyUI,
+    GeneralComfyUICleaner,
+} from "../pages/Apps/GeneralComfyUI/task";
 import { TaskService } from "../service/TaskService";
 
 import { useServerStore } from "../store/modules/server";
@@ -95,8 +115,11 @@ export const tasks = {
     VideoGenFlow,
     TextToImage,
     ImageToImage,
+    TextToVideo,
+    ImageToVideo,
     // video processing apps
     VideoBackground,
+    VideoBackgroundReplace,
     VideoQuickCut,
     VideoZoom,
     VideoMark,
@@ -111,6 +134,9 @@ export const tasks = {
     VideoMerge,
     MediaFormatConvert,
     Ffmpeg,
+    // general apps
+    GeneralModel,
+    GeneralComfyUI,
     
 };
 
@@ -123,8 +149,11 @@ export const taskCleaners = {
     // video cleaners
     TextToImage: TextToImageCleaner,
     ImageToImage: ImageToImageCleaner,
+    TextToVideo: TextToVideoCleaner,
+    ImageToVideo: ImageToVideoCleaner,
     // video processing cleaners
     VideoBackground: VideoBackgroundCleaner,
+    VideoBackgroundReplace: VideoBackgroundReplaceCleaner,
     VideoQuickCut: VideoQuickCutCleaner,
     VideoZoom: VideoZoomCleaner,
     VideoMark: VideoMarkCleaner,
@@ -139,6 +168,9 @@ export const taskCleaners = {
     VideoMerge: VideoMergeCleaner,
     MediaFormatConvert: MediaFormatConvertCleaner,
     Ffmpeg: FfmpegCleaner,
+    // general cleaners（归档到 hub 的结果文件清理）
+    GeneralModel: GeneralModelCleaner,
+    GeneralComfyUI: GeneralComfyUICleaner,
     
 };
 
@@ -158,6 +190,21 @@ export const TaskManager = {
                     const { biz, taskId } = data;
                     await taskStore.dispatch(biz, taskId, {});
                     resolve({ taskId });
+                } catch (e: any) {
+                    reject(String(e));
+                }
+            },
+        );
+        // CLI 安装/卸载模型后刷新 server 列表
+        window.__page.registerCallPage(
+            "httpserver:serverReload",
+            async (
+                resolve: (data: any) => void,
+                reject: (error: string) => void,
+            ) => {
+                try {
+                    await useServerStore().reloadRecords();
+                    resolve({ ok: true });
                 } catch (e: any) {
                     reject(String(e));
                 }

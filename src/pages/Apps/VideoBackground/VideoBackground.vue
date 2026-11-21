@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -46,8 +47,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频背景"
-            desc="为视频添加背景图片，支持自定义尺寸和位置"
+            :title="t('app.videoBackgroundTitle')"
+            :desc="t('app.videoBackgroundDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -58,18 +59,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频和图片',
-                    description: '选择需要处理的视频文件和背景图片',
+                    label: t('app.stepSelectVideoAndImage'),
+                    description: t('app.stepSelectVideoAndImageDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置参数',
-                    description: '设置导出尺寸、图片模式和视频位置',
+                    label: t('app.stepSetParams'),
+                    description: t('app.stepSetParamsDesc'),
                 },
                 {
                     key: 3,
-                    label: '生成视频',
-                    description: '使用FFmpeg合成视频和背景',
+                    label: t('app.stepGenerateVideo'),
+                    description: t('app.stepGenerateVideoDesc'),
                 },
             ]"
         />
@@ -85,7 +86,7 @@ const doRefresh = async () => {
                     :indeterminate="isIndeterminate"
                     @change="onCheckAll"
                 >
-                    全选
+                    {{ $t("common.selectAll") }}
                 </a-checkbox>
                 <TaskBatchDeleteAction
                     :records="checkRecords"

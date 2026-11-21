@@ -93,7 +93,7 @@ const emit = defineEmits({
                 {{ confirmText }}
             </a-button>
         </template>
-        <div style="height: calc(100vh - 20rem)">
+        <div>
             <div class="mb-3 flex items-center">
                 <a-button @click="doAdd" class="mr-1">
                     <template #icon>
@@ -158,10 +158,9 @@ const emit = defineEmits({
                 {{ $t("common.confirm") }}
             </a-button>
         </template>
-        <div style="height: calc(100vh - 30rem)">
+        <div>
             <a-textarea
                 v-model="inputTextContent"
-                style="min-height: calc(100vh - 30rem)"
                 :auto-size="{ minRows: 2 }"
                 :placeholder="$t('common.batchPasteHint')"
             ></a-textarea>

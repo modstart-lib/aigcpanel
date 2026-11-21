@@ -10,6 +10,7 @@ import { PageFeedback } from "./feedback";
 import { PagePayment } from "./payment";
 import { PageMonitor } from "./monitor";
 import { PageLog } from "./log";
+import { PageComfyUIView } from "./comfyui-view";
 
 const Pages = {
     user: PageUser,
@@ -19,9 +20,30 @@ const Pages = {
     feedback: PageFeedback,
     monitor: PageMonitor,
     log: PageLog,
+    "comfyui-view": PageComfyUIView,
+};
+
+/**
+ * Position a window so that it is centered relative to its parent window.
+ * Falls back to the center of the current screen when there is no parent.
+ */
+const centerInParent = (win: BrowserWindow, parent?: BrowserWindow | null) => {
+    if (!parent || parent.isDestroyed()) {
+        win.center();
+        return;
+    }
+    const parentBounds = parent.getBounds();
+    const winBounds = win.getBounds();
+    win.setPosition(
+        Math.round(parentBounds.x + (parentBounds.width - winBounds.width) / 2),
+        Math.round(
+            parentBounds.y + (parentBounds.height - winBounds.height) / 2,
+        ),
+    );
 };
 
 export const Page = {
+    centerInParent,
     ready(name: string) {
         Events.send(name, "APP_READY", {
             name,
@@ -75,10 +97,21 @@ export const Page = {
         if (!option.parent) {
             option.parent = AppRuntime.mainWindow;
         }
-        if (option.singleton && AppRuntime.windows[name]) {
-            AppRuntime.windows[name].show();
-            AppRuntime.windows[name].focus();
-            AppRuntime.windows[name].setParentWindow(option.parent);
+        // comfyui-view 由 PageComfyUIView 自己管理"已打开则关闭重建"（每次打开都加载最新工作流），
+        // 因此不走 singleton 拦截
+        if (
+            option.singleton &&
+            name !== PageComfyUIView.NAME &&
+            AppRuntime.windows[name]
+        ) {
+            const win = AppRuntime.windows[name];
+            win.show();
+            win.focus();
+            win.setParentWindow(option.parent);
+            // Re-center the window relative to its parent (e.g. the user dialog)
+            if ((Pages[name] as any).centerOnParent) {
+                Page.centerInParent(win, option.parent);
+            }
             return;
         }
         return Pages[name].open(option);

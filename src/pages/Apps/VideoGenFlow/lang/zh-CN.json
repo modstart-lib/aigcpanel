@@ -1,5 +1,6 @@
 {
     "app.inputVideoGenPlaceholder": "输入语音内容开始生成视频",
     "app.videoGen": "数字人一键合成",
-    "app.videoGenDesc": "快速完成文本输入→音频合成→数字人合成"
+    "app.videoGenDesc": "快速完成文本输入→音频合成→数字人合成",
+    "app.copywritingGenerate": "文案生成"
 }

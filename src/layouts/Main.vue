@@ -2,6 +2,7 @@
 import { onBeforeMount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import AppQuitConfirm from "../components/AppQuitConfirm.vue";
+import OfflineAuthDialog from "../components/OfflineAuthDialog.vue";
 import { useDragWindow } from "../components/common/dragWindow";
 import { AppConfig } from "../config";
 import { t } from "../lang";
@@ -85,19 +86,19 @@ const doDebugToggle = () => {
             </div>
             <div v-if="!isOsx" class="p-1 leading-4">
                 <div
-                    class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-primary mr-1"
+                    class="inline-flex items-center justify-center w-6 h-6 cursor-pointer hover:text-primary mr-1"
                     @click="$mapi.app.windowMin()"
                 >
                     <i-mdi-minus class="text-sm" />
                 </div>
                 <div
-                    class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-primary mr-1"
+                    class="inline-flex items-center justify-center w-6 h-6 cursor-pointer hover:text-primary mr-1"
                     @click="$mapi.app.windowMax()"
                 >
                     <i-mdi-window-maximize class="text-sm" />
                 </div>
                 <div
-                    class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-red-500"
+                    class="inline-flex items-center justify-center w-6 h-6 cursor-pointer hover:text-red-500"
                     @click="doQuit"
                 >
                     <i-mdi-close class="text-sm" />
@@ -119,6 +120,7 @@ const doDebugToggle = () => {
         </div>
     </div>
     <AppQuitConfirm ref="appQuitConfirm" />
+    <OfflineAuthDialog />
     <!-- 调试弹窗 -->
     <template v-if="isDev">
         <div class="fixed top-10 left-0 z-50">

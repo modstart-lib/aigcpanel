@@ -1,4 +1,5 @@
 import { defineAsyncComponent } from "vue";
+import { t } from "../../../../lang";
 import {
     NodeFunctionCall,
     NodeRunController,
@@ -11,8 +12,8 @@ import AppIcon from "~icons/mdi/watermark";
 
 export default <NodeFunctionCall>{
     name: "VideoMark",
-    title: "视频标注",
-    description: "在视频中标注指定区域",
+    title: t("workflow.videoMarkTitle"),
+    description: t("workflow.videoMarkDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoMarkNode.vue")),
     inputFields: [
@@ -49,7 +50,7 @@ export default <NodeFunctionCall>{
                     borderStyle: param.node.properties?.data?.borderStyle,
                 };
                 if (!taskRunData.video) {
-                    throw "参数错误：缺少视频文件";
+                    throw t("error.missingVideoFile");
                 }
                 return await VideoMarkRun(taskRunData);
             },
@@ -60,36 +61,36 @@ export default <NodeFunctionCall>{
     },
     async check(node) {
         if (node.properties?.inputFields?.[0].value === "") {
-            throw "请输入视频参数";
+            throw t("error.inputVideoParam");
         }
         if (
             !node.properties?.data?.borderWidth ||
             node.properties?.data?.borderWidth < 1
         ) {
-            throw "请输入正确的边框宽度";
+            throw t("error.validBorderWidthInput");
         }
         if (!node.properties?.data?.borderColor) {
-            throw "请输入正确的边框颜色";
+            throw t("error.validBorderColorInput");
         }
         if (
             !node.properties?.data?.borderOpacity ||
             node.properties?.data?.borderOpacity < 0 ||
             node.properties?.data?.borderOpacity > 1
         ) {
-            throw "请输入正确的边框透明度";
+            throw t("error.validBorderOpacityInput");
         }
         if (
             !node.properties?.data?.borderRadius ||
             node.properties?.data?.borderRadius < 0
         ) {
-            throw "请输入正确的边框圆角";
+            throw t("error.validBorderRadiusInput");
         }
         if (
             !node.properties?.data?.borderStyle ||
             (node.properties?.data?.borderStyle !== "solid" &&
                 node.properties?.data?.borderStyle !== "dashed")
         ) {
-            throw "请输入正确的边框样式";
+            throw t("error.validBorderStyleInput");
         }
     },
 };

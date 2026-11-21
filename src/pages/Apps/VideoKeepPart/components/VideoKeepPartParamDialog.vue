@@ -38,16 +38,18 @@ defineExpose({
     <a-modal v-model:visible="visible" :footer="false" title-align="start">
         <template #title>
             <div class="flex items-center">
-                <div class="font-bold mr-2">视频片段处理参数</div>
+                <div class="font-bold mr-2">{{ $t("app.paramTitle") }}</div>
             </div>
         </template>
         <div>
             <VideoKeepPartParamForm ref="paramForm" />
             <div class="flex justify-end mt-4 pt-4 border-t">
                 <a-button class="mr-2" @click="visible = false">
-                    取消
+                    {{ $t("common.cancel") }}
                 </a-button>
-                <a-button type="primary" @click="doSubmit"> 确定 </a-button>
+                <a-button type="primary" @click="doSubmit">
+                    {{ $t("common.confirm") }}
+                </a-button>
             </div>
         </div>
     </a-modal>

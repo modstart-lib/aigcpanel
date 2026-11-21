@@ -28,7 +28,7 @@ defineExpose({
         <template #title>
             {{ record?.title }}
         </template>
-        <div style="height: calc(100vh - 15rem)">
+        <div>
             <div>
                 <div v-for="d in record?.demo">
                     <div class="shadow rounded-lg p-3">

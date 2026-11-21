@@ -21,6 +21,8 @@ import {
 // Apps sub-module locales
 import imageToImageEnUS from "../pages/Apps/ImageToImage/lang/en-US.json";
 import imageToImageZhCN from "../pages/Apps/ImageToImage/lang/zh-CN.json";
+import imageToVideoEnUS from "../pages/Apps/ImageToVideo/lang/en-US.json";
+import imageToVideoZhCN from "../pages/Apps/ImageToVideo/lang/zh-CN.json";
 import longTextTtsEnUS from "../pages/Apps/LongTextTts/lang/en-US.json";
 import longTextTtsZhCN from "../pages/Apps/LongTextTts/lang/zh-CN.json";
 import soundReplaceEnUS from "../pages/Apps/SoundReplace/lang/en-US.json";
@@ -29,6 +31,8 @@ import subtitleTtsEnUS from "../pages/Apps/SubtitleTts/lang/en-US.json";
 import subtitleTtsZhCN from "../pages/Apps/SubtitleTts/lang/zh-CN.json";
 import textToImageEnUS from "../pages/Apps/TextToImage/lang/en-US.json";
 import textToImageZhCN from "../pages/Apps/TextToImage/lang/zh-CN.json";
+import textToVideoEnUS from "../pages/Apps/TextToVideo/lang/en-US.json";
+import textToVideoZhCN from "../pages/Apps/TextToVideo/lang/zh-CN.json";
 import videoGenFlowEnUS from "../pages/Apps/VideoGenFlow/lang/en-US.json";
 import videoGenFlowZhCN from "../pages/Apps/VideoGenFlow/lang/zh-CN.json";
 import videoMergeAudioEnUS from "../pages/Apps/VideoMergeAudio/lang/en-US.json";
@@ -47,6 +51,28 @@ import videoSubtitleEnUS from "../pages/Apps/VideoSubtitle/lang/en-US.json";
 import videoSubtitleZhCN from "../pages/Apps/VideoSubtitle/lang/zh-CN.json";
 import videoZoomEnUS from "../pages/Apps/VideoZoom/lang/en-US.json";
 import videoZoomZhCN from "../pages/Apps/VideoZoom/lang/zh-CN.json";
+import generalModelEnUS from "../pages/Apps/GeneralModel/lang/en-US.json";
+import generalModelZhCN from "../pages/Apps/GeneralModel/lang/zh-CN.json";
+import generalComfyUIEnUS from "../pages/Apps/GeneralComfyUI/lang/en-US.json";
+import generalComfyUIZhCN from "../pages/Apps/GeneralComfyUI/lang/zh-CN.json";
+import audioNormalEnUS from "../pages/Apps/AudioNormal/lang/en-US.json";
+import audioNormalZhCN from "../pages/Apps/AudioNormal/lang/zh-CN.json";
+import ffmpegEnUS from "../pages/Apps/Ffmpeg/lang/en-US.json";
+import ffmpegZhCN from "../pages/Apps/Ffmpeg/lang/zh-CN.json";
+import mediaFormatConvertEnUS from "../pages/Apps/MediaFormatConvert/lang/en-US.json";
+import mediaFormatConvertZhCN from "../pages/Apps/MediaFormatConvert/lang/zh-CN.json";
+import videoBackgroundEnUS from "../pages/Apps/VideoBackground/lang/en-US.json";
+import videoBackgroundZhCN from "../pages/Apps/VideoBackground/lang/zh-CN.json";
+import videoBackgroundReplaceEnUS from "../pages/Apps/VideoBackgroundReplace/lang/en-US.json";
+import videoBackgroundReplaceZhCN from "../pages/Apps/VideoBackgroundReplace/lang/zh-CN.json";
+import videoCompressEnUS from "../pages/Apps/VideoCompress/lang/en-US.json";
+import videoCompressZhCN from "../pages/Apps/VideoCompress/lang/zh-CN.json";
+import videoKeepPartEnUS from "../pages/Apps/VideoKeepPart/lang/en-US.json";
+import videoKeepPartZhCN from "../pages/Apps/VideoKeepPart/lang/zh-CN.json";
+import videoMarkEnUS from "../pages/Apps/VideoMark/lang/en-US.json";
+import videoMarkZhCN from "../pages/Apps/VideoMark/lang/zh-CN.json";
+import videoMergeEnUS from "../pages/Apps/VideoMerge/lang/en-US.json";
+import videoMergeZhCN from "../pages/Apps/VideoMerge/lang/zh-CN.json";
 
 let localeInit = false;
 export const defaultLocale = "zh-CN";
@@ -64,10 +90,12 @@ export const messageList = [
             ...componentsEnUS,
             // Apps sub-modules
             ...imageToImageEnUS,
+            ...imageToVideoEnUS,
             ...longTextTtsEnUS,
             ...soundReplaceEnUS,
             ...subtitleTtsEnUS,
             ...textToImageEnUS,
+            ...textToVideoEnUS,
             ...videoGenFlowEnUS,
             ...videoMergeAudioEnUS,
             ...videoMergeImageEnUS,
@@ -77,6 +105,17 @@ export const messageList = [
             ...videoSpeedPartEnUS,
             ...videoSubtitleEnUS,
             ...videoZoomEnUS,
+            ...generalModelEnUS,
+            ...generalComfyUIEnUS,
+            ...audioNormalEnUS,
+            ...ffmpegEnUS,
+            ...mediaFormatConvertEnUS,
+            ...videoBackgroundEnUS,
+            ...videoBackgroundReplaceEnUS,
+            ...videoCompressEnUS,
+            ...videoKeepPartEnUS,
+            ...videoMarkEnUS,
+            ...videoMergeEnUS,
         },
     },
     {
@@ -91,10 +130,12 @@ export const messageList = [
             ...componentsZhCN,
             // Apps sub-modules
             ...imageToImageZhCN,
+            ...imageToVideoZhCN,
             ...longTextTtsZhCN,
             ...soundReplaceZhCN,
             ...subtitleTtsZhCN,
             ...textToImageZhCN,
+            ...textToVideoZhCN,
             ...videoGenFlowZhCN,
             ...videoMergeAudioZhCN,
             ...videoMergeImageZhCN,
@@ -104,6 +145,17 @@ export const messageList = [
             ...videoSpeedPartZhCN,
             ...videoSubtitleZhCN,
             ...videoZoomZhCN,
+            ...generalModelZhCN,
+            ...generalComfyUIZhCN,
+            ...audioNormalZhCN,
+            ...ffmpegZhCN,
+            ...mediaFormatConvertZhCN,
+            ...videoBackgroundZhCN,
+            ...videoBackgroundReplaceZhCN,
+            ...videoCompressZhCN,
+            ...videoKeepPartZhCN,
+            ...videoMarkZhCN,
+            ...videoMergeZhCN,
         },
     },
 ];

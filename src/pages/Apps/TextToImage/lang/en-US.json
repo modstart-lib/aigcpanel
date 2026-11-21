@@ -11,5 +11,6 @@
     "app.textToImageDesc": "Convert text to image",
     "app.textToImageSettings": "Text-to-Image Settings",
     "app.textToImageConfig": "Text to Image Config",
-    "workflow.paramErrorMissing": "Parameter error: missing {items}"
+    "workflow.paramErrorMissing": "Parameter error: missing {items}",
+    "app.textToImageWorkflow": "Workflow"
 }

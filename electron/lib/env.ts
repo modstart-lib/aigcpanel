@@ -1,4 +1,6 @@
+import chardet from "chardet";
 import { execSync } from "child_process";
+import iconv from "iconv-lite";
 import { resolve } from "node:path";
 import fs from "node:fs";
 import os from "os";
@@ -33,11 +35,85 @@ export const memoryInfo = () => {
     };
 };
 
+// Decode raw command output bytes into a readable UTF-8 string.
+// Windows command output (such as cmd.exe error messages) is usually encoded
+// with the local ANSI code page (GBK / cp936), which shows as garbled text
+// when it is interpreted as UTF-8.
+const outputToUtf8 = (data: string | Buffer | null | undefined): string => {
+    if (!data) {
+        return "";
+    }
+    const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, "binary");
+    if (!isWin) {
+        return buffer.toString("utf8");
+    }
+    const detected = chardet.detect(buffer);
+    if (detected && /utf-?8/i.test(detected)) {
+        return buffer.toString("utf8");
+    }
+    return iconv.decode(buffer, "cp936");
+};
+
+// Run a command and return its UTF-8 stdout.
+// stderr is captured instead of being forwarded to the parent process, so a
+// failing probe command never leaks a garbled message into the console.
+const execCommand = (command: string): string => {
+    const stdout = execSync(command, {
+        stdio: ["ignore", "pipe", "pipe"],
+        encoding: "binary",
+    }) as unknown as string;
+    return outputToUtf8(stdout);
+};
+
+// Resolve a file under %SystemRoot%\System32. SystemRoot is used so systems
+// installed outside C:\Windows still resolve correctly.
+const winSystem32File = (...parts: string[]): string => {
+    const root = process.env.SystemRoot || process.env.windir || "C:\\Windows";
+    return resolve(root, "System32", ...parts);
+};
+
+// WMIC is deprecated (since Windows 10 21H1) and is no longer installed by
+// default on newer Windows (Windows 11 24H2 and later). Whether it exists
+// depends on the edition and on optional features, so detect it by file
+// before running it instead of running it and handling the failure.
+let wmicPathCache: string | null | undefined;
+const wmicPath = (): string | null => {
+    if (undefined === wmicPathCache) {
+        const candidate = winSystem32File("wbem", "wmic.exe");
+        wmicPathCache = fs.existsSync(candidate) ? candidate : null;
+    }
+    return wmicPathCache;
+};
+
+// powershell.exe ships with every supported Windows version; resolve it to an
+// absolute path so the fallback never depends on PATH.
+let powershellPathCache: string | null | undefined;
+const powershellPath = (): string | null => {
+    if (undefined === powershellPathCache) {
+        const candidate = winSystem32File(
+            "WindowsPowerShell",
+            "v1.0",
+            "powershell.exe",
+        );
+        powershellPathCache = fs.existsSync(candidate) ? candidate : null;
+    }
+    return powershellPathCache;
+};
+
 const tryFirst = (functionList: (() => any)[]) => {
     for (const fun of functionList) {
         try {
             return fun();
-        } catch (e) {}
+        } catch (e: any) {
+            // A candidate probe may still fail at runtime (for example a
+            // transient execution error). This is tolerated, so record a
+            // single info line instead of treating the raw command error as
+            // an error.
+            const reason = outputToUtf8(e?.stderr || e?.message || "")
+                .trim()
+                .split("\n")[0];
+            Log.info("env.command.skip", reason || null);
+        }
     }
     return null;
 };
@@ -47,27 +123,27 @@ export const platformVersion = () => {
     if (null === platformVersionCache) {
         const functionList: any[] = [];
         if (isWin) {
-            functionList.push(() =>
-                execSync("wmic os get Version")
-                    .toString()
-                    .split("\n")[1]
-                    .trim(),
-            );
-            functionList.push(() =>
-                execSync(
-                    "powershell -command \"(Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion').ReleaseId\"",
-                )
-                    .toString()
-                    .trim(),
-            );
+            // os.release() returns the same Windows NT version that
+            // `wmic os get Version` used to report (e.g. "10.0.19045"), so no
+            // external command is needed at all.
+            functionList.push(() => os.release().trim());
+            // Fallback: read the registry ReleaseId (e.g. "22H2") when
+            // os.release() is unexpectedly empty.
+            const ps = powershellPath();
+            if (ps) {
+                functionList.push(() =>
+                    execCommand(
+                        `"${ps}" -command "(Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion').ReleaseId"`,
+                    ).trim(),
+                );
+            }
         } else if (isMac) {
             functionList.push(() =>
-                execSync("sw_vers -productVersion").toString().trim(),
+                execCommand("sw_vers -productVersion").trim(),
             );
         } else if (isLinux) {
             functionList.push(() =>
-                execSync("cat /etc/os-release | grep VERSION_ID")
-                    .toString()
+                execCommand("cat /etc/os-release | grep VERSION_ID")
                     .split("=")[1]
                     .trim()
                     .replace(/"/g, ""),
@@ -97,30 +173,33 @@ export const platformUUID = () => {
     if (null === platformUUIDCache) {
         const functionList: any[] = [];
         if (isWin) {
-            functionList.push(() =>
-                execSync("wmic csproduct get UUID")
-                    .toString()
-                    .split("\n")[1]
-                    .trim(),
-            );
-            functionList.push(() =>
-                execSync(
-                    'powershell -command "(Get-WmiObject Win32_ComputerSystemProduct).UUID"',
-                )
-                    .toString()
-                    .trim(),
-            );
+            // WMIC is used when present (fast), otherwise it is skipped
+            // entirely instead of being attempted and failing.
+            const wmic = wmicPath();
+            if (wmic) {
+                functionList.push(() =>
+                    execCommand(`"${wmic}" csproduct get UUID`)
+                        .split("\n")[1]
+                        .trim(),
+                );
+            }
+            const ps = powershellPath();
+            if (ps) {
+                functionList.push(() =>
+                    execCommand(
+                        `"${ps}" -command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"`,
+                    ).trim(),
+                );
+            }
         } else if (isMac) {
             functionList.push(() =>
-                execSync("system_profiler SPHardwareDataType | grep UUID")
-                    .toString()
+                execCommand("system_profiler SPHardwareDataType | grep UUID")
                     .split(": ")[1]
                     .trim(),
             );
         } else if (isLinux) {
             functionList.push(() =>
-                execSync("cat /var/lib/dbus/machine-id")
-                    .toString()
+                execCommand("cat /var/lib/dbus/machine-id")
                     .trim()
                     .toUpperCase(),
             );

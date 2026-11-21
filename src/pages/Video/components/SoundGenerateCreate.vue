@@ -46,6 +46,7 @@ const doSubmit = async () => {
         serverVersion: value.serverVersion,
         modelConfig: {
             type: value.type,
+            voiceId: value.voiceId,
             ttsServerKey: value.ttsServerKey,
             ttsParam: value.ttsParam,
             cloneServerKey: value.cloneServerKey,
@@ -81,6 +82,7 @@ const doSubmitBatch = async (records: { text: string }[]) => {
             serverVersion: value.serverVersion,
             modelConfig: {
                 type: value.type,
+                voiceId: value.voiceId,
                 ttsServerKey: value.ttsServerKey,
                 ttsParam: value.ttsParam,
                 cloneServerKey: value.cloneServerKey,
@@ -108,24 +110,32 @@ const emit = defineEmits({
 
 <template>
     <div class="rounded-xl shadow border p-4">
-        <div class="mb-1 relative">
-            <a-textarea
-                v-model="formData.text"
-                :auto-size="{ minRows: 2 }"
-                :placeholder="$t('hint.inputVoiceSynthesis')"
-            ></a-textarea>
-            <div class="absolute z-50 bottom-3 right-1">
-                <ModelAgentButton
-                    biz="SoundGenerateTextPrompt"
-                    title="文案生成"
-                    @result="formData.text = $event"
-                    :form-items="SoundGenerateTextFormItems"
-                    :prompt-default="SoundGenerateTextPrompt"
-                />
+        <SoundGenerateForm ref="soundGenerateForm" voice-select-only>
+            <div class="mb-1 flex items-start w-full">
+                <div class="pt-1 w-5 flex-shrink-0">
+                    <a-tooltip :content="$t('hint.inputSynthesisContent')" mini>
+                        <i-mdi-text-to-speech class="w-4 h-4" />
+                    </a-tooltip>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <a-textarea
+                        v-model="formData.text"
+                        :auto-size="{ minRows: 2 }"
+                        :placeholder="$t('hint.inputVoiceSynthesis')"
+                    ></a-textarea>
+                    <!-- Place the copywriting action outside the textarea so it never covers the text -->
+                    <div class="flex justify-end mt-1">
+                        <ModelAgentButton
+                            biz="SoundGenerateTextPrompt"
+                            :title="t('sound.copywritingGenerate')"
+                            @result="formData.text = $event"
+                            :form-items="SoundGenerateTextFormItems"
+                            :prompt-default="SoundGenerateTextPrompt"
+                        />
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="mb-2 flex gap-1"></div>
-        <SoundGenerateForm ref="soundGenerateForm" />
+        </SoundGenerateForm>
         <div class="flex gap-1">
             <a-button class="mr-2" type="primary" @click="doSubmit">
                 {{ $t("task.startSynthesis") }}

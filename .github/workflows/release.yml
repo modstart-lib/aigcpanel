@@ -253,7 +253,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aigcpanel-mac-${{ matrix.arch }}
-          path: code/dist-release/*.dmg
+          path: |
+            code/dist-release/*.dmg
+            code/dist-release/*.zip
 
       - name: Upload Artifact (Linux)
         if: runner.os == 'Linux'
@@ -264,6 +266,41 @@ jobs:
             code/dist-release/*.AppImage
             code/dist-release/*.deb
 
+      - name: Upload to OSS
+        id: oss-upload
+        uses: modstart/github-oss-action@master
+        with:
+          title: ${{ github.ref_name }}
+          key-id: ${{ secrets.OSS_2_KEY_ID }}
+          key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
+          region: ${{ secrets.OSS_2_REGION }}
+          bucket: ${{ secrets.OSS_2_BUCKET }}
+          callbackTitle: "📦 AIGCPanel-${{ runner.os }}-Release-${{ github.ref_name }}"
+          callback: ${{ secrets.REPORT_URL_ME }}
+          assets: |
+            code/dist-release/*.exe:apps/{random}.bin:{name}.exe
+            code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+            code/dist-release/*.zip:apps/{random}.bin:{name}.zip
+            code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
+            code/dist-release/*.deb:apps/{random}.bin:{name}.deb
+
+      - name: Save OSS Downloads for Notify
+        shell: bash
+        env:
+          OSS_DOWNLOADS: ${{ steps.oss-upload.outputs.downloads }}
+        run: |
+          if [ -n "${OSS_DOWNLOADS}" ]; then
+            echo "${OSS_DOWNLOADS}" > "oss-downloads-${{ matrix.name }}.json"
+          else
+            echo "{}" > "oss-downloads-${{ matrix.name }}.json"
+          fi
+
+      - name: Upload OSS Downloads Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oss-downloads-${{ matrix.name }}
+          path: oss-downloads-${{ matrix.name }}.json
+
   # ── Release ────────────────────────────────────────────────────────────────────
   release:
     name: Create Release
@@ -271,9 +308,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Download All Artifacts
+      - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: aigcpanel-*
           path: _artifacts
           merge-multiple: false
       - name: Create Release and Upload Assets
@@ -283,22 +321,41 @@ jobs:
           TAG=${GITHUB_REF#refs/tags/}
           # Delete any existing release for this tag (handles force-push)
           gh release delete "$TAG" --yes 2>/dev/null || true
-          # Create release (draft, idempotent)
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --draft \
-            --prerelease=false \
-            --notes "" \
-            2>/dev/null || true
-          # Upload all artifacts (with pre-release tag stripped from version)
-          FULL_VERSION=$(node -p "require('./package.json').version")
-          CLEAN_VERSION=$(node -p "require('./package.json').version.replace(/-[a-zA-Z][a-zA-Z0-9.]*$/, '')")
+          # Create release (idempotent)
+          # 版本号带 alpha/beta/rc/dev 时标记为预发布
+          VERSION_FOR_PRERELEASE=$(node -p "require('./package.json').version")
+          if echo "$VERSION_FOR_PRERELEASE" | grep -Eq -- '-(alpha|beta|rc|dev)(\.|$)'; then
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --prerelease \
+              --notes "" \
+              2>/dev/null || true
+          else
+            # 正式版本显式设为 latest；预发布版本不能设为 latest
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --latest \
+              --notes "" \
+              2>/dev/null || true
+          fi
+          # 保留完整版本号（含 beta.1 等预发布信息）作为资产文件名
           find _artifacts/ -type f | while read f; do
             base=$(basename "$f")
-            clean=$(echo "$base" | sed "s/$FULL_VERSION/$CLEAN_VERSION/")
-            echo "Uploading: $clean"
+            # Windows portable 不支持 electron-builder 自动更新（官方仅支持 NSIS）。
+            # 不放进 GitHub 更新通道，客户端就会选择 NSIS setup 资产。
+            # portable 仍会通过 OSS 下载页分发。
+            case "$base" in
+              *win-portable*.exe)
+                echo "Skip portable (manual install only): $base"
+                continue
+                ;;
+            esac
+            echo "Uploading: $base"
             gh release upload "$TAG" "$f" --clobber
           done
+          # 生成校验文件，客户端在没有 GitHub digest 时也能校验 sha256
+          (cd _artifacts && find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) ! -name '*win-portable*.exe' -print0 | xargs -0 sha256sum | sed 's#  .*/#  #' > checksums.txt)
+          gh release upload "$TAG" _artifacts/checksums.txt --clobber
 
   # ── Notify ────────────────────────────────────────────────────────────────────
   notify:
@@ -308,11 +365,57 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
+      - name: Download OSS Downloads Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: oss-downloads-*
+          path: _oss-downloads
+          merge-multiple: true
+
       - name: Notify Webhook
         run: |
+          # Merge all OSS download maps into a single JSON string
+          MERGED="{}"
+          for f in _oss-downloads/*.json; do
+            [ -f "$f" ] || continue
+            content=$(cat "$f")
+            [ -z "$content" ] && content="{}"
+            MERGED=$(node -e "
+              const a = JSON.parse(process.argv[1]);
+              const b = JSON.parse(process.argv[2]);
+              console.log(JSON.stringify(Object.assign(a, b)));
+            " "$MERGED" "$content")
+          done
+          echo "::add-mask::${MERGED}"
+
           NAME="${{ github.event.repository.name }}"
           TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
           VERSION=$(node -p "require('./package.json').version")
+
+          PAYLOAD=$(node -e "
+            const p = {
+              event: process.argv[1],
+              param: { name: process.argv[1], type: process.argv[2], version: process.argv[3] },
+              data: { name: process.argv[1], type: process.argv[2], version: process.argv[3], downloads: process.argv[4] }
+            };
+            console.log(JSON.stringify(p));
+          " "$NAME" "$TYPE" "$VERSION" "$MERGED")
+          echo "::add-mask::${PAYLOAD}"
+
           curl -X POST "${{ secrets.HOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "{\"event\":\"${NAME}\",\"param\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"},\"data\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"}}"
+            -d "${PAYLOAD}"
+
+      - name: Clean up OSS Downloads Artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Deleting oss-downloads-* artifacts for run ${{ github.run_id }}..."
+          gh api "/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            --jq '.artifacts[] | select(.name | startswith("oss-downloads-")) | .id' \
+            | while read id; do
+              echo "  deleting artifact id=$id"
+              gh api "/repos/${{ github.repository }}/actions/artifacts/$id" -X DELETE
+            done
+          echo "Cleanup done."

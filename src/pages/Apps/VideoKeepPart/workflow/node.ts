@@ -8,18 +8,19 @@ import {
 import { workflowRun } from "../../common/workflow";
 import { VideoKeepPartRun } from "../task";
 import AppIcon from "~icons/mdi/scissors-cutting";
+import { t } from "../../../../lang";
 
 export default <NodeFunctionCall>{
     name: "VideoKeepPart",
-    title: "视频片段删除/保留",
-    description: "保留视频的指定片段",
+    title: t("workflow.videoKeepPartTitle"),
+    description: t("workflow.videoKeepPartDesc"),
     icon: AppIcon,
     comp: defineAsyncComponent(() => import("./VideoKeepPartNode.vue")),
     inputFields: [
         {
             type: "file",
             name: "Video",
-            placeholder: "选择视频文件",
+            placeholder: t("workflow.selectVideoFile"),
             fileExtensions: ["mp4", "avi", "mov", "mkv", "wmv", "flv", "webm"],
         },
     ],
@@ -27,7 +28,7 @@ export default <NodeFunctionCall>{
         {
             type: "file",
             name: "Video",
-            placeholder: "处理后的视频文件",
+            placeholder: t("workflow.processedVideoFile"),
         },
     ],
     async run(
@@ -47,7 +48,7 @@ export default <NodeFunctionCall>{
                     action: action,
                 };
                 if (!taskRunData.video) {
-                    throw "请选择视频文件";
+                    throw t("error.selectVideoFile");
                 }
                 return await VideoKeepPartRun(taskRunData);
             },
@@ -58,10 +59,10 @@ export default <NodeFunctionCall>{
     },
     async check(node) {
         if (!node.properties?.data?.action) {
-            throw new Error("请选择操作类型");
+            throw new Error(t("error.selectActionType"));
         }
         if (node.properties?.inputFields?.[0].value === "") {
-            throw new Error("请选择视频文件");
+            throw new Error(t("error.selectVideoFile"));
         }
     },
 };

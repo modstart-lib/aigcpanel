@@ -1,5 +1,15 @@
 {
     "common.subtitleFile": "Subtitle File",
     "error.selectSubtitleFile": "Please select a subtitle file",
-    "error.inputSubtitleParam": "Please enter subtitle parameter"
+    "error.inputSubtitleParam": "Please enter subtitle parameter",
+    "app.videoSubtitleTitle": "Add Subtitles to Video",
+    "app.videoSubtitleDesc": "Add subtitles to the video, supporting SRT subtitle files",
+    "app.videoSubtitleStepSelectFile": "Select Files",
+    "app.videoSubtitleStepSelectFileDesc": "Select the video file and the SRT subtitle file",
+    "app.videoSubtitleStepParseContent": "Parse Content",
+    "app.videoSubtitleStepParseContentDesc": "Analyze the video info and parse the subtitle file content",
+    "app.videoSubtitleStepCompositeVideo": "Composite Video",
+    "app.videoSubtitleStepCompositeVideoDesc": "Render the subtitles onto the video",
+    "workflow.videoSubtitleTitle": "Add Subtitles to Video",
+    "workflow.videoSubtitleDesc": "Add subtitles to the video"
 }

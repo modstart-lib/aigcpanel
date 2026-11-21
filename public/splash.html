@@ -1,53 +1,440 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>%name%</title>
 </head>
 <body>
-<div class="container">
-    <div style="display:flex;justify-content:center;align-items:center;">
-        <div style="margin-right:10px;">
-            <img width="40" src="./logo.svg"/>
+<div class="splash">
+    <!-- Background: soft gradient + aurora orbs + dot grid -->
+    <div class="bg" aria-hidden="true">
+        <span class="orb orb-a"></span>
+        <span class="orb orb-b"></span>
+        <span class="orb orb-c"></span>
+        <div class="dots"></div>
+        <div class="gloss"></div>
+    </div>
+
+    <!-- Header: brand identity -->
+    <header class="head">
+        <div class="logo">
+            <img src="./logo.svg" alt="%name%"/>
         </div>
-        <div style="margin-right:10px;font-size:20px;font-weight:bold;color:#265BD7;">%name%</div>
-        <div style="font-size:12px;color:#333;">v%version%</div>
-        <div style="flex-grow:1;"></div>
-    </div>
-    <div style="flex-grow:1;margin-top:30px;">
-        <div style="font-size:16px;line-height:2em;margin-bottom:1em;">%slogan%</div>
-        <div style="font-size:14px;line-height:2em;">实时直播 · 数字人 · 声音克隆 · 声音生成 · AI工具 · 工作流</div>
-    </div>
-    <div style="color:#999;font-size:12px;">
-        正在启动 ...
-    </div>
+        <div class="brand">
+            <div class="name">%name%</div>
+            <div class="meta">
+                <span class="version" data-version>v%version%</span>
+                <span class="badge">AI 创作平台</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Body: slogan + capability chips -->
+    <main class="body">
+        <h1 class="slogan">%slogan%</h1>
+        <div class="tags">
+            <span class="tag">实时直播</span>
+            <span class="tag">数字人</span>
+            <span class="tag">声音复刻</span>
+            <span class="tag">声音生成</span>
+            <span class="tag">AI 工具</span>
+            <span class="tag">工作流</span>
+        </div>
+    </main>
+
+    <!-- Footer: loading progress + status -->
+    <footer class="foot">
+        <div class="bar"><span></span></div>
+        <div class="status">
+            <span>正在启动</span>
+            <span class="dots-loading"><i>.</i><i>.</i><i>.</i></span>
+        </div>
+    </footer>
 </div>
+
 <style>
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-size: 14px;
-        line-height: 2em;
-        font-family: Helvetica Neue,Helvetica,PingFang SC,Tahoma,Arial,sans-serif;
     }
 
-    body {
-        height: 100vh;
-        background:transparent;
+    html, body {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        -webkit-user-select: none;
+        user-select: none;
+        cursor: default;
+        font-family: "PingFang SC", "Helvetica Neue", Helvetica, "Microsoft YaHei", Tahoma, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
     }
-    body .container{
-        background-image: url("./splash-bg.svg");
-        display:flex;
-        flex-direction:column;
-        height:calc( 100vh - 40px );
-        padding:20px;
-        background-size: cover;
-        background-position: right;
-        background-repeat: no-repeat;
-        border-radius: 10px;
+
+    /* ---------- Root card ---------- */
+    .splash {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 26px 32px 24px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 46%, #e7efff 100%);
+        box-shadow: inset 0 0 0 1px rgba(38, 91, 215, 0.08);
+    }
+
+    /* ---------- Background decoration ---------- */
+    .bg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(46px);
+        opacity: 0.55;
+    }
+
+    .orb-a {
+        width: 280px;
+        height: 280px;
+        top: -120px;
+        right: -70px;
+        background: radial-gradient(circle at 30% 30%, #7ba2ff, #265bd7 70%);
+        animation: float-a 14s ease-in-out infinite;
+    }
+
+    .orb-b {
+        width: 240px;
+        height: 240px;
+        bottom: -140px;
+        left: -80px;
+        background: radial-gradient(circle at 40% 40%, #9db9ff, #4c7bff 70%);
+        opacity: 0.38;
+        animation: float-b 17s ease-in-out infinite;
+    }
+
+    .orb-c {
+        width: 150px;
+        height: 150px;
+        top: 44%;
+        right: 16%;
+        background: radial-gradient(circle, #b9ccff, #6c93ff 70%);
+        opacity: 0.3;
+        animation: float-c 12s ease-in-out infinite;
+    }
+
+    .dots {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(38, 91, 215, 0.16) 1px, transparent 1px);
+        background-size: 18px 18px;
+        -webkit-mask-image: radial-gradient(120% 90% at 82% 8%, #000 0%, transparent 62%);
+        mask-image: radial-gradient(120% 90% at 82% 8%, #000 0%, transparent 62%);
+        opacity: 0.7;
+    }
+
+    /* Diagonal light sweep */
+    .gloss {
+        position: absolute;
+        top: -60%;
+        left: -30%;
+        width: 55%;
+        height: 220%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+        transform: rotate(18deg);
+        animation: gloss 7s ease-in-out infinite;
+    }
+
+    /* ---------- Header ---------- */
+    .head {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .logo {
+        flex: none;
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow:
+            0 6px 16px rgba(38, 91, 215, 0.18),
+            inset 0 0 0 1px rgba(38, 91, 215, 0.08);
+        animation: logo-float 4.5s ease-in-out infinite;
+    }
+
+    .logo img {
+        width: 30px;
+        height: 30px;
+        display: block;
+    }
+
+    .brand {
+        min-width: 0;
+    }
+
+    .name {
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        color: #16233f;
+        line-height: 1.2;
+    }
+
+    .meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 5px;
+    }
+
+    .version {
+        font-size: 11px;
+        font-weight: 600;
+        color: #265bd7;
+        background: rgba(38, 91, 215, 0.1);
+        border-radius: 999px;
+        padding: 1px 9px;
+        line-height: 18px;
+    }
+
+    .badge {
+        font-size: 11px;
+        font-weight: 500;
+        color: #5b6b8c;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(38, 91, 215, 0.1);
+        border-radius: 999px;
+        padding: 1px 9px;
+        line-height: 18px;
+    }
+
+    /* ---------- Body ---------- */
+    .body {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 16px;
+        padding-bottom: 6px;
+    }
+
+    .slogan {
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        line-height: 1.25;
+        color: #16233f;
+    }
+
+    .slogan::after {
+        content: "";
+        display: block;
+        width: 44px;
+        height: 4px;
+        margin-top: 12px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #4c7bff, #265bd7);
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tag {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #265bd7;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(38, 91, 215, 0.14);
+        border-radius: 999px;
+        padding: 5px 13px;
+        line-height: 1;
+        box-shadow: 0 2px 6px rgba(38, 91, 215, 0.06);
+    }
+
+    /* ---------- Footer ---------- */
+    .foot {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .bar {
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(38, 91, 215, 0.13);
+        overflow: hidden;
+    }
+
+    .bar span {
+        display: block;
+        width: 38%;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #8fb0ff, #265bd7, #8fb0ff);
+        background-size: 200% 100%;
+        animation: bar-slide 1.5s cubic-bezier(0.55, 0.1, 0.45, 0.9) infinite;
+    }
+
+    .status {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b7a99;
+    }
+
+    .dots-loading {
+        display: inline-flex;
+        margin-top: 1px;
+    }
+
+    .dots-loading i {
+        font-style: normal;
+        animation: dot-blink 1.4s ease-in-out infinite;
+    }
+
+    .dots-loading i:nth-child(2) { animation-delay: 0.2s; }
+    .dots-loading i:nth-child(3) { animation-delay: 0.4s; }
+
+    /* ---------- Animations ---------- */
+    @keyframes float-a {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-18px, 16px) scale(1.06); }
+    }
+
+    @keyframes float-b {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(20px, -14px) scale(1.08); }
+    }
+
+    @keyframes float-c {
+        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+        50% { transform: translate(-14px, -10px); opacity: 0.5; }
+    }
+
+    @keyframes gloss {
+        0% { left: -50%; }
+        55%, 100% { left: 130%; }
+    }
+
+    @keyframes logo-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+    }
+
+    @keyframes bar-slide {
+        0% { transform: translateX(-115%); }
+        100% { transform: translateX(305%); }
+    }
+
+    @keyframes dot-blink {
+        0%, 100% { opacity: 0.25; }
+        40% { opacity: 1; }
+    }
+
+    /* ---------- Dark theme ---------- */
+    @media (prefers-color-scheme: dark) {
+        .splash {
+            background: linear-gradient(135deg, #101a33 0%, #0e1730 50%, #131f3d 100%);
+            box-shadow: inset 0 0 0 1px rgba(120, 160, 255, 0.12);
+        }
+
+        .orb { opacity: 0.5; }
+        .orb-b { opacity: 0.3; }
+        .orb-c { opacity: 0.22; }
+
+        .dots {
+            background-image: radial-gradient(rgba(140, 175, 255, 0.26) 1px, transparent 1px);
+        }
+
+        .gloss { opacity: 0.07; }
+
+        .name,
+        .slogan { color: #eef3ff; }
+
+        .version {
+            color: #a9c4ff;
+            background: rgba(90, 140, 255, 0.18);
+        }
+
+        .badge {
+            color: #9fb0d0;
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(120, 160, 255, 0.18);
+        }
+
+        .tag {
+            color: #bcd0ff;
+            background: rgba(120, 160, 255, 0.12);
+            border-color: rgba(120, 160, 255, 0.22);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        .bar { background: rgba(120, 160, 255, 0.18); }
+
+        .status { color: #8fa3c8; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .orb, .gloss, .logo, .bar span, .dots-loading i {
+            animation: none;
+        }
+        .bar span { width: 90%; }
     }
 </style>
+
+<!-- Dev fallback: replace unprocessed placeholders (build replaces them before this runs) -->
+<script>
+    (function () {
+        var fallback = { name: "AIGCPanel", slogan: "一站式AI数字人系统" };
+        var pattern = /%(\w+)%/g;
+
+        function replaceText(text) {
+            return text.replace(pattern, function (match, key) {
+                return Object.prototype.hasOwnProperty.call(fallback, key) ? fallback[key] : match;
+            });
+        }
+
+        function run() {
+            if (document.title.indexOf("%") !== -1) {
+                document.title = replaceText(document.title);
+            }
+            var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+            var node;
+            while ((node = walker.nextNode())) {
+                var next = replaceText(node.nodeValue);
+                if (next !== node.nodeValue) node.nodeValue = next;
+            }
+            // Hide version chip when it is still an unresolved placeholder (dev without version)
+            var version = document.querySelector("[data-version]");
+            if (version && version.textContent.indexOf("%") !== -1) {
+                version.style.display = "none";
+            }
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", run);
+        } else {
+            run();
+        }
+    })();
+</script>
 </body>
 </html>

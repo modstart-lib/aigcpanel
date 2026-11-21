@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -60,10 +61,10 @@ const props = defineProps<{
             </div>
             <div class="flex-grow">
                 <TaskJobResultStepView :record="record" step="Prepare">
-                    <div class="flex gap-2 mb-2">
+                    <div class="flex flex-wrap gap-2 mb-2">
                         <VideoInfo :data="record.jobResult?.Prepare!" />
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <AudioInfo :data="record.jobResult?.Prepare!" />
                     </div>
                 </TaskJobResultStepView>
@@ -121,6 +122,7 @@ const props = defineProps<{
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

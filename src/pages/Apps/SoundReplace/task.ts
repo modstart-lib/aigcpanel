@@ -5,6 +5,7 @@ import {
     ffmpegVideoToAudio,
 } from "../../../lib/ffmpeg";
 import { ffprobeGetMediaDuration } from "../../../lib/ffprobe";
+import { assertLocalFileExists } from "../../../lib/file";
 import { serverSoundAsr, serverSoundGenerate } from "../../../lib/server";
 import {
     subtitleGenerateRecords,
@@ -112,6 +113,20 @@ export const SoundReplace: TaskBiz = {
         jobResult.CombineConfirm = jobResult.CombineConfirm || {
             status: "queue",
         };
+
+        // The source video is read again by later steps (Combine rebuilds the
+        // video from it), which can happen long after submission: the user may
+        // have moved or deleted the file in the meantime. Fail right away with
+        // a clear message instead of a cryptic ffprobe/ffmpeg error.
+        if (
+            ["ToAudio", "SoundAsr", "Combine"].includes(
+                jobResult.step as string,
+            )
+        ) {
+            await assertLocalFileExists(modelConfig.video, {
+                message: "error.videoSourceFileNotExists",
+            });
+        }
 
         if (jobResult.step === "ToAudio") {
             console.log("SoundReplace.ToAudio", jobResult);

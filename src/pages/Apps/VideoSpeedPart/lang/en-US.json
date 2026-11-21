@@ -3,5 +3,15 @@
     "common.accelerationCoefficient": "Acceleration",
     "common.accelerationValue": "Acceleration {speed}x",
     "common.setSpeedTimeRange": "Set Speed Time Range",
-    "error.validAcceleration": "Please set a valid acceleration coefficient"
+    "error.validAcceleration": "Please set a valid acceleration coefficient",
+    "app.videoSpeedPartTitle": "Segment Speed Change",
+    "app.videoSpeedPartDesc": "Mark video segments and speed them up",
+    "app.videoSpeedPartStepSelectVideo": "Select Video",
+    "app.videoSpeedPartStepSelectVideoDesc": "Select the video file to speed up segments",
+    "app.videoSpeedPartStepSetSpeedNodes": "Set Speed Nodes",
+    "app.videoSpeedPartStepSetSpeedNodesDesc": "Add speed nodes on the timeline to set the speed-up area and time",
+    "app.videoSpeedPartStepGenerateVideo": "Generate Video",
+    "app.videoSpeedPartStepGenerateVideoDesc": "Use FFmpeg to process the video and generate the segment speed effect",
+    "workflow.videoSpeedPartTitle": "Segment Speed Change",
+    "workflow.videoSpeedPartDesc": "Change the playback speed of video segments"
 }

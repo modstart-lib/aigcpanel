@@ -4,6 +4,8 @@ import FeedbackTicketButton from "../components/common/FeedbackTicketButton.vue"
 
 
 import { TimeUtil } from "../lib/util";
+import { AppConfig } from "../config";
+import { t } from "../lang";
 import { TaskService } from "../service/TaskService";
 
 import { StorageService } from "../service/StorageService";
@@ -117,7 +119,7 @@ onUnmounted(() => {
                     <div
                         class="font-bold text-gray-800 dark:text-gray-200 text-base mb-1"
                     >
-                        语音合成
+                        {{ $t("home.soundGenerate") }}
                     </div>
                     <div class="text-gray-500 text-xs truncate pr-2">
                         {{ $t("intro.modelsSupported") }}
@@ -138,7 +140,7 @@ onUnmounted(() => {
                     <div
                         class="font-bold text-gray-800 dark:text-gray-200 text-base mb-1"
                     >
-                        数字人合成
+                        {{ $t("home.videoGen") }}
                     </div>
                     <div class="text-gray-500 text-xs truncate pr-2">
                         {{ $t("avatar.audioToVideo") }}
@@ -159,10 +161,10 @@ onUnmounted(() => {
                     <div
                         class="font-bold text-gray-800 dark:text-gray-200 text-base mb-1"
                     >
-                        小工具
+                        {{ $t("home.tool") }}
                     </div>
                     <div class="text-gray-500 text-xs truncate pr-2">
-                        视频音频处理工具集
+                        {{ $t("home.toolDesc") }}
                     </div>
                 </div>
                 <div
@@ -181,7 +183,7 @@ onUnmounted(() => {
                     <div
                         class="font-bold text-gray-800 dark:text-gray-200 text-base mb-1"
                     >
-                        智能直播
+                        {{ $t("home.live") }}
                     </div>
                     <div class="text-gray-500 text-xs truncate pr-2">
                         {{ $t("intro.interactionSupport") }}
@@ -216,7 +218,7 @@ onUnmounted(() => {
                         ></span>
                         <span
                             class="text-xs font-medium text-gray-600 dark:text-gray-400"
-                            >语音合成</span
+                            >{{ $t("home.soundGenerate") }}</span
                         >
                     </div>
                     <div class="flex items-end gap-4">
@@ -226,7 +228,9 @@ onUnmounted(() => {
                             >
                                 {{ usageData.soundGenerate ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">总数</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("dashboard.total") }}
+                            </div>
                         </div>
                         <div>
                             <div
@@ -239,7 +243,9 @@ onUnmounted(() => {
                             >
                                 +{{ usageData.soundGenerateToday ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">今日</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("dashboard.today") }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -253,7 +259,7 @@ onUnmounted(() => {
                         ></span>
                         <span
                             class="text-xs font-medium text-gray-600 dark:text-gray-400"
-                            >数字人合成</span
+                            >{{ $t("home.videoGen") }}</span
                         >
                     </div>
                     <div class="flex items-end gap-4">
@@ -263,7 +269,9 @@ onUnmounted(() => {
                             >
                                 {{ usageData.videoGen ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">总数</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("dashboard.total") }}
+                            </div>
                         </div>
                         <div>
                             <div
@@ -276,16 +284,23 @@ onUnmounted(() => {
                             >
                                 +{{ usageData.videoGenToday ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">今日</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("dashboard.today") }}
+                            </div>
                         </div>
                         <div class="ml-auto self-start">
                             <div class="text-xs text-gray-400">
-                                形象{{ usageData.videoTemplateCount ?? "-" }}
+                                {{
+                                    $t("home.templateCountValue", {
+                                        count:
+                                            usageData.videoTemplateCount ?? "-",
+                                    })
+                                }}
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- 小工具 -->
+                <!-- 工具 -->
                 <div
                     class="flex flex-col gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20"
                 >
@@ -295,7 +310,7 @@ onUnmounted(() => {
                         ></span>
                         <span
                             class="text-xs font-medium text-gray-600 dark:text-gray-400"
-                            >小工具</span
+                            >{{ $t("home.tool") }}</span
                         >
                     </div>
                     <div class="flex items-end gap-4">
@@ -305,7 +320,9 @@ onUnmounted(() => {
                             >
                                 {{ usageData.toolTotal ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">总数</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("dashboard.total") }}
+                            </div>
                         </div>
                         <div>
                             <div
@@ -318,7 +335,9 @@ onUnmounted(() => {
                             >
                                 +{{ usageData.toolTotalToday ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">今日</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("dashboard.today") }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -333,7 +352,7 @@ onUnmounted(() => {
                         ></span>
                         <span
                             class="text-xs font-medium text-gray-600 dark:text-gray-400"
-                            >智能直播</span
+                            >{{ $t("home.live") }}</span
                         >
                     </div>
                     <div class="flex items-end gap-4">
@@ -343,7 +362,9 @@ onUnmounted(() => {
                             >
                                 {{ usageData.liveAvatarCount ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">形象</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("home.avatar") }}
+                            </div>
                         </div>
                         <div>
                             <div
@@ -351,7 +372,9 @@ onUnmounted(() => {
                             >
                                 {{ usageData.liveKnowledgeCount ?? "-" }}
                             </div>
-                            <div class="text-xs text-gray-400">知识库</div>
+                            <div class="text-xs text-gray-400">
+                                {{ $t("home.knowledgeBase") }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -409,7 +432,7 @@ onUnmounted(() => {
             </div>
         </div>
 
-        <!-- 小工具功能卡片 -->
+        <!-- 工具功能卡片 -->
         <div
             class="bg-white dark:bg-gray-800 rounded-xl p-5 mb-5 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
         >
@@ -417,7 +440,7 @@ onUnmounted(() => {
                 class="text-base font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-200"
             >
                 <icon-tool />
-                小工具
+                {{ $t("home.tool") }}
             </div>
             <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 <div
@@ -451,10 +474,10 @@ onUnmounted(() => {
                         <div
                             class="font-medium text-sm text-gray-700 dark:text-gray-300 truncate"
                         >
-                            {{ app.title }}
+                            {{ t(app.titleKey) }}
                         </div>
                         <div class="text-gray-400 text-xs truncate mt-0.5">
-                            {{ app.description }}
+                            {{ t(app.descriptionKey) }}
                         </div>
                     </div>
                     <icon-right
@@ -462,6 +485,23 @@ onUnmounted(() => {
                     />
                 </div>
             </div>
+        </div>
+        <!-- 开源地址（地址始终为 github.com/modstart-lib/aigcpanel） -->
+        <div
+            class="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-xs text-gray-400"
+        >
+            <span class="flex items-center gap-1">
+                <i-mdi-open-source-initiative class="text-sm" />
+                {{ $t("home.openSource") }}
+            </span>
+            <a
+                :href="AppConfig.websiteGithub"
+                target="_blank"
+                class="flex items-center gap-1 text-gray-500 dark:text-gray-300 hover:text-blue-500 transition-colors"
+            >
+                <i-mdi-github class="text-sm" />
+                modstart-lib/aigcpanel
+            </a>
         </div>
     </div>
     

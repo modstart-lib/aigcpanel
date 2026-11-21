@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { t } from "../../../lang";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
@@ -43,8 +44,8 @@ const doRefresh = async () => {
 <template>
     <div class="p-5">
         <PageHeader
-            title="视频全局变速"
-            desc="调整视频播放速度，支持加速、减速和变速节点"
+            :title="t('app.videoSpeedTitle')"
+            :desc="t('app.videoSpeedDesc')"
         >
             <template #actions
                 ><ToggleButton v-model="stepsVisible"
@@ -55,18 +56,18 @@ const doRefresh = async () => {
             :steps="[
                 {
                     key: 1,
-                    label: '选择视频',
-                    description: '选择需要进行变速处理的视频文件',
+                    label: t('app.videoSpeedStepSelectVideo'),
+                    description: t('app.videoSpeedStepSelectVideoDesc'),
                 },
                 {
                     key: 2,
-                    label: '设置速度',
-                    description: '设置播放速度倍率或添加变速节点',
+                    label: t('app.videoSpeedStepSetSpeed'),
+                    description: t('app.videoSpeedStepSetSpeedDesc'),
                 },
                 {
                     key: 3,
-                    label: '生成视频',
-                    description: '使用FFmpeg处理视频，生成变速效果',
+                    label: t('app.videoSpeedStepGenerateVideo'),
+                    description: t('app.videoSpeedStepGenerateVideoDesc'),
                 },
             ]"
         />

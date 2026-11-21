@@ -1,10 +1,8 @@
 import { onMounted, toRaw, watch } from "vue";
-import { AppConfig } from "../../config";
 import { t } from "../../lang";
-import { defaultResponseProcessor } from "../../lib/api";
 import { Dialog } from "../../lib/dialog";
+import { FileUtil } from "../../lib/file";
 import { StorageUtil } from "../../lib/storage";
-import { VersionUtil } from "../../lib/util";
 
 export const doCopy = async (
     text: string | object,
@@ -16,14 +14,17 @@ export const doCopy = async (
     Dialog.tipSuccess(successTip);
 };
 
-export const doSaveFile = async (filePath: string) => {
+export const doSaveFile = async (filePath: string, defaultName?: string) => {
     try {
+        // stored file path may be a file:// url, convert it to a local path
+        const fromPath = FileUtil.urlToPath(filePath);
         const options: any = {
-            defaultPath: window.$mapi.file.pathToName(filePath, true, -1),
+            defaultPath:
+                defaultName || window.$mapi.file.pathToName(fromPath, true, -1),
         };
         const savePath = await window.$mapi.file.openSave(options);
         if (savePath) {
-            await window.$mapi.file.copy(filePath, savePath, {
+            await window.$mapi.file.copy(fromPath, savePath, {
                 isDataPath: false,
             });
             Dialog.tipSuccess(t("msg.fileSavedTo", { path: savePath }));
@@ -133,24 +134,10 @@ export const doOpenBrowserFile = (options: {
 };
 
 export const doCheckForUpdate = async (noticeLatest?: boolean) => {
-    const res = await window.$mapi.updater.checkForUpdate();
-    defaultResponseProcessor(res, (res: ApiResult<any>) => {
-        if (!res.data.version) {
-            Dialog.tipError(t("update.checkFailed"));
-            return;
-        }
-        if (VersionUtil.le(res.data.version, AppConfig.version)) {
-            if (noticeLatest) {
-                Dialog.tipSuccess(t("update.alreadyLatest"));
-            }
-            return;
-        }
-        Dialog.confirm(
-            t("update.newVersionFound", { version: res.data.version }),
-        ).then(() => {
-            window.$mapi.app.openExternal(AppConfig.downloadUrl);
-        });
-    });
+    // 更新检查统一由 updater store 管理：打开更新面板、展示下载进度与重启入口
+    const { updaterStore } = await import("../../store/modules/updater");
+    const updater = updaterStore();
+    await updater.check(noticeLatest === true);
 };
 
 export const dataAutoSaveDraft = (

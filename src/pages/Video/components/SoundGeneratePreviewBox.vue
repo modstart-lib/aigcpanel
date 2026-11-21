@@ -86,7 +86,7 @@ const doPreview = async () => {
                 <div class="mb-2 font-bold">
                     {{ $t("voice.currentConfig") }}
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
                     <SoundGenerateFormViewBody
                         :data="props.soundGenerate as any"
                     />

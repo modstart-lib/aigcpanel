@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from "../../../../lang";
 const props = defineProps<{
     data: {
         normalizationPercentage?: number;
@@ -10,8 +11,10 @@ const props = defineProps<{
     <div class="flex flex-wrap mb-2 gap-1">
         <a-tag class="rounded-lg">{{
             data.normalizationPercentage !== undefined
-                ? `归一化程度 ${data.normalizationPercentage}%`
-                : "未配置"
+                ? t("app.normalizationLevelValue", {
+                      value: data.normalizationPercentage,
+                  })
+                : t("common.notConfigured")
         }}</a-tag>
     </div>
 </template>

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="heroTitle heroDesc">
+  <title id="heroTitle">AIGCPanel — 开源 AI 数字人桌面应用</title>
+  <desc id="heroDesc">左侧是项目名与一句话说明：给一段形象视频和文案，本地模型就能合成口播视频。右侧是工作流画布上的口型同步节点，模型可选 MuseTalk、LatentSync、Wav2Lip、Heygem。</desc>
+
+  <defs>
+    <pattern id="heroDots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.5" r="1.1" fill="#DCE3EF"/>
+    </pattern>
+    <marker id="heroArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 Z" fill="#265BD7"/>
+    </marker>
+  </defs>
+
+  <!-- surface: light rounded card, nothing drawn outside it -->
+  <rect width="1200" height="360" rx="26" fill="#ECF0F7"/>
+
+  <!-- title block -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif">
+    <text x="48" y="88" font-size="20" font-weight="600" fill="#265BD7" letter-spacing="1.6">开源 AI 数字人桌面应用</text>
+    <text x="48" y="156" font-size="58" font-weight="800" fill="#101828" letter-spacing="-1">AIGCPanel</text>
+    <text x="48" y="210" font-size="22" fill="#46506A">形象视频加一段文案，交给本地模型，</text>
+    <text x="48" y="244" font-size="22" fill="#46506A">出来一条口播视频。</text>
+    <text x="48" y="304" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#7A8497">Windows · macOS · Linux　·　本地 / 云端模型</text>
+  </g>
+
+  <!-- workflow canvas fragment -->
+  <g>
+    <rect x="560" y="40" width="592" height="280" rx="18" fill="#F8FAFE" stroke="#E1E7F2"/>
+    <rect x="562" y="42" width="588" height="276" rx="16" fill="url(#heroDots)"/>
+
+    <!-- source nodes -->
+    <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif">
+      <rect x="584" y="64" width="248" height="54" rx="10" fill="#FFFFFF" stroke="#D9E1EF"/>
+      <circle cx="610" cy="91" r="5" fill="#6366F1"/>
+      <text x="626" y="98" font-size="20" font-weight="600" fill="#101828">文案 / 音频</text>
+
+      <rect x="852" y="64" width="248" height="54" rx="10" fill="#FFFFFF" stroke="#D9E1EF"/>
+      <circle cx="878" cy="91" r="5" fill="#265BD7"/>
+      <text x="894" y="98" font-size="20" font-weight="600" fill="#101828">形象视频</text>
+
+      <!-- model node -->
+      <rect x="584" y="148" width="516" height="64" rx="10" fill="#FFFFFF" stroke="#D9E1EF"/>
+      <text x="606" y="176" font-size="20" font-weight="600" fill="#101828">口型同步模型</text>
+      <text x="606" y="198" font-size="16" fill="#7A8497" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">MuseTalk · LatentSync · Wav2Lip · Heygem</text>
+
+      <!-- output node -->
+      <rect x="584" y="236" width="516" height="64" rx="10" fill="#FFF3EF" stroke="#FFD3C4"/>
+      <rect x="603" y="255" width="44" height="26" rx="4" fill="#FF6A4D"/>
+      <path d="M 621 261 L 633 268 L 621 275 Z" fill="#FFFFFF"/>
+      <text x="666" y="274" font-size="20" font-weight="600" fill="#101828">数字人口播视频</text>
+      <text x="1078" y="274" font-size="16" fill="#B4553E" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">MP4</text>
+    </g>
+
+    <!-- connectors -->
+    <g fill="none" stroke="#265BD7" stroke-width="2">
+      <path d="M 708 118 C 708 136 740 130 740 145" marker-end="url(#heroArrow)"/>
+      <path d="M 976 118 C 976 136 944 130 944 145" marker-end="url(#heroArrow)"/>
+      <path d="M 842 212 L 842 233" marker-end="url(#heroArrow)"/>
+    </g>
+  </g>
+</svg>

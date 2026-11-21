@@ -55,7 +55,11 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="800px" title-align="start">
+    <a-modal
+        v-model:visible="visible"
+        width="min(800px, 95vw)"
+        title-align="start"
+    >
         <template #title>
             {{ $t("media.subtitlePreview") }}
         </template>
@@ -64,10 +68,7 @@ defineExpose({
                 $t("common.close")
             }}</a-button>
         </template>
-        <div
-            class="-mx-4 -my-5 overflow-y-auto"
-            style="max-height: calc(100vh - 20rem)"
-        >
+        <div class="-mx-4 -my-5">
             <div
                 class="border border-gray-200 rounded-lg shadow-md bg-white text-xs"
             >

@@ -1,5 +1,5 @@
-import { ModelChatResult } from "../provider";
 import { ChatParam, ProviderType } from "../../types";
+import { ModelChatResult } from "../provider";
 import { AbstractModelProvider } from "./base";
 
 export class OpenAiModelProvider extends AbstractModelProvider {
@@ -37,6 +37,7 @@ export class OpenAiModelProvider extends AbstractModelProvider {
             body: JSON.stringify({
                 model: this.config.modelId,
                 messages: messages,
+                ...(chatParam.extra || {}),
             }),
         });
         if (!response.ok) {

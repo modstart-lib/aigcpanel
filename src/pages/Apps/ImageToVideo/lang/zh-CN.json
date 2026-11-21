@@ -1,0 +1,17 @@
+{
+    "app.generateImage": "生成视频",
+    "app.generateImageDesc": "根据提示词生成新的视频",
+    "app.imageGenerateService": "视频生成服务",
+    "app.videoGeneration": "视频生成",
+    "app.imageLabel": "图像",
+    "app.imageToVideoDesc": "将图像转换为视频",
+    "app.imageToVideoSettings": "图生视频设置",
+    "app.inputPromptDesc": "输入描述视频的文本",
+    "app.inputPromptLabel": "输入提示词",
+    "app.processVideo": "处理视频",
+    "app.promptText": "提示文本",
+    "app.selectLocalImage": "选择本地图片",
+    "app.selectLocalImageDesc": "上传并选择要转换的图片",
+    "app.imageToVideoConfig": "图生视频配置",
+    "workflow.paramErrorMissing": "参数错误：缺少 {items}"
+}

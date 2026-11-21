@@ -2,6 +2,7 @@
 import { changeLocale, getLocale, listLocales, t } from "../../lang";
 import { useSettingStore } from "../../store/modules/setting";
 import { onMounted, ref } from "vue";
+import SettingBasicDataRoot from "./components/SettingBasicDataRoot.vue";
 
 const locale = ref("");
 
@@ -19,6 +20,7 @@ const onLocaleChange = (value: string) => {
 
 <template>
     <a-form :model="{}" layout="vertical">
+        <SettingBasicDataRoot />
         <a-form-item field="name" :label="t('common.language')">
             <a-select
                 :model-value="locale as string"

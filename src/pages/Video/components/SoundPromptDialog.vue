@@ -43,9 +43,13 @@ const doExport = async (record: StorageRecord) => {
         await window.$mapi.file.copy(record.content.url, savePath, {
             isDataPath: false,
         });
-        Dialog.tipSuccess("导出成功");
+        Dialog.tipSuccess(t("sound.exportSuccess"));
     } catch (error) {
-        Dialog.tipError(`导出失败: ${(error as Error).message || error}`);
+        Dialog.tipError(
+            t("sound.exportFailed", {
+                error: (error as Error).message || error,
+            }),
+        );
     }
 };
 const doSelect = (record: StorageRecord) => {
@@ -71,14 +75,14 @@ onMounted(async () => {
 <template>
     <a-modal
         v-model:visible="visible"
-        width="900px"
+        width="min(900px, 95vw)"
         :footer="false"
         title-align="start"
     >
         <template #title>
             <div class="font-bold">{{ $t("voice.timbreManage") }}</div>
         </template>
-        <div style="height: calc(100vh - 15rem)">
+        <div>
             <ListerTop
                 :loading="loading"
                 :total="records.length"

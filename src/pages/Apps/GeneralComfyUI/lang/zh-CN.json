@@ -1,0 +1,17 @@
+{
+    "general.comfyui.title": "通用ComfyUI",
+    "general.comfyui.desc": "调用 ComfyUI 服务通用工作流",
+    "general.comfyui.appDesc": "调用 ComfyUI 服务中的通用工作流（未归类业务功能）。",
+    "general.comfyui.call": "通用 ComfyUI 工作流调用",
+    "general.comfyui.callTip": "选择 ComfyUI 服务中未归类业务功能的通用工作流，按工作流参数直接调用。",
+    "general.comfyui.config": "通用 ComfyUI 配置",
+    "general.selectWorkflow": "选择工作流",
+    "general.selectWorkflowTip": "请选择要调用的通用工作流",
+    "general.noWorkflow": "当前模型没有可调用的通用工作流",
+    "general.noTaskComfyui": "暂无通用 ComfyUI 任务",
+    "general.comfyui.runFail": "通用 ComfyUI 执行失败",
+    "general.file": "文件",
+    "general.filterComfyUI": "按 ComfyUI 筛选",
+    "general.all": "全部",
+    "general.taskSuffix": "任务"
+}

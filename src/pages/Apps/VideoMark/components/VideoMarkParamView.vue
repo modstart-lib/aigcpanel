@@ -13,28 +13,33 @@ const props = defineProps<{
 <template>
     <div class="flex flex-wrap items-center gap-1 mb-2">
         <a-tag class="rounded-lg"
-            >边框颜色 {{ data.borderColor || "未配置" }}</a-tag
+            >{{ $t("app.borderColor") }}
+            {{ data.borderColor || $t("common.notConfigured") }}</a-tag
         >
         <a-tag class="rounded-lg"
-            >边框宽度 {{ data.borderWidth || "未配置" }}</a-tag
+            >{{ $t("app.borderWidth") }}
+            {{ data.borderWidth || $t("common.notConfigured") }}</a-tag
         >
         <a-tag class="rounded-lg"
-            >边框不透明度
+            >{{ $t("app.borderOpacity") }}
             {{
-                data.borderOpacity ? data.borderOpacity * 100 + "%" : "未配置"
+                data.borderOpacity
+                    ? data.borderOpacity * 100 + "%"
+                    : $t("common.notConfigured")
             }}</a-tag
         >
         <a-tag class="rounded-lg"
-            >圆角 {{ data.borderRadius || "未配置" }}</a-tag
+            >{{ $t("app.borderRadius") }}
+            {{ data.borderRadius || $t("common.notConfigured") }}</a-tag
         >
         <a-tag class="rounded-lg"
-            >线条样式
+            >{{ $t("app.borderStyle") }}
             {{
                 data.borderStyle === "solid"
-                    ? "实线"
+                    ? $t("app.borderSolid")
                     : data.borderStyle === "dashed"
-                      ? "虚线"
-                      : "未配置"
+                      ? $t("app.borderDashed")
+                      : $t("common.notConfigured")
             }}</a-tag
         >
     </div>

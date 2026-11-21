@@ -70,7 +70,7 @@ defineExpose({
 <template>
     <a-modal
         v-model:visible="visible"
-        width="900px"
+        width="min(900px, 95vw)"
         :footer="false"
         title-align="start"
     >
@@ -82,7 +82,7 @@ defineExpose({
                 <div class="flex items-center"></div>
             </div>
         </template>
-        <div style="height: calc(100vh - 15rem)">
+        <div>
             <div>
                 <div
                     class="rounded-xl shadow border p-4 hover:shadow-lg flex items-center"

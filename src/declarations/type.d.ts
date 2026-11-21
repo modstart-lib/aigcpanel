@@ -21,6 +21,28 @@ type DefsPage = {
     ipcSendToHost: (channel: string, type: string, data?: any) => void;
     ipcSend: (channel: string, type: string, data?: any) => void;
 };
+type ServerPrepareStatus = {
+    required: boolean;
+    ready: boolean;
+    percent?: number;
+    size?: number;
+    manifest?: string;
+    running?: boolean;
+    paused?: boolean;
+    error?: string | null;
+    logFile?: string;
+    progress?: {
+        phase?: string;
+        percent?: number;
+        doneSize?: number;
+        totalSize?: number;
+        doneFiles?: number;
+        files?: number;
+        file?: string;
+        error?: string | null;
+    } | null;
+};
+
 type DefsMapi = {
     app: {
         getPreload: () => Promise<string>;
@@ -314,6 +336,9 @@ type DefsMapi = {
             includeExt: boolean = true,
             maxLimit: number = 100,
         ) => string;
+        dataRoot: () => Promise<string>;
+        dataRootDefault: () => Promise<string>;
+        isDataRootCustom: () => Promise<boolean>;
         hubRootDefault: () => Promise<string>;
         hubRoot: () => Promise<string>;
         hubSave: (
@@ -369,7 +394,44 @@ type DefsMapi = {
         cacheGetPath: (key: any) => Promise<string | null>;
     };
     updater: {
-        checkForUpdate: () => Promise<ApiResult<any>>;
+        checkForUpdate: () => Promise<any>;
+        getState: () => Promise<any>;
+        probe: (channels: Array<{ title: string; url: string }>) => Promise<
+            Array<{
+                title: string;
+                url: string;
+                ok: boolean;
+                latency: number;
+            }>
+        >;
+        download: (payload?: { url?: string; asset?: any }) => Promise<any>;
+        cancelDownload: () => Promise<any>;
+        preflight: () => Promise<
+            Array<{
+                type: "server" | "process" | "app";
+                id?: string;
+                name: string;
+                detail?: string;
+            }>
+        >;
+        stopBlockers: () => Promise<
+            Array<{
+                type: "server" | "process" | "app";
+                id?: string;
+                name: string;
+                detail?: string;
+            }>
+        >;
+        install: () => Promise<{
+            ok: boolean;
+            error?: string;
+            blockers: Array<any>;
+            state: any;
+            result?: any;
+        }>;
+        openDownloadedFile: () => Promise<boolean>;
+        openDownloadPage: () => Promise<boolean>;
+        onState: (cb: (state: any) => void) => () => void;
         getCheckAtLaunch: () => Promise<"yes" | "no">;
         setCheckAtLaunch: (value: "yes" | "no") => Promise<void>;
     };
@@ -440,13 +502,23 @@ type DefsMapi = {
         }) => Promise<any>;
     };
     httpserver: {
-        status: () => Promise<{ running: boolean; port: number }>;
-        start: (port?: number) => Promise<{ code: number; msg?: string }>;
+        status: () => Promise<{
+            running: boolean;
+            port: number;
+            bindAddr: string;
+            localAddr: string;
+            lanEnabled: boolean;
+            lanAddr: string;
+        }>;
+        start: () => Promise<{ code: number; msg?: string }>;
         stop: () => Promise<{ code: number }>;
-        getPort: () => Promise<number>;
-        setPort: (port: number) => Promise<{ code: number }>;
-        getEnabled: () => Promise<boolean>;
-        setEnabled: (enabled: boolean) => Promise<{ code: number }>;
+        restart: () => Promise<{ code: number; msg?: string }>;
+        getConfig: () => Promise<{
+            lanEnabled: boolean;
+            port: number;
+            token: string;
+        }>;
+        setConfig: (config: any) => Promise<{ code: number; msg?: string }>;
     };
     server: {
         listGpus: () => Promise<
@@ -459,11 +531,36 @@ type DefsMapi = {
         runningServerCount: (count: number | null) => Promise<number>;
         isSupport: (serverInfo: ServerInfo) => Promise<boolean>;
         start: (serverInfo: ServerInfo) => Promise<void>;
+        prepare: (serverInfo: ServerInfo) => Promise<ServerPrepareStatus>;
+        prepareStatus: (serverInfo: ServerInfo) => Promise<ServerPrepareStatus>;
+        pausePrepare: (serverInfo: ServerInfo) => Promise<boolean>;
         stop: (serverInfo: ServerInfo) => Promise<void>;
         cancel: (serverInfo: ServerInfo) => Promise<void>;
+        submitOfflineAuth: (
+            serverInfo: ServerInfo,
+            token: string,
+        ) => Promise<{ code: number; msg?: string }>;
+        cancelOfflineAuth: (
+            serverInfo: ServerInfo,
+        ) => Promise<{ code: number; msg?: string }>;
+        offlineAuthToken: (
+            serverInfo: ServerInfo,
+        ) => Promise<{ code: number; data?: { token: string } }>;
+        offlineAuthInfo: (serverInfo: ServerInfo) => Promise<{
+            code: number;
+            data?: { token: string; machineId?: string };
+        }>;
+        saveOfflineAuth: (
+            serverInfo: ServerInfo,
+            token: string,
+        ) => Promise<{ code: number; msg?: string }>;
+        revokeOfflineAuth: (
+            serverInfo: ServerInfo,
+        ) => Promise<{ code: number; msg?: string }>;
         deletes: (serverInfo: ServerInfo) => Promise<void>;
         ping: (serverInfo: ServerInfo) => Promise<boolean>;
         config: (serverInfo: ServerInfo) => Promise<any>;
+        apiVoiceTest: (config: any, text: string) => Promise<any>;
         callFunction: (
             serverInfo: ServerInfo,
             method: string,

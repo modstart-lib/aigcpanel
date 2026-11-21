@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -87,7 +88,7 @@ const doTimeSelectorShow = () => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-sound />
-                    分析视频
+                    {{ $t("app.analyzeVideo") }}
                 </div>
             </div>
             <div class="flex-grow pt-1">
@@ -105,7 +106,7 @@ const doTimeSelectorShow = () => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-tag />
-                    配置片段
+                    {{ $t("app.configSegments") }}
                 </div>
             </div>
             <div class="flex-grow pt-1">
@@ -137,7 +138,7 @@ const doTimeSelectorShow = () => {
                                 <template #icon>
                                     <icon-pen />
                                 </template>
-                                手动选择片段
+                                {{ $t("app.manualSelectSegments") }}
                             </a-button>
                         </div>
                     </template>
@@ -148,7 +149,7 @@ const doTimeSelectorShow = () => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-video-camera />
-                    渲染视频
+                    {{ $t("app.renderVideo") }}
                 </div>
             </div>
             <TaskJobResultStepView :record="record" step="Render">
@@ -172,13 +173,14 @@ const doTimeSelectorShow = () => {
                     <template #icon>
                         <icon-edit />
                     </template>
-                    选择片段
+                    {{ $t("app.selectSegments") }}
                 </a-button>
                 <TaskContinueAction
                     v-if="record.status === 'pause'"
                     :record="record"
                     @update="onRefresh"
                 />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
                 <TaskDownloadAction :record="record" size="small" />
                 <TaskDeleteAction

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as fabric from "fabric";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { t } from "../../../../lang";
 import { Dialog } from "../../../../lib/dialog";
 import { FileUtil } from "../../../../lib/file";
 
@@ -36,45 +37,48 @@ type VideoBackgroundForm = {
     videoBorderRadius: number;
 };
 
-const imageSizePresets = [
-    { label: "4K (3840x2160)", value: "3840x2160" },
-    { label: "4K竖屏 (2160x3840)", value: "2160x3840" },
-    { label: "1440P (2560x1440)", value: "2560x1440" },
-    { label: "1440P竖屏 (1440x2560)", value: "1440x2560" },
-    { label: "1080P (1920x1080)", value: "1920x1080" },
-    { label: "1080P竖屏 (1080x1920)", value: "1080x1920" },
-    { label: "720P (1280x720)", value: "1280x720" },
-    { label: "720P竖屏 (720x1280)", value: "720x1280" },
-    { label: "480P (854x480)", value: "854x480" },
-    { label: "480P竖屏 (480x854)", value: "480x854" },
-    { label: "方形1080 (1080x1080)", value: "1080x1080" },
-    { label: "方形720 (720x720)", value: "720x720" },
-    { label: "方形480 (480x480)", value: "480x480" },
-];
+const presetPortrait = computed(() => t("app.presetPortrait"));
+const presetSquare = computed(() => t("app.presetSquare"));
 
-const videoSizePresets = [
+const imageSizePresets = computed(() => [
     { label: "4K (3840x2160)", value: "3840x2160" },
-    { label: "4K竖屏 (2160x3840)", value: "2160x3840" },
+    { label: `4K${presetPortrait.value} (2160x3840)`, value: "2160x3840" },
     { label: "1440P (2560x1440)", value: "2560x1440" },
-    { label: "1440P竖屏 (1440x2560)", value: "1440x2560" },
+    { label: `1440P${presetPortrait.value} (1440x2560)`, value: "1440x2560" },
     { label: "1080P (1920x1080)", value: "1920x1080" },
-    { label: "1080P竖屏 (1080x1920)", value: "1080x1920" },
+    { label: `1080P${presetPortrait.value} (1080x1920)`, value: "1080x1920" },
     { label: "720P (1280x720)", value: "1280x720" },
-    { label: "720P竖屏 (720x1280)", value: "720x1280" },
+    { label: `720P${presetPortrait.value} (720x1280)`, value: "720x1280" },
     { label: "480P (854x480)", value: "854x480" },
-    { label: "480P竖屏 (480x854)", value: "480x854" },
-    { label: "方形1080 (1080x1080)", value: "1080x1080" },
-    { label: "方形720 (720x720)", value: "720x720" },
-    { label: "方形480 (480x480)", value: "480x480" },
-];
+    { label: `480P${presetPortrait.value} (480x854)`, value: "480x854" },
+    { label: `${presetSquare.value}1080 (1080x1080)`, value: "1080x1080" },
+    { label: `${presetSquare.value}720 (720x720)`, value: "720x720" },
+    { label: `${presetSquare.value}480 (480x480)`, value: "480x480" },
+]);
+
+const videoSizePresets = computed(() => [
+    { label: "4K (3840x2160)", value: "3840x2160" },
+    { label: `4K${presetPortrait.value} (2160x3840)`, value: "2160x3840" },
+    { label: "1440P (2560x1440)", value: "2560x1440" },
+    { label: `1440P${presetPortrait.value} (1440x2560)`, value: "1440x2560" },
+    { label: "1080P (1920x1080)", value: "1920x1080" },
+    { label: `1080P${presetPortrait.value} (1080x1920)`, value: "1080x1920" },
+    { label: "720P (1280x720)", value: "1280x720" },
+    { label: `720P${presetPortrait.value} (720x1280)`, value: "720x1280" },
+    { label: "480P (854x480)", value: "854x480" },
+    { label: `480P${presetPortrait.value} (480x854)`, value: "480x854" },
+    { label: `${presetSquare.value}1080 (1080x1080)`, value: "1080x1080" },
+    { label: `${presetSquare.value}720 (720x720)`, value: "720x720" },
+    { label: `${presetSquare.value}480 (480x480)`, value: "480x480" },
+]);
 
 const imagePreset = ref("1920x1080");
 const videoPreset = ref("1920x1080");
 
-const modeOptions = [
-    { label: "覆盖", value: "cover" },
-    { label: "适应", value: "contain" },
-];
+const modeOptions = computed(() => [
+    { label: t("app.modeCover"), value: "cover" },
+    { label: t("app.modeContain"), value: "contain" },
+]);
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let canvas: fabric.Canvas | null = null;
@@ -475,7 +479,7 @@ const loadImageFromDataURL = (dataURL: string) => {
     };
     img.onerror = (error) => {
         console.error("Failed to load image:", error);
-        Dialog.tipError("背景图片加载失败，请检查图片格式或路径");
+        Dialog.tipError(t("error.backgroundImageLoadFailed"));
     };
     img.src = dataURL;
 };
@@ -597,7 +601,7 @@ defineExpose({
             <!-- 图片尺寸 -->
             <div class="flex items-start">
                 <div class="pt-1 w-5">
-                    <a-tooltip :content="'输出尺寸'" mini>
+                    <a-tooltip :content="t('app.outputSize')" mini>
                         <icon-video-camera />
                     </a-tooltip>
                 </div>
@@ -606,20 +610,20 @@ defineExpose({
                         <a-input-number
                             v-model="formData.outputWidth"
                             :min="1"
-                            placeholder="宽度"
+                            :placeholder="t('common.width')"
                             style="width: 100px"
                         />
                         <span>x</span>
                         <a-input-number
                             v-model="formData.outputHeight"
                             :min="1"
-                            placeholder="高度"
+                            :placeholder="t('common.height')"
                             style="width: 100px"
                         />
                         <a-select
                             v-model="imagePreset"
                             :options="imageSizePresets"
-                            placeholder="选择预设尺寸"
+                            :placeholder="t('app.selectPresetSize')"
                             @change="onImagePresetChange"
                             class="ml-4 w-48"
                         />
@@ -630,7 +634,7 @@ defineExpose({
             <!-- 视频尺寸 -->
             <div class="flex items-start">
                 <div class="pt-1 w-5">
-                    <a-tooltip :content="'视频尺寸'" mini>
+                    <a-tooltip :content="t('app.videoSize')" mini>
                         <icon-video-camera />
                     </a-tooltip>
                 </div>
@@ -639,20 +643,20 @@ defineExpose({
                         <a-input-number
                             v-model="formData.videoWidth"
                             :min="1"
-                            placeholder="宽度"
+                            :placeholder="t('common.width')"
                             style="width: 100px"
                         />
                         <span>x</span>
                         <a-input-number
                             v-model="formData.videoHeight"
                             :min="1"
-                            placeholder="高度"
+                            :placeholder="t('common.height')"
                             style="width: 100px"
                         />
                         <a-select
                             v-model="videoPreset"
                             :options="videoSizePresets"
-                            placeholder="选择预设尺寸"
+                            :placeholder="t('app.selectPresetSize')"
                             @change="onVideoPresetChange"
                             class="ml-4 w-48"
                         />
@@ -663,7 +667,7 @@ defineExpose({
             <!-- 图片模式 -->
             <div class="flex items-start">
                 <div class="pt-1 w-5">
-                    <a-tooltip :content="'图片模式'" mini>
+                    <a-tooltip :content="t('app.imageMode')" mini>
                         <icon-image />
                     </a-tooltip>
                 </div>
@@ -678,7 +682,7 @@ defineExpose({
             <!-- 视频位置 -->
             <div class="flex items-start">
                 <div class="pt-1 w-5">
-                    <a-tooltip :content="'视频位置'" mini>
+                    <a-tooltip :content="t('app.videoPosition')" mini>
                         <icon-drag-arrow />
                     </a-tooltip>
                 </div>
@@ -694,18 +698,30 @@ defineExpose({
                         style="width: 80px"
                     />
                     <a-button-group>
-                        <a-button @click="centerHorizontally" title="水平居中">
+                        <a-button
+                            @click="centerHorizontally"
+                            :title="t('app.centerHorizontal')"
+                        >
                             <icon-align-center />
                         </a-button>
-                        <a-button @click="centerVertically" title="垂直居中">
+                        <a-button
+                            @click="centerVertically"
+                            :title="t('app.centerVertical')"
+                        >
                             <icon-align-center
                                 style="transform: rotate(90deg)"
                             />
                         </a-button>
-                        <a-button @click="shrink5Percent" title="缩小5%">
+                        <a-button
+                            @click="shrink5Percent"
+                            :title="t('app.shrink5')"
+                        >
                             <icon-zoom-out />
                         </a-button>
-                        <a-button @click="enlarge5Percent" title="放大5%">
+                        <a-button
+                            @click="enlarge5Percent"
+                            :title="t('app.enlarge5')"
+                        >
                             <icon-zoom-in />
                         </a-button>
                     </a-button-group>
@@ -715,22 +731,22 @@ defineExpose({
             <!-- 边框设置 -->
             <div class="flex items-start">
                 <div class="pt-1 w-5">
-                    <a-tooltip :content="'边框设置'" mini>
+                    <a-tooltip :content="t('app.borderSettings')" mini>
                         <icon-settings />
                     </a-tooltip>
                 </div>
                 <div class="flex-1 ml-2 space-y-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-sm">宽度:</span>
+                        <span class="text-sm">{{ t("app.borderWidth") }}:</span>
                         <a-input-number
                             v-model="formData.videoBorderWidth"
                             :min="0"
-                            placeholder="边框宽度"
+                            :placeholder="t('app.borderWidthPlaceholder')"
                             style="width: 100px"
                         />
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-sm">颜色:</span>
+                        <span class="text-sm">{{ t("app.borderColor") }}:</span>
                         <a-color-picker
                             v-model="formData.videoBorderColor"
                             :default-value="formData.videoBorderColor"
@@ -741,7 +757,9 @@ defineExpose({
                         />
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-sm">透明度:</span>
+                        <span class="text-sm"
+                            >{{ t("app.borderOpacity") }}:</span
+                        >
                         <a-slider
                             v-model="formData.videoBorderOpacity"
                             :min="0"
@@ -754,11 +772,13 @@ defineExpose({
                         >
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-sm">圆角:</span>
+                        <span class="text-sm"
+                            >{{ t("app.borderRadius") }}:</span
+                        >
                         <a-input-number
                             v-model="formData.videoBorderRadius"
                             :min="0"
-                            placeholder="圆角"
+                            :placeholder="t('app.borderRadiusPlaceholder')"
                             style="width: 100px"
                         />
                     </div>

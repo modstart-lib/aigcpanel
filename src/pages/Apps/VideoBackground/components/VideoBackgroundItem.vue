@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { t } from "../../../../lang";
 import TaskBizStatus from "../../../../components/common/TaskBizStatus.vue";
 import TaskJobResultStepView from "../../../../components/common/TaskJobResultStepView.vue";
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -27,13 +29,13 @@ const props = defineProps<{
 }>();
 
 const imageModeMap = {
-    cover: "覆盖",
-    contain: "包含",
+    cover: "app.modeCover",
+    contain: "app.modeContainItem",
 };
 
 const imageModeText = computed(() => {
     const mode = props.record.modelConfig?.imageMode;
-    return imageModeMap[mode as keyof typeof imageModeMap] || mode;
+    return t(imageModeMap[mode as keyof typeof imageModeMap] || mode || "");
 });
 </script>
 
@@ -70,7 +72,7 @@ const imageModeText = computed(() => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-video-camera />
-                    解析视频
+                    {{ $t("app.parseVideo") }}
                 </div>
             </div>
             <div class="flex-grow">
@@ -88,13 +90,13 @@ const imageModeText = computed(() => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-settings />
-                    背景配置
+                    {{ $t("app.backgroundConfig") }}
                 </div>
             </div>
             <div class="flex-grow">
                 <div>
                     <div class="flex-grow">
-                        <div class="flex items-center gap-1 mb-2">
+                        <div class="flex items-center gap-1 mb-2 flex-wrap">
                             <a-tag class="rounded-lg">{{
                                 imageModeText
                             }}</a-tag>
@@ -112,7 +114,7 @@ const imageModeText = computed(() => {
             <div class="w-24 flex-shrink-0">
                 <div class="inline-block text-center">
                     <icon-video-camera />
-                    视频渲染
+                    {{ $t("app.videoRender") }}
                 </div>
             </div>
             <TaskJobResultStepView :record="record" step="Render">
@@ -134,6 +136,7 @@ const imageModeText = computed(() => {
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

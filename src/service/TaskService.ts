@@ -1,4 +1,5 @@
 import { TimeUtil } from "../lib/util";
+import { mapError } from "../lib/error";
 import { TaskChangeType, useTaskStore } from "../store/modules/task";
 import { groupThrottle } from "../lib/groupThrottle";
 import { t } from "../lang";
@@ -18,9 +19,12 @@ export type TaskBiz =
     // video apps
     | "TextToImage"
     | "ImageToImage"
+    | "TextToVideo"
+    | "ImageToVideo"
     | "VideoGenFlow"
     // video processing apps
     | "VideoBackground"
+    | "VideoBackgroundReplace"
     | "VideoQuickCut"
     | "VideoZoom"
     | "VideoMark"
@@ -35,16 +39,14 @@ export type TaskBiz =
     | "VideoMerge"
     | "MediaFormatConvert"
     | "Ffmpeg"
+    // general apps
+    | "GeneralModel"
+    | "GeneralComfyUI"
     // workflow
     | "Workflow";
 
 export type TaskJobResultStepStatus =
-    | undefined
-    | "queue"
-    | "pending"
-    | "running"
-    | "success"
-    | "fail";
+    undefined | "queue" | "pending" | "running" | "success" | "fail";
 
 export enum TaskType {
     User = 1,
@@ -252,14 +254,26 @@ export const TaskService = {
              VALUES (${valuesPlaceholder.join(",")})`,
             values,
         );
-        await taskStore.dispatch(
-            record.biz,
-            id,
-            {},
-            {
-                queryInterval: 5 * 1000,
-            },
-        );
+        try {
+            await taskStore.dispatch(
+                record.biz,
+                id,
+                {},
+                {
+                    queryInterval: 5 * 1000,
+                },
+            );
+        } catch (e) {
+            // The row is already inserted: if it can never be dispatched (e.g.
+            // TaskBizNotFound) it would stay in "queue" forever and the list
+            // would show a task that never runs. Mark it failed instead.
+            await this.update(id, {
+                status: "fail",
+                statusMsg: mapError(e),
+                endTime: TimeUtil.timestampMS(),
+            }).catch(() => {});
+            throw e;
+        }
         return id;
     },
     updatePercent: groupThrottle(
@@ -341,6 +355,12 @@ export const TaskService = {
                     );
                 }
             }
+        }
+        // A finished task must not keep the error message of an earlier failed
+        // attempt: the message is displayed in the task list, so a stale one
+        // makes a successful task look broken.
+        if (record.status === "success" && !("statusMsg" in record)) {
+            record.statusMsg = "";
         }
         record = this.encodeRecord(record as TaskRecord);
         const fields = Object.keys(record);

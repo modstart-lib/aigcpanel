@@ -1,5 +1,6 @@
 {
     "app.inputVideoGenPlaceholder": "Enter voice content to start generating video",
     "app.videoGen": "Avatar One-Click Synthesis",
-    "app.videoGenDesc": "Quickly complete text input → audio synthesis → avatar synthesis"
+    "app.videoGenDesc": "Quickly complete text input → audio synthesis → avatar synthesis",
+    "app.copywritingGenerate": "Copywriting Generation"
 }

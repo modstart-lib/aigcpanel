@@ -16,11 +16,35 @@ const formData = ref({
 const paramForm = ref<InstanceType<typeof ParamForm>>();
 const param = ref([]);
 const modelConfig = ref(null);
+const workflows = ref<any[]>([]);
+const comfyuiName = ref("");
+
+const applyWorkflowParam = () => {
+    const wf = workflows.value.find((w) => w.key === comfyuiName.value);
+    param.value = wf ? wf.param || [] : [];
+};
 
 const onServerUpdate = async (config: any) => {
-    param.value = config.functions.textToImage?.param || [];
+    const textToImage = config.functions?.textToImage || {};
+    workflows.value = textToImage.workflows || [];
+    if (workflows.value.length > 0) {
+        // 默认选中第一个工作流（保留已选且仍存在的工作流）
+        if (
+            !comfyuiName.value ||
+            !workflows.value.some((w) => w.key === comfyuiName.value)
+        ) {
+            comfyuiName.value = workflows.value[0].key;
+        }
+        applyWorkflowParam();
+    } else {
+        param.value = textToImage.param || [];
+    }
     modelConfig.value = config;
 };
+
+watch(comfyuiName, () => {
+    applyWorkflowParam();
+});
 
 onMounted(async () => {
     const old = StorageUtil.getObject("TextToImageForm.formData");
@@ -55,6 +79,7 @@ const getValue = async (): Promise<TextToImageParamType | undefined> => {
     data.serverName = server.name;
     data.serverTitle = server.title;
     data.serverVersion = server.version;
+    data.comfyuiName = comfyuiName.value || "";
     data.param = paramForm.value ? paramForm.value.getValue() : {};
 
     if (!data.param) {
@@ -68,6 +93,9 @@ const getValue = async (): Promise<TextToImageParamType | undefined> => {
 const setValue = (data: Partial<TextToImageParamType>) => {
     if (data.serverKey !== undefined) {
         formData.value.serverKey = data.serverKey;
+    }
+    if (data.comfyuiName !== undefined) {
+        comfyuiName.value = data.comfyuiName;
     }
     if (data.param !== undefined) {
         paramForm.value?.setValue(data.param);
@@ -110,8 +138,37 @@ defineExpose({
                 </div>
             </div>
         </div>
-        <div class="flex items-center mt-2" v-if="param && param.length > 0">
-            <ParamForm ref="paramForm" :param="param" />
+        <div class="flex items-center mt-2" v-if="workflows.length > 0">
+            <div class="mr-1 pt-1">
+                <a-tooltip :content="$t('app.textToImageWorkflow')" mini>
+                    <i-mdi-image-multiple class="w-4 h-4" />
+                </a-tooltip>
+            </div>
+            <a-select
+                v-model="comfyuiName"
+                size="small"
+                class="min-w-40"
+                style="width: auto"
+                :placeholder="$t('app.textToImageWorkflow')"
+            >
+                <a-option v-for="wf in workflows" :key="wf.key" :value="wf.key">
+                    {{ wf.title }}
+                </a-option>
+            </a-select>
+        </div>
+        <!-- 用户输入信息（提示词等）插入 Server 选择与自定义参数之间 -->
+        <div class="flex items-center mt-2">
+            <slot />
+        </div>
+        <div class="flex items-start mt-2" v-if="param.length > 0">
+            <div class="pt-3 w-5 flex-shrink-0">
+                <a-tooltip :content="$t('model.customParam')" mini>
+                    <i-mdi-tune-variant class="w-4 h-4" />
+                </a-tooltip>
+            </div>
+            <div class="flex-grow min-w-0">
+                <ParamForm ref="paramForm" :param="param" />
+            </div>
         </div>
     </div>
 </template>

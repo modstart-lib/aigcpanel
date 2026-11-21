@@ -1,0 +1,15 @@
+{
+    "app.imageGenerateService": "视频生成服务",
+    "app.videoGeneration": "视频生成",
+    "app.inputPromptDesc": "输入描述视频的文本",
+    "app.inputPromptLabel": "输入提示词",
+    "app.mergeImage": "合并视频片段",
+    "app.mergeImageDesc": "将所有视频片段合并成一个长视频",
+    "app.processVideo": "处理视频",
+    "app.promptLabel": "提示词",
+    "app.promptText": "提示文本",
+    "app.textToVideoDesc": "将文本转换为视频",
+    "app.textToVideoSettings": "文生视频设置",
+    "app.textToVideoConfig": "文生视频配置",
+    "workflow.paramErrorMissing": "参数错误：缺少 {items}"
+}

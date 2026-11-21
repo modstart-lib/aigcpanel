@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TaskCancelAction from "../../../../components/Server/TaskCancelAction.vue";
 import TaskContinueAction from "../../../../components/Server/TaskContinueAction.vue";
+import TaskRetryAction from "../../../../components/Server/TaskRetryAction.vue";
 import TaskDeleteAction from "../../../../components/Server/TaskDeleteAction.vue";
 import TaskDownloadAction from "../../../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../../../components/Server/TaskDuration.vue";
@@ -63,7 +64,7 @@ const props = defineProps<{
                     <div class="mt-1">
                         <ImagePreviewBox :url="record.modelConfig?.image!" />
                     </div>
-                    <div class="mt-1 flex gap-1">
+                    <div class="mt-1 flex gap-1 flex-wrap">
                         <ImageToImageFormViewBody
                             :data="record.modelConfig?.imageToImage"
                         />
@@ -101,6 +102,7 @@ const props = defineProps<{
                     @update="onRefresh"
                 />
                 <TaskContinueAction :record="record" @update="onRefresh" />
+                <TaskRetryAction :record="record" @update="onRefresh" />
                 <TaskCancelAction :record="record" />
             </div>
         </div>

@@ -108,6 +108,28 @@ defineExpose({
                         </a-radio-group>
                     </a-form-item>
                     <a-form-item
+                        v-else-if="fs.type === 'number'"
+                        :field="fs.name"
+                        :label="fs.title"
+                    >
+                        <a-input-number
+                            :model-value="setting[fs.name]"
+                            :placeholder="fs.placeholder"
+                            :readonly="readonly"
+                            :min="fs.min"
+                            :max="fs.max"
+                            :step="fs.step"
+                            style="width: 100%"
+                            @update:model-value="(v) => (setting[fs.name] = v)"
+                        />
+                        <div
+                            v-if="fs.placeholder"
+                            class="text-xs text-gray-400 mt-1"
+                        >
+                            {{ fs.placeholder }}
+                        </div>
+                    </a-form-item>
+                    <a-form-item
                         v-else-if="fs.type === 'gpuSelector'"
                         :field="fs.name"
                         :label="fs.title"

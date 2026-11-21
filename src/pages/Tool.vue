@@ -1,22 +1,45 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { getNavTab, rememberNavTab } from "../lib/nav-memory";
+import { t } from "../lang";
 import Router from "../router";
-import { SoundToolApps, ToolApps, VideoProcessingApps } from "./Apps/all";
+import {
+    SoundToolApps,
+    ToolApps,
+    VideoProcessingApps,
+    GeneralApps,
+} from "./Apps/all";
 import { testActionSet, testActionUnset } from "../utils/test";
 
 const tab = ref("");
 
-const groups = [
-    { title: "声音处理", apps: SoundToolApps },
-    { title: "图像生成", apps: ToolApps },
-    { title: "视频处理", apps: VideoProcessingApps },
+const groups = computed(() => [
+    { title: t("general.model.group") || "通用", apps: GeneralApps },
+    { title: t("tool.soundProcessing"), apps: SoundToolApps },
+    { title: t("tool.imageGeneration"), apps: ToolApps },
+    { title: t("tool.videoProcessing"), apps: VideoProcessingApps },
+]);
+
+const allToolApps = [
+    ...SoundToolApps,
+    ...ToolApps,
+    ...VideoProcessingApps,
+    ...GeneralApps,
 ];
 
-const allToolApps = [...SoundToolApps, ...ToolApps, ...VideoProcessingApps];
-
 const syncTab = () => {
-    tab.value = (Router.currentRoute.value.query.tab as string) || "SoundAsr";
+    const next =
+        (Router.currentRoute.value.query.tab as string) ||
+        getNavTab("/tool") ||
+        "SoundAsr";
+    tab.value = allToolApps.some((a) => a.name === next) ? next : "SoundAsr";
 };
+
+watch(tab, (v) => {
+    if (v) {
+        rememberNavTab("/tool", v);
+    }
+});
 
 onMounted(() => {
     syncTab();
@@ -41,7 +64,9 @@ const dynamicComponent = computed(() => {
 </script>
 
 <template>
-    <div class="pb-device-container bg-white h-full relative select-none flex">
+    <div
+        class="pb-device-container bg-white dark:bg-gray-900 h-full relative select-none flex"
+    >
         <div
             class="w-52 flex-shrink-0 border-r border-solid border-gray-100 overflow-x-hidden overflow-y-auto"
         >
@@ -55,7 +80,9 @@ const dynamicComponent = computed(() => {
                         :key="s.name"
                         class="p-2 rounded-lg mb-1 cursor-pointer"
                         :class="
-                            tab === s.name ? 'bg-gray-200' : 'hover:bg-gray-100'
+                            tab === s.name
+                                ? 'menu-item-active'
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                         "
                         @click="tab = s.name"
                     >
@@ -76,7 +103,7 @@ const dynamicComponent = computed(() => {
                                         : { color: s.color }
                                 "
                             />
-                            {{ s.title }}
+                            {{ t(s.titleKey) }}
                         </div>
                     </div>
                 </div>

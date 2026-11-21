@@ -92,7 +92,7 @@ onMounted(() => {
                     >
                         <div class="flex items-center gap-1">
                             <div
-                                class="inline-flex items-start bg-blue-100 rounded-full px-2 leading-8 h-8 mr-2"
+                                class="inline-flex items-center bg-blue-100 rounded-full px-2 leading-8 h-8 mr-2"
                             >
                                 <div class="mr-2 h-8 pt-0.5">
                                     <a-checkbox v-model="r['_check']" />
@@ -117,12 +117,12 @@ onMounted(() => {
                                 :status-msg="r.statusMsg"
                             />
                         </div>
-                        <div class="mt-3 flex gap-1">
+                        <div class="mt-3 flex gap-1 flex-wrap">
                             <ServerNameVersion :record="r" />
                             <VideoGenFormViewBody :data="r.modelConfig" />
                         </div>
                         <div
-                            class="mt-3 flex gap-1"
+                            class="mt-3 flex gap-1 flex-wrap"
                             v-if="r.modelConfig.soundGenerate"
                         >
                             <SoundGenerateFormViewBody
@@ -136,15 +136,24 @@ onMounted(() => {
                                         :text="r.modelConfig.text"
                                     />
                                 </div>
+                                <!-- The sound is generated before the video, so show it as
+                                     soon as it exists: if the video step fails the sound
+                                     is still a valid result the user can keep. -->
                                 <div
-                                    v-if="
-                                        r.status === 'success' &&
-                                        r.result.urlSound
-                                    "
+                                    v-if="r.result && r.result.urlSound"
+                                    class="flex items-center gap-2"
                                 >
-                                    <AudioPlayer
-                                        show-wave
-                                        :url="'file://' + r.result.urlSound"
+                                    <div class="flex-grow min-w-0">
+                                        <AudioPlayer
+                                            show-wave
+                                            :url="'file://' + r.result.urlSound"
+                                        />
+                                    </div>
+                                    <TaskDownloadAction
+                                        :record="r"
+                                        name="urlSound"
+                                        :title="$t('download.audio')"
+                                        allow-partial
                                     />
                                 </div>
                             </div>

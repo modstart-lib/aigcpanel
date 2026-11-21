@@ -16,7 +16,14 @@ import {
     getProviderTitle,
     SystemProviders,
 } from "../providers";
-import { ChatParam, Model, Provider } from "../types";
+import {
+    ChatParam,
+    Model,
+    ModelType,
+    modelTypeNormalize,
+    modelTypeTitle,
+    Provider,
+} from "../types";
 
 const userStore = useUserStore();
 
@@ -27,6 +34,7 @@ export type ModelItem = {
     providerTitle: string;
     modelId: string;
     modelName: string;
+    modelType: ModelType;
 };
 
 watch(
@@ -62,10 +70,11 @@ export const modelStore = defineStore("model", {
                     logo: getProviderLogo(providerId),
                     isSystem: true,
                     apiUrl: provider.api.url,
+                    apiPath: provider.api.path,
                     websites: {
-                        official: provider.websites?.official,
-                        docs: provider.websites?.docs,
-                        models: provider.websites?.models,
+                        official: provider.websites?.official || "",
+                        docs: provider.websites?.docs || "",
+                        models: provider.websites?.models || "",
                     },
                     data: {
                         apiKey: "",
@@ -76,7 +85,7 @@ export const modelStore = defineStore("model", {
                                 provider: providerId,
                                 name: m.name,
                                 group: m.group,
-                                types: ["text"],
+                                type: modelTypeNormalize((m as any).type),
                                 caps: (m as any).caps || {},
                                 enabled: false,
                             } as any;
@@ -134,7 +143,11 @@ export const modelStore = defineStore("model", {
                                 if (existingModel) {
                                     existingModel.name = model.name;
                                     existingModel.group = model.group;
-                                    existingModel.types = model.types;
+                                    if ("type" in model) {
+                                        existingModel.type = modelTypeNormalize(
+                                            model.type,
+                                        );
+                                    }
                                     if ("caps" in model) {
                                         existingModel.caps = model.caps || {};
                                     }
@@ -146,7 +159,7 @@ export const modelStore = defineStore("model", {
                                         provider: providerId,
                                         name: model.name,
                                         group: model.group,
-                                        types: model.types || ["text"],
+                                        type: modelTypeNormalize(model.type),
                                         caps: model.caps || {},
                                         enabled: model.enabled || false,
                                         editable: true,
@@ -163,11 +176,15 @@ export const modelStore = defineStore("model", {
             this.providers = results;
             
         },
-        async enabledModels(): Promise<ModelItem[]> {
+        async enabledModels(type?: ModelType): Promise<ModelItem[]> {
             const results: ModelItem[] = [];
             this.providers.forEach((provider) => {
                 if (provider.data.enabled) {
                     provider.data.models.forEach((model) => {
+                        const modelType = modelTypeNormalize(model.type);
+                        if (type && modelType !== type) {
+                            return;
+                        }
                         if (model.enabled) {
                             results.push({
                                 id: provider.id + "|" + model.id,
@@ -176,6 +193,7 @@ export const modelStore = defineStore("model", {
                                 providerTitle: provider.title || "",
                                 modelId: model.id,
                                 modelName: model.name,
+                                modelType,
                             });
                         }
                     });
@@ -241,20 +259,20 @@ export const modelStore = defineStore("model", {
             if (!m) {
                 return;
             }
+            const config = {
+                type: provider.type,
+                modelId: m.id,
+                apiUrl: provider.apiUrl,
+                apiHost: provider.data.apiHost,
+                apiPath: provider.apiPath,
+                apiKey: provider.data.apiKey,
+            };
             Dialog.loadingOn(t("common.testing"));
             try {
                 const ret = await ModelProvider.chat(
                     "你是什么模型，简短回答",
-                    {
-                        systemPrompt: null,
-                    },
-                    {
-                        type: provider.type,
-                        modelId: m.id,
-                        apiUrl: provider.apiUrl,
-                        apiHost: provider.data.apiHost,
-                        apiKey: provider.data.apiKey,
-                    },
+                    { systemPrompt: null },
+                    config,
                 );
                 if (ret.code) {
                     throw ret.msg;
@@ -268,6 +286,37 @@ export const modelStore = defineStore("model", {
                 Dialog.loadingOff();
             }
         },
+        /**
+         * 解析并校验模型，type 指定调用所需的模型类型
+         */
+        async resolveModel(
+            providerId: string,
+            modelId: string,
+            type: ModelType,
+        ): Promise<{ provider?: Provider; model?: Model; msg?: string }> {
+            
+            if (!providerId || !modelId) {
+                Dialog.tipError(t("hint.selectModel"));
+                return { msg: t("hint.selectModel") };
+            }
+            const provider = this.providers.find((p) => p.id === providerId);
+            if (!provider) {
+                return { msg: "provider not found" };
+            }
+            
+            const m = provider.data.models.find((m) => m.id === modelId);
+            if (!m) {
+                return { msg: "model not found" };
+            }
+            if (modelTypeNormalize(m.type) !== type) {
+                const msg = t("model.typeSelectTip", {
+                    type: modelTypeTitle(type),
+                });
+                Dialog.tipError(msg);
+                return { msg };
+            }
+            return { provider: provider as Provider, model: m as Model };
+        },
         async chat(
             providerId: string,
             modelId: string,
@@ -277,26 +326,19 @@ export const modelStore = defineStore("model", {
                 loading: boolean;
             },
         ): Promise<ModelChatResult> {
-            
-            if (!providerId || !modelId) {
-                Dialog.tipError(t("hint.selectModel"));
-                return { code: -1, msg: t("hint.selectModel") };
-            }
             option = Object.assign(
                 {
                     loading: false,
                 },
                 option,
             );
-            const provider = this.providers.find((p) => p.id === providerId);
-            // console.log("provider.chat", JSON.stringify({provider}, null, 2));
-            if (!provider) {
-                return { code: -1, msg: "provider not found" };
-            }
-            
-            const m = provider.data.models.find((m) => m.id === modelId);
-            if (!m) {
-                return { code: -1, msg: "model not found" };
+            const {
+                provider,
+                model: m,
+                msg,
+            } = await this.resolveModel(providerId, modelId, "text");
+            if (!provider || !m) {
+                return { code: -1, msg: msg || "model not found" };
             }
             if (option.loading) {
                 Dialog.loadingOn();
@@ -307,6 +349,7 @@ export const modelStore = defineStore("model", {
                     modelId: m.id,
                     apiUrl: provider.apiUrl,
                     apiHost: provider.data.apiHost,
+                    apiPath: provider.apiPath,
                     apiKey: provider.data.apiKey,
                 });
             } catch (e) {
@@ -354,7 +397,7 @@ export const modelStore = defineStore("model", {
                 provider: providerId,
                 name: model.name || "",
                 group: model.group || "",
-                types: model.types || ["text"],
+                type: modelTypeNormalize(model.type),
                 caps: model.caps || {},
                 enabled: true,
             };
@@ -385,8 +428,8 @@ export const modelStore = defineStore("model", {
                 if ("group" in model) {
                     m.group = model.group || "";
                 }
-                if ("types" in model) {
-                    m.types = model.types || ["text"];
+                if ("type" in model) {
+                    m.type = modelTypeNormalize(model.type);
                 }
                 if ("caps" in model) {
                     m.caps = model.caps || {};
