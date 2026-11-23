@@ -319,8 +319,8 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
                 const matched = String(output).match(/Error:\s*([^\r\n]+)/);
                 const msg = matched
                     ? matched[1].trim()
-                    : (String(output).trim().split("\n").pop() ||
-                      "OfflineAuthInvalidToken");
+                    : String(output).trim().split("\n").pop() ||
+                      "OfflineAuthInvalidToken";
                 return { code: -1, msg: msg };
             } catch (e) {
                 Log.error("comfyui.offlineAuth.save.error", e);

@@ -1,24 +1,28 @@
 # API Service Documentation
 
-AIGCPanel has a built-in HTTP API service that supports remote invocation of model services and tools via HTTP protocol, making it easy to integrate with third-party systems or automation workflows.
+AIGCPanel has a built-in HTTP API service that supports remote invocation of model services, built-in tools and workflows over HTTP, making it easy to integrate with third-party systems or automation workflows.
 
 ---
 
 ## Service Address
 
-The API service always listens on `127.0.0.1` (local only). Enable "LAN Access" in "Settings - API Service" to also allow devices on the same LAN to access it via the machine's LAN IP; the LAN service address and port are then shown in the settings.
+The API service listens on `127.0.0.1` by default (local only). Enable "LAN Access" in "Settings - API Service" to also allow devices on the same LAN to access it via the machine's LAN IP; the LAN service address and port are then shown in the settings. Below, `http://127.0.0.1:PORT` stands for the service address.
 
 ---
 
 ## Authentication
 
-All endpoints (except `/doc`) require Bearer Token authentication via the `Authorization` header:
+Every endpoint except `/doc` requires the access token, sent one of two ways:
 
 ```
 Authorization: Bearer <YourToken>
 ```
 
-The token is configured under "Settings - API Service - Access Token". CLI tools read this token automatically, so no manual configuration is needed.
+```
+Api-Token: <YourToken>
+```
+
+`X-Api-Token` is accepted too. The token is configured under "Settings - API Service - Access Token". CLI tools read it automatically, so no manual configuration is needed.
 
 ---
 
@@ -28,7 +32,7 @@ The token is configured under "Settings - API Service - Access Token". CLI tools
 
 #### POST /api/model/list
 
-Get the list of installed model services.
+Get the concise list of installed model services.
 
 **Request body:** No parameters, send empty JSON `{}`
 
@@ -43,13 +47,26 @@ Get the list of installed model services.
       "name": "aigcpanel-server-tts",
       "version": "1.0.0",
       "title": "TTS",
+      "type": "local",
+      "description": "Text to speech",
       "functions": [
         {
           "name": "soundTts",
           "args": ["text"],
-          "param": [...]
+          "param": []
         }
-      ]
+      ],
+      "settings": [],
+      "config": {
+        "type": "local",
+        "entry": "",
+        "description": "Text to speech",
+        "deviceDescription": "",
+        "minDisk": "",
+        "minMemory": "",
+        "minGpu": "",
+        "minGpuMemory": ""
+      }
     }
   ]
 }
@@ -74,10 +91,11 @@ Get detailed parameter information of a specific model (including field definiti
 | version | string | Model version |
 | title | string | Display name |
 | description | string | Model description |
-| type | string | Model type (local / remote / cloud / comfyui) |
+| type | string | Model type (local / localDir / remote / cloud / comfyui) |
 | requirements | object | Hardware requirements (minDisk / minMemory / minGpu / minGpuMemory / deviceDescription) |
 | functions | array | Function list with name / title / description / args / param (detailed field definitions) / result |
 | settings | array | Model settings (GPU selection, timeout, etc.) |
+| config | object | Trimmed config.json (entry / cloudName / autoStart) |
 
 **Response example:**
 
@@ -89,13 +107,14 @@ Get detailed parameter information of a specific model (including field definiti
     "name": "aigcpanel-server-tts",
     "version": "1.0.0",
     "title": "TTS",
-    "description": "Text-to-speech service",
+    "description": "Text to speech",
     "type": "local",
     "requirements": {
       "minDisk": "1GB",
       "minMemory": "2GB",
       "minGpu": "",
-      "minGpuMemory": ""
+      "minGpuMemory": "",
+      "deviceDescription": ""
     },
     "functions": [
       {
@@ -118,40 +137,77 @@ Get detailed parameter information of a specific model (including field definiti
             "name": "url",
             "title": "Audio file path",
             "type": "string",
-            "description": "Generated audio file path"
+            "description": "Path of the generated audio file"
           }
         ]
       }
     ],
     "settings": [
-      { "name": "gpu", "title": "GPU Selection", "type": "gpuSelector", "default": "" }
-    ]
+      { "name": "gpu", "title": "GPU", "type": "gpuSelector", "default": "" }
+    ],
+    "config": { "entry": "", "cloudName": "", "autoStart": true }
   }
 }
 ```
 
-#### POST /api/model/call
+---
 
-Call a model service function, returns a taskId asynchronously.
+### Model Invocation
+
+#### POST /api/server/list
+
+Get the installed model service list with fields similar to `/api/model/list` (`id`, `name`, `version`, `title`, `functions`).
+
+**Request body:** No parameters, send empty JSON `{}`
+
+#### POST /api/server/call
+
+Call a model function. Returns a `taskId` asynchronously.
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| model | string | Service identifier, format `name\|version`, version is optional |
-| function | string | Function name to call |
-| param | object | Function parameters |
-| param.param | object | Dynamic parameter object |
+| server | string | Model identifier, format `name\|version`; version optional |
+| function | string | Function name: `soundTts`, `soundClone`, `videoGen`, `asr`, `textToImage`, `imageToImage`, `textToVideo`, `imageToVideo`, `comfyui`, `general` |
+| param | object | Function parameters. Besides the nested `param` object, include the function's own fields such as `text` for TTS |
+| env | object | Optional extra `AIGCPANEL_*` environment variables |
 
-**Request example (TTS):**
+**Example (TTS):**
 
 ```json
 {
-  "model": "aigcpanel-server-tts|1.0.0",
+  "server": "aigcpanel-server-tts|1.0.0",
   "function": "soundTts",
   "param": {
     "text": "Hello, welcome to AIGCPanel",
     "param": { "speaker": "zh-CN-XiaoxiaoNeural" }
+  }
+}
+```
+
+**Example (ComfyUI workflow):**
+
+```json
+{
+  "server": "server-ComfyUI",
+  "function": "comfyui",
+  "param": {
+    "comfyuiName": "textToImageFlux",
+    "param": { "width": 512, "height": 512 }
+  }
+}
+```
+
+**Example (general model):**
+
+```json
+{
+  "server": "server-demo",
+  "function": "general",
+  "param": {
+    "generalName": "generalImage",
+    "param": { "prompt": "a cat", "count": 2 }
   }
 }
 ```
@@ -161,21 +217,21 @@ Call a model service function, returns a taskId asynchronously.
 ```json
 {
   "code": 0,
-  "data": { "taskId": "lz3k8m2abc1" }
+  "data": { "taskId": "123" }
 }
 ```
 
-#### POST /api/model/query
+#### POST /api/server/query
 
-Query task result with long polling (up to 60 seconds).
+Query the task result with long polling (about 60 seconds; returns `pending` on timeout).
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| taskId | string | Task ID returned by /api/model/call |
+| taskId | string | Task ID returned by `/api/server/call` or `/api/tools/submit` |
 
-**Response example (processing):**
+**Response example (running):**
 
 ```json
 { "code": 0, "data": { "status": "pending" } }
@@ -189,24 +245,48 @@ Query task result with long polling (up to 60 seconds).
   "data": {
     "status": "success",
     "result": {
-      "type": "success",
-      "start": 1714300000000,
-      "end": 1714300005000,
-      "data": { "url": "/path/to/output.wav" }
+      "code": 0,
+      "msg": "ok",
+      "data": {
+        "type": "success",
+        "start": 1714300000000,
+        "end": 1714300005000,
+        "data": { "url": "/path/to/output.wav" }
+      }
     }
   }
 }
 ```
 
-#### POST /api/model/log
+**Response example (error):**
 
-View model service logs.
+```json
+{ "code": 0, "data": { "status": "error", "error": "reason" } }
+```
+
+**Response example (paused, waiting for confirmation):**
+
+```json
+{
+  "code": 0,
+  "data": {
+    "status": "pause",
+    "taskId": "123",
+    "step": "Config",
+    "statusMsg": "Task paused for manual confirmation"
+  }
+}
+```
+
+#### POST /api/server/log
+
+Show the latest log file of a model service (at most the last 512 KB).
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| server | string | Model identifier, format `name\|version` or just `name` |
+| server | string | Model identifier, `name\|version` or just `name` |
 
 **Response example:**
 
@@ -220,34 +300,42 @@ View model service logs.
 }
 ```
 
-#### POST /api/model/setting
+If no log exists: `{ "file": null, "content": "" }`.
 
-Set model service parameters (gpu, idleTimeout, etc.).
+#### POST /api/server/setting
 
-**Request body:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| server | string | Model identifier, format `name\|version` or just `name` |
-| setting | object | Parameters to set (merged with existing settings, effective after restart) |
-
-#### POST /api/model/workflows
-
-Get ComfyUI model workflow list (VIP users only).
+Set model service parameters (gpu / idleTimeout, etc.), merged into the existing settings.
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| server | string | Model identifier, only valid for ComfyUI type models |
+| server | string | Model identifier, `name\|version` or just `name` |
+| setting | object | Settings object to merge |
+
+**Response:** the merged `setting` object.
+
+#### POST /api/server/workflows
+
+Get the workflow list of a ComfyUI model (only VIP users receive content).
+
+**Request body:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| server | string | Model identifier; only ComfyUI models are supported |
+
+Non-VIP response:
+
+```json
+{ "code": 0, "data": { "vip": false, "workflows": [] } }
+```
+
+Each workflow for VIP users contains `key`, `title`, `description`, `param`, `biz`, `hasUserConfig`.
 
 ---
 
-### Server Management
-
-#### POST /api/server/list
-
-Get server list. Same as /api/model/list.
+### Model Installation and Weights
 
 #### POST /api/server/install
 
@@ -257,50 +345,74 @@ Install a model service from a local directory.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| path | string | Absolute path to the model directory, must contain config.json. Automatically overwrites if same name and version exist (upsert). |
+| path | string | Absolute path of the model directory; must contain config.json. Same name+version is upserted. |
+
+**Response:** the installed model record.
 
 #### POST /api/server/remove
 
-Uninstall an installed model service.
+Remove an installed model service (stops the running process first).
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| server | string | Model identifier, format `name\|version` or just `name` |
+| server | string | Model identifier, `name\|version` or just `name` |
+| force | boolean | Optional; deletion is refused while weights are downloading unless `true` |
 
-#### POST /api/server/log
+**Response example:**
 
-View model service logs. Same as /api/model/log.
+```json
+{ "code": 0, "data": { "removed": 1 } }
+```
 
-#### POST /api/server/setting
+#### POST /api/server/prepare
 
-Set model service parameters. Same as /api/model/setting.
+Ensure the model weights are ready (models without a `prepare` section return ready immediately).
 
-#### POST /api/server/workflows
+**Request body:**
 
-Get ComfyUI model workflow list. Same as /api/model/workflows.
+| Field | Type | Description |
+|-------|------|-------------|
+| server | string | Model identifier, `name\|version` or just `name` |
+| wait | boolean | Optional, default `true` waits for completion; `false` returns current status |
+
+#### POST /api/server/preparePause
+
+Pause weight download, keeping downloaded files for resume. `/api/server/prepareCancel` is a compatibility alias.
+
+**Request body:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| server | string | Model identifier, `name\|version` or just `name` |
+
+**Response example:**
+
+```json
+{ "code": 0, "data": { "paused": true, "cancelled": true } }
+```
 
 ---
 
-### File Upload
+### File Upload and Download
 
 #### POST /api/upload
 
-Upload a file to the temp directory. Supports two mutually exclusive methods.
+Upload a file to the temp directory. Two alternatives.
 
-**Method 1: multipart/form-data**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| file | file | File to upload, field name `file`, any format, max 2GB |
-
-**Method 2: JSON body**
+**Option 1: multipart/form-data**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| fileBase64 | string | Base64 encoded file content, supports `data:image/png;base64,xxxx` format or raw Base64 string |
-| name | string | File name (optional, auto-generated if not provided) |
+| file | file | File to upload |
+
+**Option 2: JSON**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| fileBase64 | string | `data:<mime>;base64,<data>` or plain base64 |
+| name | string | Optional filename; generated automatically when omitted |
 
 **Response example:**
 
@@ -308,29 +420,23 @@ Upload a file to the temp directory. Supports two mutually exclusive methods.
 {
   "code": 0,
   "data": {
-    "path": "/path/to/userData/data/temp/uploads/xxx.wav",
-    "name": "original-file.wav",
-    "size": 1024000,
-    "mime": "audio/wav"
+    "path": "/path/to/uploads/1714300000_ab12cd34ef56.png",
+    "name": "1714300000_ab12cd34ef56.png",
+    "size": 102400,
+    "mime": "image/png"
   }
 }
 ```
 
-Uploaded files are saved to the temp directory. The returned `path` can be used in subsequent `/api/model/call` calls as `param.audio`, `param.video`, `param.image`, etc. Files are periodically cleaned up automatically.
-
----
-
-### File Download
-
 #### POST /api/file/download
 
-Download a result file produced by a model (generated image / audio / video). Only files under the data root and installed model directories are allowed.
+Download a result file produced by a model (image / audio / video, etc.). Only files under the data directory and installed model directories are allowed.
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| path | string | Absolute path of the result file (the `url` field returned by a model) |
+| path | string | Absolute path of the result file (the `url` / `path` field returned by the model) |
 
 **Response:** the file binary stream (`Content-Type` inferred from the extension).
 
@@ -350,30 +456,44 @@ curl -X POST \
 
 #### POST /api/tools/submit
 
-Submit a tool task.
+Submit a built-in tool task.
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| biz | string | Tool type, e.g. SoundGenerate, VideoGen, VideoCompress |
-| param | object | Tool parameters |
-| modelConfig | object | Model configuration |
-| title | string | Task title (optional) |
-| env | object | Environment variables (optional) |
+| biz | string | Tool type, e.g. `VideoCompress`, `Ffmpeg` (required) |
+| modelConfig | object | Tool parameters (a JSON string is also accepted and stored as-is) |
+| param | object | Optional task parameters |
+| title | string | Optional task title; defaults to `biz + "-task"` |
+| env | object | Optional extra `AIGCPANEL_*` environment variables |
+
+**Response example:**
+
+```json
+{ "code": 0, "data": { "taskId": "123" } }
+```
 
 #### POST /api/tools/continue
 
-Continue a paused task.
+Continue a paused tool task (manual confirmation stage).
 
 **Request body:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| taskId | string | Task ID |
-| stage | string | Current stage |
-| data | object | Stage data |
-| env | object | Environment variables (optional) |
+| taskId | string | Paused task ID (required) |
+| stage | string | Current stage name (required) |
+| data | object | Data to write for this stage |
+| env | object | Optional extra environment variables |
+
+Supported tools and stages: `VideoZoom` / `VideoMark` (`Config`, `RenderConfirm`), `VideoSpeedPart` / `VideoKeepPart` (`Config`), `VideoQuickCut` (`Confirm`).
+
+**Response example:**
+
+```json
+{ "code": 0, "data": { "taskId": "123" } }
+```
 
 ---
 
@@ -381,23 +501,97 @@ Continue a paused task.
 
 #### POST /api/workflow/list
 
-Get workflow list.
+Get the workflow list.
+
+**Request body:** None
+
+**Response example:**
+
+```json
+{ "code": 0, "data": { "list": [{ "id": 1, "name": "My flow", "createdAt": 1714300000, "updatedAt": 1714300000 }] } }
+```
 
 #### POST /api/workflow/run
 
-Run a workflow.
+Run a workflow data payload (creates a temporary workflow named `_test_…`).
 
-#### POST /api/workflow/query
+**Request body:**
 
-Query workflow status.
+| Field | Type | Description |
+|-------|------|-------------|
+| data | object | Workflow data; must contain a `nodes` array |
+
+**Response example:**
+
+```json
+{ "code": 0, "data": { "workflowLogId": "1", "workflowId": "1" } }
+```
 
 #### POST /api/workflow/run-named
 
-Run a workflow by name.
+Run a saved workflow by name (the latest one with that name).
+
+**Request body:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| name | string | Workflow name |
+
+**Response:** same as above, with `workflowLogId` and `workflowId`.
+
+#### POST /api/workflow/query
+
+Query a workflow run with long polling (about 10 seconds; returns `pending` on timeout).
+
+**Request body:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| workflowLogId | string | Log ID returned by the run endpoint |
+
+**Response example:**
+
+```json
+{
+  "code": 0,
+  "data": { "status": "success", "statusMsg": "", "logData": { "nodes": [], "edges": [] } }
+}
+```
 
 #### POST /api/workflow/cleanup-test
 
-Clean up test workflows.
+Delete test workflows (names starting with `_test_` or equal to the default new-workflow name) and their run logs.
+
+**Request body:** None
+
+**Response example:**
+
+```json
+{ "code": 0, "data": { "deleted": 3 } }
+```
+
+---
+
+### Live
+
+#### POST /api/live/tts
+
+Synthesize text with a live voice and return the local absolute path of the audio.
+
+**Request body:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| voiceId | string/number | Live voice ID (required) |
+| text | string | Text to synthesize (required) |
+
+**Response example:**
+
+```json
+{ "code": 0, "data": { "url": "/path/to/output.wav" } }
+```
+
+Returns 404 `VoiceNotFound` when the voice does not exist.
 
 ---
 
@@ -405,7 +599,7 @@ Clean up test workflows.
 
 #### GET /doc
 
-API documentation page (no authentication required).
+The API documentation page (no authentication). Chinese by default; `?lang=en` or `Accept-Language: en` returns the English version.
 
 ---
 
@@ -418,7 +612,7 @@ curl -X POST \
   -H "Authorization: Bearer <Token>" \
   -H "Content-Type: application/json" \
   -d '{}' \
-  http://127.0.0.1:port/api/model/list
+  http://127.0.0.1:PORT/api/model/list
 ```
 
 ### View model parameters
@@ -428,7 +622,7 @@ curl -X POST \
   -H "Authorization: Bearer <Token>" \
   -H "Content-Type: application/json" \
   -d '{"server":"aigcpanel-server-tts|1.0.0"}' \
-  http://127.0.0.1:port/api/model/info
+  http://127.0.0.1:PORT/api/model/info
 ```
 
 ### Call TTS
@@ -437,8 +631,8 @@ curl -X POST \
 curl -X POST \
   -H "Authorization: Bearer <Token>" \
   -H "Content-Type: application/json" \
-  -d '{"model":"aigcpanel-server-tts|1.0.0","function":"soundTts","param":{"text":"Hello"}}' \
-  http://127.0.0.1:port/api/model/call
+  -d '{"server":"aigcpanel-server-tts|1.0.0","function":"soundTts","param":{"text":"Hello"}}' \
+  http://127.0.0.1:PORT/api/server/call
 ```
 
 ### Query task result
@@ -447,8 +641,8 @@ curl -X POST \
 curl -X POST \
   -H "Authorization: Bearer <Token>" \
   -H "Content-Type: application/json" \
-  -d '{"taskId":"xxx"}' \
-  http://127.0.0.1:port/api/model/query
+  -d '{"taskId":"123"}' \
+  http://127.0.0.1:PORT/api/server/query
 ```
 
 ### Upload file (multipart)
@@ -457,7 +651,7 @@ curl -X POST \
 curl -X POST \
   -H "Authorization: Bearer <Token>" \
   -F "file=@/path/to/audio.wav" \
-  http://127.0.0.1:port/api/upload
+  http://127.0.0.1:PORT/api/upload
 ```
 
 ### Upload file (Base64 JSON)
@@ -467,5 +661,15 @@ curl -X POST \
   -H "Authorization: Bearer <Token>" \
   -H "Content-Type: application/json" \
   -d '{"fileBase64":"data:audio/wav;base64,//uQxAAA..."}' \
-  http://127.0.0.1:port/api/upload
+  http://127.0.0.1:PORT/api/upload
+```
+
+### Download a result file
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <Token>" \
+  -H "Content-Type: application/json" \
+  -d '{"path":"/path/to/result.png"}' \
+  http://127.0.0.1:PORT/api/file/download -o result.png
 ```

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import ServerActionInfo from "../components/Server/ServerActionInfo.vue";
 import ServerActionLog from "../components/Server/ServerActionLog.vue";
 import ServerPrepareStatus from "../components/Server/ServerPrepareStatus.vue";
@@ -15,6 +15,7 @@ import { AppConfig } from "../config";
 import { t } from "../lang";
 import { functionToLabels } from "../lib/aigcpanel";
 import ModelSettingDialog from "../module/Model/ModelSettingDialog.vue";
+import Router from "../router";
 import { useServerStore } from "../store/modules/server";
 import { EnumServerType } from "../types/Server";
 
@@ -35,6 +36,28 @@ const modelSettingDialog = ref<InstanceType<typeof ModelSettingDialog> | null>(
 );
 const serverStore = useServerStore();
 const helpShow = ref(false);
+
+// 直播控制台跳转过来的上下文：只能提示、不能替用户决定加载哪个模型。
+// route query 是响应式的，用户从左侧导航重新进入 /server 时引导条会自然消失。
+const fromLive = computed(
+    () => Router.currentRoute.value.query.from === "live",
+);
+const liveGuideDismissed = ref(false);
+watch(fromLive, (v) => {
+    if (!v) {
+        liveGuideDismissed.value = false;
+    }
+});
+const liveModel = computed(() =>
+    serverStore.records.find((r) => (r.functions || []).includes("live")),
+);
+const showLiveGuide = computed(
+    () => fromLive.value && !liveGuideDismissed.value,
+);
+const goBackToLive = () => {
+    // 不带 tab，由 Live 页的 nav memory 恢复用户离开时的二级菜单
+    Router.push("/live").catch(() => {});
+};
 
 const doHelp = () => {
     window.$mapi.app.openExternal(AppConfig.helpUrl);
@@ -58,6 +81,17 @@ const typeName = (type: string) => {
 
 onMounted(() => {
     testActionSet("page.ready", () => {});
+    // 直播控制台跳转引导（供 UI 测试断言）
+    testActionSet("Server.liveGuide", () => ({
+        fromLive: fromLive.value,
+        visible: showLiveGuide.value,
+        hasLiveModel: !!liveModel.value,
+        empty: serverStore.records.length === 0,
+    }));
+    testActionSet("Server.liveGuide.back", () => {
+        goBackToLive();
+        return { ok: true };
+    });
     testActionSet("Server.modelSetting.show", () => {
         modelSettingDialog.value?.show();
     });
@@ -137,6 +171,8 @@ onMounted(() => {
 onUnmounted(() => {
     testActionUnset([
         "page.ready",
+        "Server.liveGuide",
+        "Server.liveGuide.back",
         "Server.modelSetting.show",
         "Server.comfyui.start",
         "Server.comfyui.stop",
@@ -158,6 +194,51 @@ onUnmounted(() => {
         class="pb-device-container bg-white dark:bg-gray-900 p-6 min-h-full relative select-none"
     >
         <PageHeader title="AI模型" />
+        <a-alert
+            v-if="showLiveGuide"
+            class="mb-4"
+            :type="liveModel ? 'success' : 'info'"
+            show-icon
+        >
+            <template #title>
+                {{ $t("model.fromLiveTitle") }}
+            </template>
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex-grow min-w-0">
+                    {{
+                        liveModel
+                            ? $t("model.fromLiveReady", {
+                                  title: liveModel.title,
+                              })
+                            : $t("model.fromLiveDesc", {
+                                  capability: $t("avatar.smartLive"),
+                              })
+                    }}
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a-button type="primary" @click="addDialog?.show()">
+                        <template #icon>
+                            <icon-plus />
+                        </template>
+                        {{ $t("model.fromLiveImport") }}
+                    </a-button>
+                    <a-button @click="goBackToLive()">
+                        {{ $t("model.fromLiveBack") }}
+                    </a-button>
+                    <a-tooltip :content="$t('common.close')">
+                        <a-button
+                            type="text"
+                            :aria-label="$t('common.close')"
+                            @click="liveGuideDismissed = true"
+                        >
+                            <template #icon>
+                                <icon-close />
+                            </template>
+                        </a-button>
+                    </a-tooltip>
+                </div>
+            </div>
+        </a-alert>
         <ListerTop :total="serverStore.records.length" @refresh="doRefresh">
             <template #actions>
                 <a-button
@@ -204,7 +285,13 @@ onUnmounted(() => {
                     />
                 </div>
                 <div class="mt-5 text-center text-gray-400">
-                    <div>{{ $t("empty.noModelAdd") }}</div>
+                    <div>
+                        {{
+                            fromLive
+                                ? $t("model.fromLiveEmptyTitle")
+                                : $t("empty.noModelAdd")
+                        }}
+                    </div>
                 </div>
                 <div class="mt-5 text-center">
                     <a-button class="ml-1" @click="addDialog?.show()">

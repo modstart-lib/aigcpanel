@@ -84,7 +84,9 @@ const statusText = computed(() => {
 });
 
 const statusValid = computed(
-    () => !!tokenPayload.value && statusText.value === t("offlineAuth.statusValid"),
+    () =>
+        !!tokenPayload.value &&
+        statusText.value === t("offlineAuth.statusValid"),
 );
 
 const isEdit = computed(() => !!request.value.token);
@@ -213,7 +215,9 @@ const doOk = () => {
             </div>
             <div class="flex items-center gap-2 mt-1">
                 <a-input
-                    :model-value="request.machineId || tokenPayload?.machineId || '-'"
+                    :model-value="
+                        request.machineId || tokenPayload?.machineId || '-'
+                    "
                     readonly
                 />
                 <a-button @click="doCopyMachineId">
@@ -243,11 +247,11 @@ const doOk = () => {
                 class="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs leading-6 text-gray-600"
             >
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-400">{{ t("offlineAuth.info") }}</span>
+                    <span class="text-gray-400">{{
+                        t("offlineAuth.info")
+                    }}</span>
                     <span
-                        :class="
-                            statusValid ? 'text-green-600' : 'text-red-500'
-                        "
+                        :class="statusValid ? 'text-green-600' : 'text-red-500'"
                     >
                         {{ statusText }}
                     </span>

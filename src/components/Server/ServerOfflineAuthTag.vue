@@ -91,11 +91,7 @@ watch(
 </script>
 
 <template>
-    <a-tooltip
-        v-if="visible && payload"
-        :content="label"
-        mini
-    >
+    <a-tooltip v-if="visible && payload" :content="label" mini>
         <span
             class="ml-2 inline-block rounded-3xl px-3 text-xs"
             :class="

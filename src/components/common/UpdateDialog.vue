@@ -7,7 +7,9 @@ const store = updaterStore();
 
 // Release notes come from the update API as HTML (notes/summary); older data may be plain text.
 // Only inject as HTML when it actually contains tags, otherwise keep the plain-text layout.
-const notesIsHtml = computed(() => /<\/?[a-z][\s\S]*>/i.test(store.notes || ""));
+const notesIsHtml = computed(() =>
+    /<\/?[a-z][\s\S]*>/i.test(store.notes || ""),
+);
 
 onMounted(() => {
     store.init();

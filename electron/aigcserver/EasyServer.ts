@@ -561,8 +561,8 @@ export const EasyServer = function (config: any) {
             const matched = String(output).match(/Error:\s*([^\r\n]+)/);
             const msg = matched
                 ? matched[1].trim()
-                : (String(output).trim().split("\n").pop() ||
-                  "OfflineAuthInvalidToken");
+                : String(output).trim().split("\n").pop() ||
+                  "OfflineAuthInvalidToken";
             return { code: -1, msg: msg };
         } catch (e) {
             Log.error("easyServer.offlineAuth.save.error", e);

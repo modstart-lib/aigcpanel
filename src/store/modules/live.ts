@@ -139,8 +139,11 @@ export const liveStore = defineStore("live", {
             config: {
                 flowVideoMode: "order" as "order" | "random",
                 flowTalkMode: "order" as "order" | "random",
-                flowTalkDelayMin: 5,
-                flowTalkDelayMax: 10,
+                // Continuous talk by default: the idle (silent) presentation is the
+                // source clip's own motion, so any gap reads as "moving without
+                // talking". Users can still raise it in the monitor config.
+                flowTalkDelayMin: 0,
+                flowTalkDelayMax: 0,
                 ttsProvider: "",
                 ttsProviderParam: {} as {
                     [key: string]: any;
@@ -215,11 +218,13 @@ export const liveStore = defineStore("live", {
             this.localConfig.config.flowTalkMode =
                 localConfig.config?.flowTalkMode ||
                 this.localConfig.config.flowTalkMode;
+            // `??` rather than `||`: 0 is a valid value (continuous talk) and `||`
+            // silently replaced it with the default on every reload.
             this.localConfig.config.flowTalkDelayMin =
-                localConfig.config?.flowTalkDelayMin ||
+                localConfig.config?.flowTalkDelayMin ??
                 this.localConfig.config.flowTalkDelayMin;
             this.localConfig.config.flowTalkDelayMax =
-                localConfig.config?.flowTalkDelayMax ||
+                localConfig.config?.flowTalkDelayMax ??
                 this.localConfig.config.flowTalkDelayMax;
             this.localConfig.config.ttsProvider =
                 localConfig.config?.ttsProvider ||

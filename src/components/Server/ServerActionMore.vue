@@ -115,10 +115,7 @@ const disabled = computed(() => {
             </a-button>
         </a-tooltip>
         <template #content>
-            <a-doption
-                v-if="canOfflineAuth"
-                @click="doOfflineAuth"
-            >
+            <a-doption v-if="canOfflineAuth" @click="doOfflineAuth">
                 <template #icon>
                     <icon-safe />
                 </template>
