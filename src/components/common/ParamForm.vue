@@ -45,11 +45,99 @@ type FieldBasicType = {
     // file 类型：允许选择的文件扩展名（如 ["png","jpg"]），空数组不限
     extensions?: string[];
     opt?: ("randomValue" | "seed")[];
+    // 文本/下拉/数值/滑块的快捷示例：title 是标签，value 是点击后填入的值
+    examples?: Array<string | { title?: string; value?: string | number }>;
 };
 
 type FieldBasicModelType = FieldBasicType & {
     value: any;
 };
+
+// 模型 config.json 可能使用平台别名（inputText / inputTextarea / string / text 等），
+// 统一归一化为 ParamForm 认识的控件类型；未知类型保持原样。
+const paramTypeAliases: Record<string, FieldBasicType["type"]> = {
+    inputText: "input",
+    inputTextarea: "textarea",
+    string: "input",
+    text: "textarea",
+    number: "inputNumber",
+    int: "inputNumber",
+    float: "inputNumber",
+    boolean: "switch",
+};
+const normalizeParamType = (type: any) => paramTypeAliases[type] || type;
+
+type ParamExample = {
+    title: string;
+    value: string | number;
+};
+const MAX_PARAM_EXAMPLES = 5;
+const EXAMPLE_TYPES = ["input", "textarea", "inputNumber", "select", "slider"];
+const exampleTitleFromValue = (value: string) =>
+    value.length > 12 ? value.slice(0, 12) + "…" : value;
+const paramExamples = (item: FieldBasicType): ParamExample[] => {
+    // 文本 / 下拉 / 数值 / 滑块可以用示例；file/audio/switch/speaker 等没有示例语义。
+    if (
+        !item ||
+        !EXAMPLE_TYPES.includes(item.type) ||
+        !Array.isArray(item.examples)
+    ) {
+        return [];
+    }
+    const result: ParamExample[] = [];
+    for (const example of item.examples) {
+        let value: any;
+        let title = "";
+        if (typeof example === "string") {
+            value = example;
+        } else {
+            value = example?.value;
+            title =
+                typeof example?.title === "string" ? example.title.trim() : "";
+        }
+        if (value === undefined || value === null) {
+            continue;
+        }
+        if (item.type === "inputNumber" || item.type === "slider") {
+            const num = typeof value === "number" ? value : Number(value);
+            if (!Number.isFinite(num)) {
+                continue;
+            }
+            value = num;
+        } else {
+            value = String(value);
+            if (
+                item.type === "select" &&
+                Array.isArray(item.options) &&
+                item.options.length > 0 &&
+                !item.options.some(
+                    (option) => String(option.value) === String(value),
+                )
+            ) {
+                continue;
+            }
+        }
+        const text = String(value);
+        if (!title) {
+            title = exampleTitleFromValue(text);
+        }
+        if (title || text !== "") {
+            result.push({ title, value });
+        }
+        if (result.length >= MAX_PARAM_EXAMPLES) {
+            break;
+        }
+    }
+    return result;
+};
+const applyParamExample = (
+    item: FieldBasicModelType,
+    example: ParamExample,
+) => {
+    item.value = example.value;
+};
+const exampleTooltip = (example: ParamExample) =>
+    example.value === "" ? example.title : String(example.value);
 
 const props = defineProps({
     param: Array<FieldBasicType>,
@@ -64,6 +152,7 @@ watch(
     (value) => {
         formData.value = (value?.map((item) => {
             const itemClone = cloneDeep(item);
+            itemClone.type = normalizeParamType(itemClone.type);
             // if (itemClone.type === "speaker") {
             //     itemClone["speakerParam"] = [];
             //     itemClone["speakerParamValue"] = {};
@@ -312,6 +401,43 @@ defineExpose({
                     :extensions="item.extensions || []"
                 />
             </div>
+            <div
+                v-if="!props.disabled && paramExamples(item).length > 0"
+                class="flex flex-wrap items-center gap-1 pt-0.5"
+            >
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{
+                    $t("model.examples")
+                }}</span>
+                <a-tooltip
+                    v-for="(example, index) in paramExamples(item)"
+                    :key="example.title + index"
+                    :content="`${exampleTooltip(example)}（${$t(
+                        'model.exampleFillHint',
+                    )}）`"
+                    mini
+                >
+                    <a-tag
+                        class="param-example-tag !m-0 max-w-40 truncate"
+                        :class="{
+                            'param-example-tag-active':
+                                String(item.value) === String(example.value),
+                        }"
+                        size="small"
+                        role="button"
+                        tabindex="0"
+                        data-param-example="1"
+                        @click="applyParamExample(item, example)"
+                        @keydown.enter.prevent="
+                            applyParamExample(item, example)
+                        "
+                        @keydown.space.prevent="
+                            applyParamExample(item, example)
+                        "
+                    >
+                        {{ example.title }}
+                    </a-tag>
+                </a-tooltip>
+            </div>
             <!--
         <div v-for="speakerParam in item['speakerParam']">
             <div v-if="!speakerParam.type || speakerParam.type === 'select'" class="mr-3">
@@ -341,6 +467,39 @@ defineExpose({
 
     .arco-input {
         text-align: left;
+    }
+}
+
+/* 参数示例标签：可点击但外观仍保持轻量，hover/键盘聚焦时给出明确反馈 */
+.param-example-tag {
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition:
+        color 0.15s,
+        border-color 0.15s,
+        background-color 0.15s;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--color-primary);
+        border-color: var(--color-primary);
+        outline: none;
+    }
+}
+
+.param-example-tag-active {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .param-example-tag {
+    background-color: #374151;
+    color: #e5e7eb;
+
+    &:hover,
+    &:focus-visible {
+        color: #9dbeff;
+        border-color: #9dbeff;
     }
 }
 </style>

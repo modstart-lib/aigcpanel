@@ -153,6 +153,8 @@ router.post(
                     hint: p.hint || "",
                     min: p.min,
                     max: p.max,
+                    // 文本参数示例（可选）
+                    examples: Array.isArray(p.examples) ? p.examples : [],
                 })),
                 // 返回结果定义（如有）
                 result: (funcDef.result || []).map((r: any) => ({

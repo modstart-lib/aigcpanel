@@ -38,6 +38,8 @@ function normalizeWorkflowParams(params: any[]): any[] {
             placeholder: p.placeholder || "",
             required: !!p.required,
             tips: p.tips || p.description || "",
+            // 文本参数的快捷示例（meta.json 的 {title,value} 数组，原样透传）
+            examples: Array.isArray(p.examples) ? p.examples : [],
         };
         if (p.type === "select" || Array.isArray(p.options)) {
             return {

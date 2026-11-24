@@ -94,7 +94,7 @@ sudo dpkg -i AIGCPanel.deb
 
 ## 本地开发
 
-Node.js 20 及以上。技术栈是 Electron + Vue 3 + TypeScript + Arco Design，本地数据存 SQLite，工作流画布用 LogicFlow。
+Node.js 24 及以上。技术栈是 Electron + Vue 3 + TypeScript + Arco Design，本地数据存 SQLite，工作流画布用 LogicFlow。
 
 ```shell
 npm install

@@ -2,6 +2,7 @@ import {
     app,
     BrowserWindow,
     clipboard,
+    ClipboardItem,
     ipcMain,
     nativeImage,
     nativeTheme,
@@ -210,7 +211,7 @@ ipcMain.handle(
 );
 
 const getClipboardText = () => {
-    return clipboard.readText("clipboard");
+    return clipboard.readText();
 };
 
 ipcMain.handle("app:getClipboardText", (event) => {
@@ -218,29 +219,40 @@ ipcMain.handle("app:getClipboardText", (event) => {
 });
 
 const setClipboardText = (text: string) => {
-    clipboard.writeText(text, "clipboard");
+    return clipboard.writeText(text);
 };
 
 ipcMain.handle("app:setClipboardText", (event, text: string) => {
-    setClipboardText(text);
+    return setClipboardText(text);
 });
 
-const getClipboardImage = () => {
-    const image = clipboard.readImage("clipboard");
-    return image.isEmpty() ? "" : image.toDataURL();
+const getClipboardImage = async () => {
+    // Electron 45 removed clipboard.readImage; read the W3C clipboard items instead.
+    const items = await clipboard.read();
+    for (const item of items) {
+        const type = item.types.find((it) => it.startsWith("image/"));
+        if (!type) continue;
+        const blob = (await item.getType(type)) as Blob;
+        const buffer = Buffer.from(await blob.arrayBuffer());
+        return `data:${type};base64,${buffer.toString("base64")}`;
+    }
+    return "";
 };
 
 ipcMain.handle("app:getClipboardImage", (event) => {
     return getClipboardImage();
 });
 
-const setClipboardImage = (image: string) => {
+const setClipboardImage = async (image: string) => {
+    // Electron 45 removed clipboard.writeImage; write a ClipboardItem instead.
     const img = nativeImage.createFromDataURL(image);
-    clipboard.writeImage(img, "clipboard");
+    const data = img.toPNG();
+    const blob = new Blob([new Uint8Array(data)], { type: "image/png" });
+    await clipboard.write([new ClipboardItem({ "image/png": blob })]);
 };
 
 ipcMain.handle("app:setClipboardImage", (event, image: string) => {
-    setClipboardImage(image);
+    return setClipboardImage(image);
 });
 
 const isDarkMode = () => {

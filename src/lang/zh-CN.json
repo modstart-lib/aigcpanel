@@ -540,6 +540,8 @@
     "msg.taskNotCompleteConfirm": "任务未完成，需要手动确认",
     "model.comfyuiView": "查看 ComfyUI",
     "model.customParam": "自定义参数",
+    "model.examples": "示例",
+    "model.exampleFillHint": "点击填入，会覆盖当前值",
     "page.payment.title": "支付",
     "page.setup.title": "初始化",
     "app.comfyuiWorkflowManager": "ComfyUI 流程管理",

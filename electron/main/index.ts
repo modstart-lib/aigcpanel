@@ -1,5 +1,6 @@
 import { app, BrowserWindow, desktopCapturer, session, shell } from "electron";
 import { optimizer } from "@electron-toolkit/utils";
+import * as remoteMain from "@electron/remote/main";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -114,6 +115,13 @@ for (const dir of ["logs", "storage"]) {
 }
 
 AppEnv.isInit = true;
+
+// @electron/remote requires its main-process IPC handlers to be installed before
+// any window calls `main.enable(webContents)`; without this the renderer's
+// `require("@electron/remote")` blocks forever on the sync IPC reply.
+if (!remoteMain.isInitialized()) {
+    remoteMain.initialize();
+}
 
 MAPI.init();
 ConfigContextMenu.init();

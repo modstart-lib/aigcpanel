@@ -59,8 +59,9 @@ for (const t of platformTarget) {
 
 // 2. On macOS, allow code signing when the keychain has a Developer ID certificate
 //    (electron-builder auto-discovers it) or for non-local builds (CI has the cert).
-//    Local installs without a cert keep identity=null; the adhoc fallback in
-//    build-optimize.cjs then fixes the identifier and entitlements.
+//    The base config no longer pins `identity`, so dropping the key here lets
+//    electron-builder pick the cert it finds and stay unsigned when there is none;
+//    the adhoc fallback in build-optimize.cjs then fixes identifier and entitlements.
 const hasDeveloperIdCert = () => {
   try {
     const out = execSync('security find-identity -v -p codesigning 2>/dev/null', {encoding: 'utf8'});

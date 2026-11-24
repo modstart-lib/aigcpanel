@@ -26,7 +26,14 @@ const currentFunc = computed(() => {
 const onServerUpdate = async (config: any) => {
     generalList.value = config.general || [];
     if (generalList.value.length > 0) {
-        formData.value.funcName = generalList.value[0].name;
+        // 配置重载时保留用户已选的功能（仍存在时），不要强行跳回第一个
+        if (
+            !generalList.value.some(
+                (g: any) => g.name === formData.value.funcName,
+            )
+        ) {
+            formData.value.funcName = generalList.value[0].name;
+        }
         onFuncChange();
     } else {
         param.value = [];
@@ -94,6 +101,8 @@ const setValue = (data: Partial<GeneralModelParamType>) => {
     }
     if (data.funcName !== undefined) {
         formData.value.funcName = data.funcName;
+        // 外部（测试/恢复表单）直接设置功能名时，同步刷新参数定义
+        onFuncChange();
     }
     if (data.param !== undefined) {
         paramForm.value?.setValue(data.param);

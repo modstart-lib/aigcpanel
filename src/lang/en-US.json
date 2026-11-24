@@ -540,6 +540,8 @@
     "msg.taskNotCompleteConfirm": "Task incomplete, manual confirmation required",
     "model.comfyuiView": "View ComfyUI",
     "model.customParam": "Custom Parameters",
+    "model.examples": "Examples",
+    "model.exampleFillHint": "Click to fill; replaces the current value",
     "page.payment.title": "Payment",
     "page.setup.title": "Setup",
     "app.comfyuiWorkflowManager": "ComfyUI Workflow Manager",

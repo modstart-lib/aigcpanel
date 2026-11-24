@@ -60,7 +60,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Build Prepare (Linux)
         if: runner.os == 'Linux'
@@ -72,20 +72,6 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install python-setuptools
-
-      - name: Install fpm (Linux arm64)
-        if: runner.os == 'Linux' && runner.arch == 'ARM64'
-        run: |
-          sudo apt-get install -y ruby ruby-dev rubygems
-          sudo gem install fpm
-          # Replace cached x86 fpm with symlink to native arm64 system fpm
-          # (electron-builder always uses cached fpm, so we override it)
-          FPM_PATH=$(which fpm)
-          echo "System fpm: $FPM_PATH"
-          CACHE_DIR="$HOME/.cache/electron-builder/fpm/fpm-1.9.3-2.3.1-linux-x86"
-          rm -rf "$CACHE_DIR"
-          mkdir -p "$CACHE_DIR"
-          ln -sf "$FPM_PATH" "$CACHE_DIR/fpm"
 
       - name: Cert Prepare (macOS)
         if: runner.os == 'macOS'
@@ -167,6 +153,11 @@ jobs:
       - name: init ( Linux/macOS )
         if: runner.os == 'Linux' || runner.os == 'macOS'
         working-directory: code
+        env:
+          # macos-latest is arm64, so the mac-x64 job cross-builds: pass the
+          # target arch so init.sh fetches osx-x86/linux-x86 binaries instead
+          # of the runner's own arch (afterPack looks for extra/<os>-<arch>).
+          TARGET_ARCH: ${{ matrix.arch == 'x64' && 'x64' || '' }}
         run: bash ./scripts/init.sh
 
       - name: init ( Windows )

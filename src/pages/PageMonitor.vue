@@ -12,7 +12,7 @@ const emit = defineEmits({
 const webPreload = ref("");
 const webUrl = ref("");
 const webUserAgent =
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36";
 const pageTitle = ref("");
 const pageDebugToolsShow = ref(false);
 const pageOpenDevTools = ref(false);
