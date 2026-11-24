@@ -604,5 +604,6 @@
     "model.offlineAuthExpire": "Licensed to {date}",
     "model.offlineAuthExpired": "License expired",
     "model.offlineAuthPermanent": "Never",
-    "model.offlineAuthPermanentLabel": "Licensed (never expires)"
+    "model.offlineAuthPermanentLabel": "Licensed (never expires)",
+    "error.modelParamTypeInvalid": "Invalid parameter type in config.json: {detail} ({count} issue(s))"
 }

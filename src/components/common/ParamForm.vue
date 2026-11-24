@@ -28,6 +28,7 @@ type FieldBasicType = {
         | "switch"
         | "slider"
         | "speaker"
+        | "soundPromptId"
         | "file"
         | "audio";
     defaultValue: any;
@@ -52,20 +53,6 @@ type FieldBasicType = {
 type FieldBasicModelType = FieldBasicType & {
     value: any;
 };
-
-// 模型 config.json 可能使用平台别名（inputText / inputTextarea / string / text 等），
-// 统一归一化为 ParamForm 认识的控件类型；未知类型保持原样。
-const paramTypeAliases: Record<string, FieldBasicType["type"]> = {
-    inputText: "input",
-    inputTextarea: "textarea",
-    string: "input",
-    text: "textarea",
-    number: "inputNumber",
-    int: "inputNumber",
-    float: "inputNumber",
-    boolean: "switch",
-};
-const normalizeParamType = (type: any) => paramTypeAliases[type] || type;
 
 type ParamExample = {
     title: string;
@@ -152,7 +139,6 @@ watch(
     (value) => {
         formData.value = (value?.map((item) => {
             const itemClone = cloneDeep(item);
-            itemClone.type = normalizeParamType(itemClone.type);
             // if (itemClone.type === "speaker") {
             //     itemClone["speakerParam"] = [];
             //     itemClone["speakerParamValue"] = {};

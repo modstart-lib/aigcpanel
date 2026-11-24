@@ -604,5 +604,6 @@
     "model.offlineAuthExpire": "授权至 {date}",
     "model.offlineAuthExpired": "授权已过期",
     "model.offlineAuthPermanent": "永久",
-    "model.offlineAuthPermanentLabel": "已授权（永久）"
+    "model.offlineAuthPermanentLabel": "已授权（永久）",
+    "error.modelParamTypeInvalid": "模型 config.json 参数类型错误：{detail}（共 {count} 处）"
 }

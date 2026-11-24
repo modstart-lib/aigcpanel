@@ -2,7 +2,11 @@
 import { computed, ref } from "vue";
 import { AppConfig } from "../../config";
 import { t } from "../../lang";
-import { functionToLabels, serverFunctionNames } from "../../lib/aigcpanel";
+import {
+    functionToLabels,
+    serverFunctionNames,
+    validateServerParamTypes,
+} from "../../lib/aigcpanel";
 import { Dialog } from "../../lib/dialog";
 import { VersionUtil } from "../../lib/util";
 import { useServerStore } from "../../store/modules/server";
@@ -187,6 +191,20 @@ const parseLocalDir = async (configPath: string): Promise<boolean> => {
         });
         const serverPath = configPath.replace(/[\/\\]config.json$/, "");
         const json = JSON.parse(content);
+        const paramErrors = validateServerParamTypes(json);
+        if (paramErrors.length > 0) {
+            console.error(
+                "ServerAddDialog.parseLocalDir.invalidParamTypes",
+                paramErrors,
+            );
+            Dialog.tipError(
+                t("error.modelParamTypeInvalid", {
+                    detail: paramErrors[0],
+                    count: paramErrors.length,
+                }),
+            );
+            return false;
+        }
         modelInfo.value.type = EnumServerType.LOCAL_DIR;
         modelInfo.value.name = json.name || "";
         modelInfo.value.version = json.version || "";

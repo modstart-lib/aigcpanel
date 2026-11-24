@@ -73,3 +73,88 @@ export function contentToFilenamePathPart(text: string, limit: number = 10) {
             .substring(0, limit)
     );
 }
+
+/**
+ * ParamForm 支持的参数类型（config.json / meta.json 的唯一合法取值）。
+ * 导入模型时会校验；不要在这些值之外做兼容映射。
+ */
+export const SERVER_PARAM_TYPES = [
+    "input",
+    "textarea",
+    "inputNumber",
+    "select",
+    "switch",
+    "slider",
+    "speaker",
+    "soundPromptId",
+    "file",
+    "audio",
+] as const;
+
+export type ServerParamType = (typeof SERVER_PARAM_TYPES)[number];
+
+/**
+ * 校验 config.json 里所有会影响 ParamForm 渲染的参数类型。
+ * 返回空数组表示通过；否则返回可直接展示给用户的错误列表。
+ */
+export function validateServerParamTypes(config: any): string[] {
+    const errors: string[] = [];
+    const seen = new Set<string>();
+    const checkParamList = (path: string, param: any) => {
+        if (!Array.isArray(param)) {
+            return;
+        }
+        param.forEach((item: any, index: number) => {
+            if (!item || typeof item !== "object") {
+                return;
+            }
+            const name = item.name || `#${index + 1}`;
+            const type = item.type;
+            const where = `${path}.${name}`;
+            if (!type) {
+                const message = `${where} 缺少 type（支持：${SERVER_PARAM_TYPES.join(" / ")}）`;
+                if (!seen.has(message)) {
+                    seen.add(message);
+                    errors.push(message);
+                }
+                return;
+            }
+            if (!(SERVER_PARAM_TYPES as readonly string[]).includes(type)) {
+                const message = `${where} 使用了不支持的类型 "${type}"（支持：${SERVER_PARAM_TYPES.join(" / ")}）`;
+                if (!seen.has(message)) {
+                    seen.add(message);
+                    errors.push(message);
+                }
+            }
+        });
+    };
+    const checkFunctions = (path: string, functions: any) => {
+        if (
+            !functions ||
+            typeof functions !== "object" ||
+            Array.isArray(functions)
+        ) {
+            return;
+        }
+        Object.keys(functions).forEach((funcName) => {
+            const func = functions[funcName];
+            if (func && typeof func === "object") {
+                checkParamList(`${path}.${funcName}.param`, func.param);
+            }
+        });
+    };
+
+    checkFunctions("functions", config?.functions);
+    checkFunctions("easyServer.functions", config?.easyServer?.functions);
+    if (Array.isArray(config?.general)) {
+        config.general.forEach((general: any) => {
+            if (general && typeof general === "object") {
+                checkParamList(
+                    `general.${general.name || "unnamed"}.param`,
+                    general.param,
+                );
+            }
+        });
+    }
+    return errors;
+}
