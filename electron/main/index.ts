@@ -26,6 +26,12 @@ import { DevToolsManager } from "../lib/devtools";
 import { Diagnostics } from "../lib/diagnostics";
 import { AppsMain } from "../mapi/app/main";
 import { ServerMain } from "../mapi/server/main";
+import { DBMain } from "../mapi/db/main";
+import {
+    normalizeQuitTaskCount,
+    quitTaskCountQuery,
+    quitWorkflowCountQuery,
+} from "../../src/lib/quitGuard";
 import { HttpServerMain } from "../mapi/httpserver/main";
 import ConfigMain from "../mapi/config/main";
 import { reportError } from "../mapi/log/beacon";
@@ -192,15 +198,15 @@ async function createWindow() {
         await executeHooks(AppRuntime.mainWindow, "Hide");
     });
 
-    if (isMac) {
-        AppRuntime.mainWindow.on("close", (event) => {
-            // @ts-ignore
-            if (!app.quitForce && !isDev) {
-                executeHooks(AppRuntime.mainWindow, "ShowQuitConfirmDialog");
-                event.preventDefault();
-            }
-        });
-    }
+    // 关闭窗口先确认（所有平台）：不拦的话 Windows/Linux 会走
+    // window-all-closed -> app.quit，主窗口被销毁后再被 before-quit 拦下，
+    // 就成了「窗口没了、toast 窗口反复开关」的状态
+    AppRuntime.mainWindow.on("close", (event) => {
+        if (!(app as any).quitForce && !isDev) {
+            executeHooks(AppRuntime.mainWindow, "ShowQuitConfirmDialog");
+            event.preventDefault();
+        }
+    });
     AppRuntime.mainWindow.on("enter-full-screen", () => {
         executeHooks(AppRuntime.mainWindow, "EnterFullScreen");
     });
@@ -260,21 +266,120 @@ app.whenReady()
         createWindow().then();
     });
 
+const isMainRendererAlive = () => {
+    const win = AppRuntime.mainWindow;
+    if (!win || win.isDestroyed()) {
+        return false;
+    }
+    return !!win.webContents && !win.webContents.isDestroyed();
+};
+
+/**
+ * 未完成任务数：运行中 + 排队中的用户任务，加上正在运行的工作流。
+ * 数据库未就绪或查询失败时返回 0（不拦截），避免用户退不出应用。
+ */
+const getUnfinishedTaskCount = async (): Promise<number> => {
+    try {
+        const taskQuery = quitTaskCountQuery();
+        const taskRow = await DBMain.first(taskQuery.sql, taskQuery.params);
+        const counts = normalizeQuitTaskCount(taskRow);
+        const workflowQuery = quitWorkflowCountQuery();
+        const workflowRow = await DBMain.first(
+            workflowQuery.sql,
+            workflowQuery.params,
+        );
+        const workflowCount = Number(workflowRow?.cnt || 0);
+        return (
+            counts.running +
+            counts.queued +
+            (Number.isFinite(workflowCount) && workflowCount > 0
+                ? Math.floor(workflowCount)
+                : 0)
+        );
+    } catch (e) {
+        Log.error("App.beforeQuit.taskCheck.error", e);
+        return 0;
+    }
+};
+
+const showQuitBlocked = (taskCount: number) => {
+    if (taskCount > 0) {
+        AppsMain.toast(
+            t("app.exitTasksRunningHint", {
+                count: taskCount,
+            }),
+        );
+        // 把主窗口和退出面板带出来：托盘/Cmd+Q 只有 toast 的话，用户不知道去停什么
+        const win = AppRuntime.mainWindow;
+        if (win && !win.isDestroyed()) {
+            try {
+                if (isMac) {
+                    app.dock.show();
+                }
+                if (win.isMinimized()) {
+                    win.restore();
+                }
+                win.show();
+                win.focus();
+                executeHooks(win, "ShowQuitConfirmDialog", {
+                    force: true,
+                });
+            } catch (e) {
+                Log.error("App.beforeQuit.showBlocked.error", e);
+            }
+        }
+        return;
+    }
+    AppsMain.toast(
+        t("app.localServersRunningQuitHint", {
+            count: ServerMain.getRunningServerCount(),
+        }),
+    );
+};
+
+let quitCheckRunning = false;
+
 app.on("before-quit", (event) => {
-    // 自动升级流程已经在预检阶段停止所有服务，允许直接退出
+    // 自动升级流程已经在预检阶段停止所有服务与任务，允许直接退出
     if ((app as any).updateQuit) {
         return;
     }
-    const localServerRunningCount = ServerMain.getRunningServerCount();
-    if (localServerRunningCount > 0) {
-        //  && isPackaged
-        event.preventDefault();
-        AppsMain.toast(
-            t("app.localServersRunningQuitHint", {
-                count: localServerRunningCount,
-            }),
-        );
+    // 本次退出已经通过检查：放行（quitForce 让窗口可以真正关闭）
+    if ((app as any).quitApproved) {
+        (app as any).quitForce = true;
+        return;
     }
+    event.preventDefault();
+    if (quitCheckRunning) {
+        return;
+    }
+    quitCheckRunning = true;
+    // 渲染进程已经销毁时任务不可能继续跑，只保留本地服务检查
+    const taskPromise = isMainRendererAlive()
+        ? getUnfinishedTaskCount()
+        : Promise.resolve(0);
+    taskPromise
+        .then((taskCount) => {
+            quitCheckRunning = false;
+            const serverCount = ServerMain.getRunningServerCount();
+            if (taskCount <= 0 && serverCount <= 0) {
+                (app as any).quitApproved = true;
+                (app as any).quitForce = true;
+                app.quit();
+                return;
+            }
+            // 被拦下：复位 quitForce，保证下次关窗仍会弹确认
+            (app as any).quitForce = false;
+            (app as any).quitApproved = false;
+            showQuitBlocked(taskCount);
+        })
+        .catch((e) => {
+            quitCheckRunning = false;
+            Log.error("App.beforeQuit.error", e);
+            (app as any).quitApproved = true;
+            (app as any).quitForce = true;
+            app.quit();
+        });
 });
 
 app.on("will-quit", () => {

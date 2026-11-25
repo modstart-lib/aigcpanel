@@ -22,8 +22,30 @@ const activeTab = computed(() => {
     if (path.startsWith("/workflow")) return "workflow";
 });
 
-const userTip = computed(() => {
-    return user.user.id ? user.user.name : t("common.notLoggedIn");
+const userEnable = computed(() => !!setting.basic.userEnable);
+
+const accountLabel = computed(() => {
+    if (!user.isInit) {
+        return "";
+    }
+    if (!user.user.id) {
+        return t("nav.login");
+    }
+    const name = (user.user.name || "").trim();
+    return name && name !== "-" ? name : t("nav.account");
+});
+
+const accountTip = computed(() => {
+    if (!user.user.id) {
+        return t("nav.loginTip");
+    }
+    return t("nav.userCenterTipName", { name: accountLabel.value });
+});
+
+const accountAriaLabel = computed(() => {
+    return user.user.id
+        ? t("nav.userCenterAria", { name: accountLabel.value })
+        : t("nav.loginAria");
 });
 
 const doUser = async () => {
@@ -38,32 +60,50 @@ const doUser = async () => {
     <div
         class="flex flex-col h-full border-r border-gray-200 dark:border-gray-600"
     >
-        <div
-            class="py-4 px-3"
-            :class="setting.basic.userEnable ? 'cursor-pointer' : ''"
-            @click="doUser"
-        >
-            <a-tooltip
-                v-if="setting.basic.userEnable"
-                :content="userTip as string"
-                position="right"
-                mini
+        <div class="px-2 pt-4 pb-2">
+            <div
+                v-if="userEnable"
+                data-testid="nav-account"
+                :data-state="user.user.id ? 'user' : 'guest'"
+                class="flex flex-col items-center rounded-lg px-1 py-1 cursor-pointer select-none transition-colors hover:bg-[var(--color-bg-page-nav-active)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                role="button"
+                tabindex="0"
+                :aria-label="accountAriaLabel"
+                @click="doUser"
+                @keydown.enter.prevent="doUser"
+                @keydown.space.prevent="doUser"
             >
-                <div class="relative w-10 h-10">
-                    <img
-                        v-if="!user.isInit || !user.user.id"
-                        class="rounded-full border border-solid border-gray-200 w-10 h-10 shadow-lg"
-                        src="./../assets/image/avatar.svg"
-                    />
-                    <img
-                        v-else
-                        :src="user.user.avatar as string"
-                        class="rounded-full border border-solid border-gray-200 w-10 h-10 shadow-lg"
-                    />
-                    
-                </div>
-            </a-tooltip>
-            <div v-else>
+                <a-tooltip :content="accountTip" position="right" mini>
+                    <div class="flex w-full flex-col items-center">
+                        <div class="relative w-10 h-10">
+                            <img
+                                v-if="!user.isInit || !user.user.id"
+                                class="rounded-full border border-solid border-gray-200 w-10 h-10 shadow-lg"
+                                src="./../assets/image/avatar.svg"
+                            />
+                            <img
+                                v-else
+                                :src="user.user.avatar as string"
+                                class="rounded-full border border-solid border-gray-200 w-10 h-10 shadow-lg"
+                            />
+                            
+                        </div>
+                        <div
+                            v-if="user.isInit"
+                            data-testid="nav-account-label"
+                            class="w-full text-center truncate"
+                            :class="
+                                user.user.id
+                                    ? 'text-xs leading-4 text-gray-500 dark:text-gray-400'
+                                    : 'text-sm leading-5 font-medium text-[color:var(--color-primary)] dark:text-[#9DBEFF]'
+                            "
+                        >
+                            {{ accountLabel }}
+                        </div>
+                    </div>
+                </a-tooltip>
+            </div>
+            <div v-else class="flex justify-center">
                 <div class="relative w-10 h-10">
                     <img
                         v-if="!user.isInit || !user.user.id"

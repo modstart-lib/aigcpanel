@@ -11,7 +11,11 @@ const showApp = () => {
     if (isMac) {
         app.dock.show();
     }
-    AppRuntime.mainWindow.show();
+    const win = AppRuntime.mainWindow;
+    if (!win || win.isDestroyed()) {
+        return;
+    }
+    win.show();
 };
 
 const hideApp = () => {

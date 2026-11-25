@@ -1,5 +1,10 @@
 import { TimeUtil } from "../lib/util";
 import { mapError } from "../lib/error";
+import {
+    QuitTaskCount,
+    normalizeQuitTaskCount,
+    quitTaskCountQuery,
+} from "../lib/quitGuard";
 import { TaskChangeType, useTaskStore } from "../store/modules/task";
 import { groupThrottle } from "../lib/groupThrottle";
 import { t } from "../lang";
@@ -443,5 +448,14 @@ export const TaskService = {
         }
         const result = await window.$mapi.db.first(sql, params);
         return result.cnt;
+    },
+    /**
+     * 未完成任务数（退出确认用）：运行中与排队中的用户任务。
+     * 口径与主进程 before-quit 共用，见 src/lib/quitGuard.ts。
+     */
+    async countUnfinished(): Promise<QuitTaskCount> {
+        const query = quitTaskCountQuery();
+        const row = await window.$mapi.db.first(query.sql, query.params);
+        return normalizeQuitTaskCount(row);
     },
 };

@@ -20,8 +20,8 @@ window.__page.onEnterFullScreen(() => {
 window.__page.onLeaveFullScreen(() => {
     isFullscreen.value = false;
 });
-window.__page.onShowQuitConfirmDialog(() => {
-    appQuitConfirm.value?.show();
+window.__page.onShowQuitConfirmDialog((data?: { force?: boolean }) => {
+    appQuitConfirm.value?.show(data);
 });
 
 const { onDragWindowMouseDown } = useDragWindow({
