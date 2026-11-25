@@ -270,7 +270,7 @@ app.on("before-quit", (event) => {
         //  && isPackaged
         event.preventDefault();
         AppsMain.toast(
-            t("有 {count} 个本地模型服务正在运行，请停止后再关闭应用", {
+            t("app.localServersRunningQuitHint", {
                 count: localServerRunningCount,
             }),
         );

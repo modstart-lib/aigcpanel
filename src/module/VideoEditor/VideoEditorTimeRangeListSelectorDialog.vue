@@ -106,15 +106,17 @@ defineExpose({
 <template>
     <a-modal
         v-model:visible="visible"
-        :title="t('视频时间片段选择')"
+        :title="t('videoEditor.timeSegmentTitle')"
         title-align="start"
         width="98vw"
         :mask-closable="false"
     >
         <template #footer>
-            <a-button @click="visible = false">{{ t("取消") }}</a-button>
+            <a-button @click="visible = false">{{
+                t("common.cancel")
+            }}</a-button>
             <a-button type="primary" @click="doSubmit">{{
-                t("确认")
+                t("common.confirm")
             }}</a-button>
         </template>
         <div

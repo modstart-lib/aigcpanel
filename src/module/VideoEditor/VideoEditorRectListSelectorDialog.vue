@@ -118,7 +118,7 @@ defineExpose({
                 currentTimes.value,
                 {
                     type: "array",
-                    confirmText: t("确定从草稿回复？"),
+                    confirmText: t("videoEditor.restoreDraftConfirm"),
                 },
             );
             clearDraftValue.value = clearDraft;
@@ -153,15 +153,17 @@ defineExpose({
 <template>
     <a-modal
         v-model:visible="visible"
-        :title="t('视频时间区域片段选择')"
+        :title="t('videoEditor.regionSegmentTitle')"
         title-align="start"
         width="98vw"
         :mask-closable="false"
     >
         <template #footer>
-            <a-button @click="visible = false">{{ t("取消") }}</a-button>
+            <a-button @click="visible = false">{{
+                t("common.cancel")
+            }}</a-button>
             <a-button type="primary" @click="doSubmit">{{
-                t("确认")
+                t("common.confirm")
             }}</a-button>
         </template>
         <div

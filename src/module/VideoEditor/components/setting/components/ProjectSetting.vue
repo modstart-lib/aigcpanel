@@ -1,7 +1,9 @@
 <template>
     <div class="p-4">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold">{{ $t("视频设置") }}</h3>
+            <h3 class="text-lg font-bold">
+                {{ $t("videoEditor.videoSettings") }}
+            </h3>
             <a-button
                 type="primary"
                 @click="onApplySettings"
@@ -9,7 +11,7 @@
                 :disabled="!hasChanges"
                 size="small"
             >
-                {{ $t("应用设置") }}
+                {{ $t("videoEditor.applySettings") }}
             </a-button>
         </div>
 
@@ -17,7 +19,7 @@
             <!-- 自定义尺寸 -->
             <div>
                 <div class="text-sm font-medium mb-2">
-                    {{ $t("自定义尺寸") }}
+                    {{ $t("videoEditor.customSize") }}
                 </div>
                 <div class="flex items-center space-x-2">
                     <a-input-number
@@ -63,7 +65,9 @@
 
             <!-- 帧率设置 -->
             <div>
-                <div class="text-sm font-medium mb-2">{{ $t("帧率") }}</div>
+                <div class="text-sm font-medium mb-2">
+                    {{ $t("videoEditor.frameRate") }}
+                </div>
                 <a-select
                     v-model="customFrameRate"
                     class="w-full"
@@ -71,7 +75,7 @@
                     :options="frameRateOptions"
                 />
                 <div class="text-xs text-gray-500 mt-1">
-                    {{ $t("较高帧率可获得更流畅的视频效果") }}
+                    {{ $t("videoEditor.frameRateHint") }}
                 </div>
             </div>
         </div>
