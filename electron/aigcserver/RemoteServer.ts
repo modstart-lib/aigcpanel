@@ -199,6 +199,19 @@ export const RemoteServer = function (config: any) {
         this.send("success", this.ServerInfo);
     };
 
+    // 中止指定任务：仅当它就是当前轮询中的任务时才真正取消
+    this.cancelTask = async function (taskId: string) {
+        if (
+            !controllerWatching.id ||
+            controllerWatching.id !== taskId ||
+            controllerWatching.promiseResolved
+        ) {
+            return false;
+        }
+        await this.cancel();
+        return true;
+    };
+
     this.cancel = async function () {
         // Stop local polling
         if (controllerWatching.timer) {

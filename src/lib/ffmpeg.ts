@@ -15,13 +15,15 @@ const detectHardwareEncoders = async (): Promise<{
     try {
         const output = await new Promise<string>((resolve, reject) => {
             let buffer = "";
-            $mapi.app.spawnBinary("ffmpeg", ["-encoders"], {
-                shell: false,
-                stdout: (data: string) => (buffer += data),
-                stderr: (data: string) => (buffer += data),
-                success: () => resolve(buffer),
-                error: (msg: string) => reject(msg),
-            });
+            $mapi.app
+                .spawnBinary("ffmpeg", ["-encoders"], {
+                    shell: false,
+                    stdout: (data: string) => (buffer += data),
+                    stderr: (data: string) => (buffer += data),
+                    success: () => resolve(buffer),
+                    error: (msg: string) => reject(msg),
+                })
+                .catch(() => null);
         });
         // Check for common hardware encoders based on platform
         if (platform === "osx") {
@@ -202,6 +204,9 @@ export const ffmpegOptimized = async (
                 reject(`FFmpeg error (code ${exitCode}): ${msg}`);
             },
         });
+        // The callbacks above settle the outer promise, so a failure must not
+        // also surface as an unhandled rejection.
+        controller.catch(() => {});
     });
 };
 
@@ -279,21 +284,25 @@ export const ffmpegSetMediaRatio = async (
                 reject("Failed to create output file");
             }
         };
-        const controller = await $mapi.app.spawnBinary("ffmpeg", args, {
-            shell: false,
-            stdout: (data: string) => {
-                // console.log("FFmpeg stdout:", data);
-            },
-            stderr: (data: string) => {
-                // console.log("FFmpeg stderr:", data);
-            },
-            success: () => {
-                endCheck().then();
-            },
-            error: (msg: string, exitCode: number) => {
-                endCheck().then();
-            },
-        });
+        // endCheck() above settles the outer promise on both callbacks; the
+        // rejection is swallowed here so it does not stay unhandled.
+        await $mapi.app
+            .spawnBinary("ffmpeg", args, {
+                shell: false,
+                stdout: (data: string) => {
+                    // console.log("FFmpeg stdout:", data);
+                },
+                stderr: (data: string) => {
+                    // console.log("FFmpeg stderr:", data);
+                },
+                success: () => {
+                    endCheck().then();
+                },
+                error: (msg: string, exitCode: number) => {
+                    endCheck().then();
+                },
+            })
+            .catch(() => null);
     });
 };
 
@@ -332,21 +341,25 @@ const ffmpegConvertAudio = async (
             output,
         ];
         // console.log("FFmpeg convertAudio args:", args.join(" "));
-        const controller = await $mapi.app.spawnBinary("ffmpeg", args, {
-            shell: false,
-            stdout: (data: string) => {
-                // console.log("FFmpeg stdout:", data);
-            },
-            stderr: (data: string) => {
-                // console.log("FFmpeg stderr:", data);
-            },
-            success: () => {
-                resolve(output);
-            },
-            error: (msg: string, exitCode: number) => {
-                reject(`FFmpeg error (code ${exitCode}): ${msg}`);
-            },
-        });
+        // success / error callbacks settle the outer promise; the rejection is
+        // swallowed here so it does not stay unhandled.
+        await $mapi.app
+            .spawnBinary("ffmpeg", args, {
+                shell: false,
+                stdout: (data: string) => {
+                    // console.log("FFmpeg stdout:", data);
+                },
+                stderr: (data: string) => {
+                    // console.log("FFmpeg stderr:", data);
+                },
+                success: () => {
+                    resolve(output);
+                },
+                error: (msg: string, exitCode: number) => {
+                    reject(`FFmpeg error (code ${exitCode}): ${msg}`);
+                },
+            })
+            .catch(() => null);
     });
 };
 

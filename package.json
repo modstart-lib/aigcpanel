@@ -48,7 +48,9 @@
     "test:updater-ui": "node test/e2e/updater-ui.mjs",
     "test:updater-ui:fake": "node test/e2e/updater-ui-fake.mjs",
     "test:live-e2e": "node test/e2e/live-local.mjs",
-    "test:live-voice-cloud": "tsx test/unit/liveVoiceCloud.test.ts"
+    "test:live-voice-cloud": "tsx test/unit/liveVoiceCloud.test.ts",
+    "test:child-exit": "tsx test/unit/childExit.test.ts",
+    "test:ffmpeg-output": "tsx test/unit/ffmpegOutput.test.ts"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",

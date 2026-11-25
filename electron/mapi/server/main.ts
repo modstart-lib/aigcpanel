@@ -272,18 +272,30 @@ ipcMain.handle("server:stop", async (event, serverInfo: ServerInfo) => {
     }
 });
 
-ipcMain.handle("server:cancel", async (event, serverInfo: ServerInfo) => {
-    const module = await getModule(serverInfo);
-    try {
-        const result = await module.cancel();
-        delete runningServers[serverInfo.localPath];
-        return result;
-    } catch (e) {
-        const error = mapError(e);
-        Log.error("mapi.server.cancel.error", error);
-        throw error;
-    }
-});
+ipcMain.handle(
+    "server:cancel",
+    async (event, serverInfo: ServerInfo, taskId?: string) => {
+        const module = await getModule(serverInfo);
+        try {
+            let aborted = true;
+            if (taskId && typeof module.cancelTask === "function") {
+                // Queued task: only abort when it is the job the server is
+                // running, otherwise leave the running task alone.
+                aborted = await module.cancelTask(taskId);
+            } else {
+                await module.cancel();
+            }
+            if (aborted) {
+                delete runningServers[serverInfo.localPath];
+            }
+            return aborted;
+        } catch (e) {
+            const error = mapError(e);
+            Log.error("mapi.server.cancel.error", error);
+            throw error;
+        }
+    },
+);
 
 // 离线授权：写入 auth.json 并让对应服务继续启动/重试
 ipcMain.handle(

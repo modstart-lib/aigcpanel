@@ -7,7 +7,7 @@ import { Dialog } from "../../lib/dialog";
 import { OfflineAuth } from "../../lib/offlineAuth";
 import { TimeUtil, wait } from "../../lib/util";
 import { StorageService } from "../../service/StorageService";
-import { TaskService } from "../../service/TaskService";
+import { TaskService, TaskRecord } from "../../service/TaskService";
 import {
     EnumServerStatus,
     EnumServerType,
@@ -296,18 +296,30 @@ export const serverStore = defineStore("server", {
             });
             taskStore.onChange(null, (bizId, type) => {
                 if (type === "requestCancel") {
-                    TaskService.get(bizId).then((record) => {
-                        if (
-                            record &&
-                            record.serverName &&
-                            record.serverVersion
-                        ) {
-                            this.cancelByNameVersion(
-                                record.serverName,
-                                record.serverVersion,
-                            ).then();
-                        }
-                    });
+                    TaskService.get(bizId)
+                        .then((record) => {
+                            if (
+                                record &&
+                                record.serverName &&
+                                record.serverVersion
+                            ) {
+                                // Only the run the model server is executing may
+                                // be aborted: a queued task is cancelled by the
+                                // task scheduler alone (it marks the record
+                                // failed), and must not take down the task that
+                                // is currently running on the same model.
+                                return this.cancelByNameVersion(
+                                    record.serverName,
+                                    record.serverVersion,
+                                    this.serverTaskId(record),
+                                );
+                            }
+                        })
+                        .catch((e) => {
+                            // e.g. the model is not running: the cancelled task
+                            // is already marked failed, nothing to abort here.
+                            console.log("server.requestCancel", e);
+                        });
                 }
             });
             await this.refresh();
@@ -668,16 +680,18 @@ export const serverStore = defineStore("server", {
             serverInfo.logFile = serverRuntime.logFile;
             await $mapi.server.stop(serverInfo);
         },
-        async cancel(server: ServerRecord) {
+        async cancel(server: ServerRecord, taskId?: string) {
             const record = this.findRecord(server);
-            if (record?.status === EnumServerStatus.RUNNING) {
-            } else {
-                throw new Error("StatusError");
+            if (record?.status !== EnumServerStatus.RUNNING) {
+                // Not running (stopped / starting / preparing): there is no
+                // launcher job to abort. The cancelled task itself is already
+                // handled by the task scheduler.
+                return;
             }
             const serverRuntime = getOrCreateServerRuntime(server);
             const serverInfo = await this.serverInfo(server);
             serverInfo.logFile = serverRuntime.logFile;
-            await $mapi.server.cancel(serverInfo);
+            await $mapi.server.cancel(serverInfo, taskId);
         },
         async updateSetting(key: string, setting: any) {
             const record = this.records.find((record) => record.key === key);
@@ -773,11 +787,25 @@ export const serverStore = defineStore("server", {
                 (record) => record.name === name && record.version === version,
             );
         },
-        async cancelByNameVersion(name: string, version: string) {
+        async cancelByNameVersion(
+            name: string,
+            version: string,
+            taskId?: string,
+        ) {
             const record = await this.getByNameVersion(name, version);
             if (record) {
-                await this.cancel(record);
+                await this.cancel(record, taskId);
             }
+        },
+        // Id a task is dispatched to the model server with (see generateTaskId).
+        // SoundGenerate dispatches under its concrete type (SoundTts /
+        // SoundClone), so its prefix is modelConfig.type instead of the biz.
+        serverTaskId(record: TaskRecord) {
+            const biz =
+                record.biz === "SoundGenerate"
+                    ? record.modelConfig?.type || record.biz
+                    : record.biz;
+            return this.generateTaskId(biz, String(record.id));
         },
         generateServerKey(server: ServerRecord) {
             return `${server.name}|${server.version}`;

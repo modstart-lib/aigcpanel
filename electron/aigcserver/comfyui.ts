@@ -84,6 +84,8 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
     const serverRuntime = { port: 0 };
     let shellController = null;
     let isRunning = false;
+    // 当前正在执行的 taskId（_callFunc 里设置），cancelTask 据此判断要中止的是不是它
+    let currentTaskId = "";
     // 服务进程是否已退出（launcher 进程 success/error 回调触发）。
     // 任务等待结果期间若进程退出且无结果，说明任务未被消费（如空闲退出竞态），
     // 提前失败避免任务无限等待；每次启动时重置。
@@ -279,6 +281,14 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
             }
             serverRuntime.port = 0;
             this.send("stopped", this.ServerInfo);
+        },
+        // 中止指定任务：仅当该任务正在执行时才通知启动器取消
+        async cancelTask(taskId: string) {
+            if (!isRunning || currentTaskId !== taskId) {
+                return false;
+            }
+            await this.ServerApi.launcherCancel(this);
+            return true;
         },
         async cancel() {
             await this.ServerApi.launcherCancel(this);
@@ -514,6 +524,7 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
                 };
             }
             isRunning = true;
+            currentTaskId = data.id;
             const resultData = {
                 type: "success",
                 start: Date.now(),
@@ -582,6 +593,7 @@ export const ComfyUIServer = function (config: any = null): ServerContext {
                 return { code: -1, msg: e + "" };
             } finally {
                 isRunning = false;
+                currentTaskId = "";
             }
         },
         // 文生图：通过 param.comfyuiName 选择工作流（prompt 由平台端独立传入）

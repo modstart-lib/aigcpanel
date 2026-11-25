@@ -535,7 +535,7 @@ type DefsMapi = {
         prepareStatus: (serverInfo: ServerInfo) => Promise<ServerPrepareStatus>;
         pausePrepare: (serverInfo: ServerInfo) => Promise<boolean>;
         stop: (serverInfo: ServerInfo) => Promise<void>;
-        cancel: (serverInfo: ServerInfo) => Promise<void>;
+        cancel: (serverInfo: ServerInfo, taskId?: string) => Promise<any>;
         submitOfflineAuth: (
             serverInfo: ServerInfo,
             token: string,

@@ -21,6 +21,8 @@
     "error.atLeastOneCommand": "请至少添加一条命令",
     "error.ffmpegCommandRequired": "请输入FFmpeg命令",
     "error.selectFile": "请选择文件",
+    "error.ffmpegRunFailed": "FFmpeg 处理失败",
+    "error.ffmpegOutputMissing": "FFmpeg 未生成有效的输出文件",
     "workflow.ffmpegTitle": "ffmpeg处理",
     "workflow.ffmpegDesc": "使用ffmpeg进行视频处理"
 }

@@ -6,9 +6,11 @@ import {
 import { useServerStore } from "../../../store/modules/server";
 import { TaskBiz, useTaskStore } from "../../../store/modules/task";
 import { FfmpegJobResultType, FfmpegModelConfigType } from "./type";
+import { t } from "../../../lang";
 
 import { createTaskRunResult } from "../common/lib";
 import { TaskRunResult } from "../common/type";
+import { ffmpegOutputSummary, findUnusableOutputs } from "./output";
 
 const serverStore = useServerStore();
 const taskStore = useTaskStore();
@@ -58,6 +60,16 @@ export const FfmpegRun = async (data: {
             resultData.output5 = task.result?.output5 || "";
         }),
     };
+};
+
+// Size of a file, 0 when it is missing or cannot be read.
+const outputFileSize = async (filePath: string): Promise<number> => {
+    try {
+        const info = await $mapi.file.stat(filePath);
+        return info.size;
+    } catch (e) {
+        return 0;
+    }
 };
 
 export const FfmpegCleaner = async (task: TaskRecord) => {
@@ -136,10 +148,34 @@ export const Ffmpeg: TaskBiz = {
                 jobResult,
             });
             try {
-                await $mapi.app.spawnBinary(
-                    "ffmpeg",
-                    jobResult.Prepare.commands,
+                let execOutput = "";
+                try {
+                    execOutput = await $mapi.app.spawnBinary(
+                        "ffmpeg",
+                        jobResult.Prepare.commands,
+                    );
+                } catch (error) {
+                    const reason = ffmpegOutputSummary(error);
+                    throw new Error(
+                        reason
+                            ? `${t("error.ffmpegRunFailed")}: ${reason}`
+                            : t("error.ffmpegRunFailed"),
+                    );
+                }
+                // ffmpeg can exit with code 0 and still leave a missing or
+                // empty file (for example when the output cannot be written),
+                // which used to be reported as success.
+                const unusableOutputs = await findUnusableOutputs(
+                    jobResult.Prepare.outputsMap,
+                    outputFileSize,
                 );
+                if (unusableOutputs.length > 0) {
+                    const reason = ffmpegOutputSummary(execOutput);
+                    throw new Error(
+                        `${t("error.ffmpegOutputMissing")}: ${unusableOutputs.join(", ")}` +
+                            (reason ? ` (${reason})` : ""),
+                    );
+                }
                 jobResult.step = "End";
                 jobResult.Execute.status = "success";
                 await TaskService.update(bizId, { jobResult });

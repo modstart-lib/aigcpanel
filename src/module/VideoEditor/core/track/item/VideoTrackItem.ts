@@ -166,10 +166,16 @@ export class VideoTrackItem
         // 音频播放逻辑暂时注释，避免资源占用
         if (!this._audio && !this._audioPlayLoading) {
             this._audioPlayLoading = true;
-            this.getAudioUrl().then((url) => {
-                this._audio = new Audio(url);
-                this._audioPlayLoading = false;
-            });
+            this.getAudioUrl()
+                .then((url) => {
+                    this._audio = new Audio(url);
+                    this._audioPlayLoading = false;
+                })
+                .catch((e) => {
+                    // 提取音轨失败（如源文件损坏、ffmpeg 报错）：不阻塞预览
+                    console.error("VideoTrackItem.getAudioUrl", e);
+                    this._audioPlayLoading = false;
+                });
         }
         if (!this._audioPlayLoading && this._audio && this._audio!.paused) {
             this._audio!.currentTime =

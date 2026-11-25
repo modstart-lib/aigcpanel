@@ -21,6 +21,8 @@
     "error.atLeastOneCommand": "Please add at least one command",
     "error.ffmpegCommandRequired": "Please enter the FFmpeg command",
     "error.selectFile": "Please select a file",
+    "error.ffmpegRunFailed": "FFmpeg processing failed",
+    "error.ffmpegOutputMissing": "FFmpeg produced no usable output file",
     "workflow.ffmpegTitle": "FFmpeg Processing",
     "workflow.ffmpegDesc": "Process videos using FFmpeg"
 }

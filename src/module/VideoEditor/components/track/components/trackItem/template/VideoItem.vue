@@ -70,14 +70,19 @@ const thumbs = ref<string[]>([]);
 let waveSurfer: any = null;
 
 async function initAudio() {
-    // @ts-ignore
-    const url = await props.trackItem._raw.getAudioUrl();
-    // @ts-ignore
-    waveSurfer = WaveSurfer.create({
-        container: waveRef.value!,
-        url: url!,
-        ...WaveOptions,
-    });
+    try {
+        // @ts-ignore
+        const url = await props.trackItem._raw.getAudioUrl();
+        // @ts-ignore
+        waveSurfer = WaveSurfer.create({
+            container: waveRef.value!,
+            url: url!,
+            ...WaveOptions,
+        });
+    } catch (e) {
+        // 音轨提取失败时只放弃波形，不影响时间线渲染
+        console.error("VideoItem.initAudio", e);
+    }
     audioLoading.value = false;
 }
 

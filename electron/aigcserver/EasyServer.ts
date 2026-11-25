@@ -496,8 +496,22 @@ export const EasyServer = function (config: any) {
         this.send("stopped", this.ServerInfo);
         this.send("success", this.ServerInfo);
     };
+    // 中止指定任务：只有启动器正在执行这条任务时才停进程。
+    // 排队中的任务由任务调度器自行标记失败，不能牵连正在执行的任务。
+    this.cancelTask = async function (taskId: string) {
+        if (
+            !controller ||
+            controllerWatching.id !== taskId ||
+            controllerWatching.promiseResolved
+        ) {
+            return false;
+        }
+        controller.stop();
+        return true;
+    };
     this.cancel = async function () {
         controller.stop();
+        return true;
     };
     // 写入离线授权码（auth.json）并重新拉起被挂起的任务。
     // token 由 Web 后台按「授权名称 + 机器码 + 过期时间」签发，启动器负责验签。

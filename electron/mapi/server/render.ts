@@ -37,8 +37,8 @@ const stop = async (serverInfo: ServerInfo) => {
     return ipcRenderer.invoke("server:stop", serverInfo);
 };
 
-const cancel = async (serverInfo: ServerInfo) => {
-    return ipcRenderer.invoke("server:cancel", serverInfo);
+const cancel = async (serverInfo: ServerInfo, taskId?: string) => {
+    return ipcRenderer.invoke("server:cancel", serverInfo, taskId);
 };
 
 const submitOfflineAuth = async (serverInfo: ServerInfo, token: string) => {

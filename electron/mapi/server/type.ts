@@ -40,7 +40,11 @@ export type ServerContext = {
 
     init: () => Promise<void>;
     start: () => Promise<void>;
-    cancel: () => Promise<void>;
+    cancel: () => Promise<any>;
+    // Abort only when taskId is the job the server is currently running.
+    // Resolves true when it really aborted; implementations that cannot tell
+    // jobs apart leave it undefined and keep the legacy cancel() behaviour.
+    cancelTask?: (taskId: string) => Promise<boolean>;
     stop: () => Promise<void>;
     url: () => string;
     ping: () => Promise<boolean>;

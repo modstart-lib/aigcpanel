@@ -3,6 +3,7 @@ import { exec as _exec, spawn } from "node:child_process";
 import net from "node:net";
 import util from "node:util";
 import { AppConfig } from "../../../src/config";
+import { childExitSucceeded } from "../../lib/childExit";
 import {
     extraResolveBin,
     isLinux,
@@ -195,6 +196,9 @@ const spawnShell = async (
     let end = false;
     let isSuccess = false;
     let exitCode = -1;
+    // Set when this app stops or kills the process itself, so the exit code
+    // that the termination produces is not mistaken for a real failure.
+    let stoppedByUser = false;
     const stdoutList: string[] = [];
     const stderrList: string[] = [];
     spawnProcess.stdout?.on("data", (data) => {
@@ -219,18 +223,12 @@ const spawnShell = async (
     });
     spawnProcess.on("exit", (code, signal) => {
         // console.log('App.spawnShell.exit', code)
-        Log.info("App.spawnShell.exit", { code, signal });
+        Log.info("App.spawnShell.exit", { code, signal, stoppedByUser });
         unregisterChild(spawnProcess.pid);
         exitCode = code;
-        if (isWin) {
-            if (0 === code || 1 === code) {
-                isSuccess = true;
-            }
-        } else {
-            if (null === code || 0 === code) {
-                isSuccess = true;
-            }
-        }
+        // Windows reports exit code 1 both for a real failure and for a
+        // process this app terminated, so only a stop issued by us is exempt.
+        isSuccess = childExitSucceeded(code, { isWin, stoppedByUser });
         if (isSuccess) {
             option.success?.(spawnProcess);
         } else {
@@ -253,6 +251,11 @@ const spawnShell = async (
         pid: spawnProcess.pid,
         stop: () => {
             Log.info("App.spawnShell.stop");
+            // Ignore a stop that arrives after the process already exited:
+            // its exit code is the real result.
+            if (null === spawnProcess.exitCode) {
+                stoppedByUser = true;
+            }
             if (isWin) {
                 _exec(
                     `taskkill /pid ${spawnProcess.pid} /T /F`,
@@ -289,6 +292,9 @@ const spawnShell = async (
         // 强制结束（SIGINT 无效时兜底）
         kill: () => {
             Log.info("App.spawnShell.kill");
+            if (null === spawnProcess.exitCode) {
+                stoppedByUser = true;
+            }
             if (isWin) {
                 _exec(
                     `taskkill /pid ${spawnProcess.pid} /T /F`,
