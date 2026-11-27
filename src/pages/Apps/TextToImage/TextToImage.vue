@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
 import ToggleButton from "../../../components/common/ToggleButton.vue";
 import { useCheckAll } from "../../../components/common/check-all";
-import { usePaginate } from "../../../hooks/paginate";
-import { useTaskChangeRefresh } from "../../../hooks/task";
-import { TaskRecord, TaskService } from "../../../service/TaskService";
-import { TaskChangeType } from "../../../store/modules/task";
+import { useTaskRecords } from "../../../hooks/taskRecords";
+import { TaskService } from "../../../service/TaskService";
+import { testActionSet, testActionUnset } from "@/utils/test";
 import Steps from "../common/Steps.vue";
 import TextToImageCreate from "./components/TextToImageCreate.vue";
 import TextToImageItem from "./components/TextToImageItem.vue";
@@ -15,29 +14,27 @@ import ListerTop from "../../../components/common/ListerTop.vue";
 import MEmpty from "../../../components/common/MEmpty.vue";
 import PageHeader from "../../../components/PageHeader.vue";
 
-const { page, records, recordsForPage } = usePaginate<TaskRecord>({
-    pageSize: 10,
-});
+const {
+    page,
+    recordsForPage,
+    total,
+    reload: doRefresh,
+} = useTaskRecords("TextToImage", {});
 
-useTaskChangeRefresh("TextToImage", (bizId: string, type: TaskChangeType) => {
-    doRefresh();
-});
-
-const { mergeCheck, isIndeterminate, isAllChecked, onCheckAll, checkRecords } =
-    useCheckAll({
+const { isIndeterminate, isAllChecked, onCheckAll, checkRecords } = useCheckAll(
+    {
         records: recordsForPage,
-    });
+    },
+);
 
 const stepsVisible = ref(false);
 
-onMounted(async () => {
-    await doRefresh();
+onMounted(() => {
+    
 });
-
-const doRefresh = async () => {
-    const rawRecords = await TaskService.list("TextToImage");
-    records.value = mergeCheck(rawRecords);
-};
+onUnmounted(() => {
+    
+});
 </script>
 
 <template>
@@ -67,11 +64,7 @@ const doRefresh = async () => {
         />
         <div>
             <TextToImageCreate @submitted="doRefresh" />
-            <ListerTop
-                class="mt-4"
-                :total="records.length"
-                @refresh="doRefresh"
-            >
+            <ListerTop class="mt-4" :total="total" @refresh="doRefresh">
                 <a-checkbox
                     :model-value="isAllChecked"
                     :indeterminate="isIndeterminate"
@@ -87,14 +80,14 @@ const doRefresh = async () => {
                 <template #actions>
                     <a-pagination
                         v-model:current="page"
-                        :total="records.length"
+                        :total="total"
                         :page-size="10"
                         show-total
                         simple
                     />
                 </template>
             </ListerTop>
-            <div v-if="records.length > 0">
+            <div v-if="total > 0">
                 <div v-for="r in recordsForPage" :key="r.id">
                     <TextToImageItem
                         :record="r"

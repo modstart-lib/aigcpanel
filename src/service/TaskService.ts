@@ -126,6 +126,44 @@ const mergeData = (oldData: any, newData: any) => {
     return result;
 };
 
+export type TaskPageQuery = {
+    page?: number;
+    pageSize?: number;
+    serverName?: string;
+    statusList?: Exclude<TaskRecord["status"], "pause">[];
+};
+
+const normalizePageQuery = (query: TaskPageQuery) => ({
+    page: Math.max(1, Math.floor(Number(query.page) || 1)),
+    pageSize: Math.max(1, Math.floor(Number(query.pageSize) || 10)),
+});
+
+// Shared "which user tasks belong to this list" condition, so a page query and
+// its total never disagree. Mirrors the where clause of list().
+const buildTaskWhere = (biz: TaskBiz | null, query: TaskPageQuery) => {
+    const wheres: string[] = [];
+    const params: any[] = [];
+    if (biz) {
+        wheres.push("biz = ?");
+        params.push(biz);
+    }
+    wheres.push("type = ?");
+    params.push(TaskType.User);
+    if (query.serverName) {
+        wheres.push("serverName = ?");
+        params.push(query.serverName);
+    }
+    const statusList = query.statusList || [];
+    if (statusList.length > 0) {
+        wheres.push(`status IN (${statusList.map(() => "?").join(",")})`);
+        params.push(...statusList);
+    }
+    return {
+        where: wheres.join(" AND "),
+        params,
+    };
+};
+
 type CleanerFunctionType = (record: TaskRecord) => Promise<{
     files: string[];
 }>;
@@ -190,6 +228,60 @@ export const TaskService = {
             [biz, type],
         );
         return records.map(this.decodeRecord) as TaskRecord[];
+    },
+    /**
+     * 任务列表的一页。只回传当前页的行（含四个 JSON 字段），进度更新走单行读取。
+     * where 口径与 countPage 共用 buildTaskWhere，保证总数与列表一致。
+     */
+    async listPage(
+        biz: TaskBiz,
+        query: TaskPageQuery = {},
+    ): Promise<TaskRecord[]> {
+        const { page, pageSize } = normalizePageQuery(query);
+        const { where, params } = buildTaskWhere(biz, query);
+        const records: TaskRecord[] = await window.$mapi.db.select(
+            `SELECT *
+             FROM ${this.tableName()}
+             WHERE ${where}
+             ORDER BY id DESC
+             LIMIT ? OFFSET ?`,
+            [...params, pageSize, (page - 1) * pageSize],
+        );
+        return records.map(this.decodeRecord) as TaskRecord[];
+    },
+    async countPage(biz: TaskBiz, query: TaskPageQuery = {}): Promise<number> {
+        const { where, params } = buildTaskWhere(biz, query);
+        const result = await window.$mapi.db.first(
+            `SELECT COUNT(*) as cnt
+             FROM ${this.tableName()}
+             WHERE ${where}`,
+            params,
+        );
+        return result.cnt;
+    },
+    /**
+     * 历史任务里出现过的服务/模型，供任务列表的筛选项使用。
+     * 空 serverName（HTTP 接口提交的任务）不参与筛选。
+     */
+    async serverNames(
+        biz: TaskBiz,
+    ): Promise<{ name: string; title: string }[]> {
+        const rows: { name: string; title: string }[] =
+            await window.$mapi.db.select(
+                `SELECT serverName AS name, serverTitle AS title
+                 FROM ${this.tableName()}
+                 WHERE biz = ?
+                   AND type = ?
+                   AND serverName IS NOT NULL
+                   AND serverName <> ''
+                 GROUP BY serverName
+                 ORDER BY MAX(id) DESC`,
+                [biz, TaskType.User],
+            );
+        return rows.map((r) => ({
+            name: r.name,
+            title: r.title || r.name,
+        }));
     },
     async listByStatus(
         biz: TaskBiz,
@@ -406,6 +498,15 @@ export const TaskService = {
              FROM ${this.tableName()}
              WHERE id = ?`,
             [record.id],
+        );
+        // Lists patch a single row on change events, so a deletion has to be
+        // announced too (the row is removed instead of waiting for a reload).
+        taskStore.fireChange(
+            {
+                biz: record.biz,
+                bizId: String(record.id),
+            },
+            "change",
         );
         for (const file of filesForClean) {
             const normalFile = file.replace(/\\/g, "/");

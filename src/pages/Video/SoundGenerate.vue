@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
 import TaskBatchDeleteAction from "../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../components/Server/TaskBatchDownloadAction.vue";
 import TaskCancelAction from "../../components/Server/TaskCancelAction.vue";
@@ -11,9 +10,7 @@ import TextTruncateView from "../../components/TextTruncateView.vue";
 import AudioPlayer from "../../components/common/AudioPlayer.vue";
 import TaskBizStatus from "../../components/common/TaskBizStatus.vue";
 import { useCheckAll } from "../../components/common/check-all";
-import { TaskRecord, TaskService } from "../../service/TaskService";
-import { usePaginate } from "../../hooks/paginate";
-import { useTaskChangeRefresh } from "../../hooks/task";
+import { useTaskRecords } from "../../hooks/taskRecords";
 import SoundGenerateCreate from "./components/SoundGenerateCreate.vue";
 import SoundGenerateFormViewBody from "./components/SoundGenerateFormViewBody.vue";
 import ServerNameVersion from "../../components/Server/ServerNameVersion.vue";
@@ -24,24 +21,18 @@ import ListerTop from "../../components/common/ListerTop.vue";
 import MEmpty from "../../components/common/MEmpty.vue";
 import PageHeader from "../../components/PageHeader.vue";
 
-const { page, records, recordsForPage } = usePaginate<TaskRecord>();
+const {
+    page,
+    recordsForPage,
+    total,
+    reload: doRefresh,
+} = useTaskRecords("SoundGenerate", {});
 
-const { mergeCheck, isIndeterminate, isAllChecked, onCheckAll, checkRecords } =
-    useCheckAll({
+const { isIndeterminate, isAllChecked, onCheckAll, checkRecords } = useCheckAll(
+    {
         records: recordsForPage,
-    });
-
-const doRefresh = async () => {
-    records.value = mergeCheck(await TaskService.list("SoundGenerate"));
-};
-
-useTaskChangeRefresh("SoundGenerate", () => {
-    doRefresh();
-});
-
-onMounted(async () => {
-    await doRefresh();
-});
+    },
+);
 </script>
 
 <template>
@@ -52,11 +43,7 @@ onMounted(async () => {
         />
         <div>
             <SoundGenerateCreate @submitted="doRefresh" />
-            <ListerTop
-                class="mt-4"
-                :total="records.length"
-                @refresh="doRefresh"
-            >
+            <ListerTop class="mt-4" :total="total" @refresh="doRefresh">
                 <a-checkbox
                     :model-value="isAllChecked"
                     :indeterminate="isIndeterminate"
@@ -72,14 +59,14 @@ onMounted(async () => {
                 <template #actions>
                     <a-pagination
                         v-model:current="page"
-                        :total="records.length"
+                        :total="total"
                         :page-size="10"
                         show-total
                         simple
                     />
                 </template>
             </ListerTop>
-            <div v-if="records.length > 0">
+            <div v-if="total > 0">
                 <div v-for="r in recordsForPage" :key="r.id">
                     <div
                         class="rounded-xl shadow border p-4 mt-4 hover:shadow-lg"

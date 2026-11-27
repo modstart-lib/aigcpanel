@@ -415,6 +415,21 @@ const versions = [
             }
         },
     },
+    {
+        version: 16,
+        up: async (db: DB) => {
+            // Task lists are now read page by page and counted per list, so the
+            // "biz + type" lookup must not scan the whole table on every page or
+            // progress event. The second index also covers the "filter by
+            // server/model" lists. Adding an index only, no data rewrite.
+            await db.execute(
+                `CREATE INDEX IF NOT EXISTS idx_data_task_biz_type_id ON data_task (biz, type, id)`,
+            );
+            await db.execute(
+                `CREATE INDEX IF NOT EXISTS idx_data_task_biz_type_server_id ON data_task (biz, type, serverName, id)`,
+            );
+        },
+    },
 ];
 
 export default {

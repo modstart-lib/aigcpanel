@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { ref } from "vue";
 import AudioPlayer from "../../../components/common/AudioPlayer.vue";
 import { t } from "../../../lang";
 import { TaskRecord, TaskService } from "../../../service/TaskService";
-import { TaskChangeType, useTaskStore } from "../../../store/modules/task";
-import { useCheckAll } from "../../../components/common/check-all";
+import { useTaskRecords } from "../../../hooks/taskRecords";
 import { doCopy } from "../../../components/common/util";
 import TaskDuration from "../../../components/Server/TaskDuration.vue";
 import ServerTaskResultParam from "../../../components/Server/ServerTaskResultParam.vue";
@@ -13,36 +12,15 @@ import TaskBizStatus from "../../../components/common/TaskBizStatus.vue";
 
 const visible = ref(false);
 
-const records = ref<TaskRecord[]>([]);
-const taskStore = useTaskStore();
-
-const page = ref(1);
-const recordsForPage = computed(() => {
-    return records.value.slice((page.value - 1) * 10, page.value * 10);
+const {
+    page,
+    recordsForPage,
+    total,
+    reload: doRefresh,
+} = useTaskRecords("SoundGenerate", {
+    // Only successful recordings can be picked as a voice prompt
+    statusList: ["success"],
 });
-
-const taskChangeCallback = (bizId: string, type: TaskChangeType) => {
-    doRefresh();
-};
-
-onMounted(async () => {
-    await doRefresh();
-    taskStore.onChange("SoundGenerate", taskChangeCallback);
-});
-onBeforeUnmount(() => {
-    taskStore.offChange("SoundGenerate", taskChangeCallback);
-});
-
-const { mergeCheck, isIndeterminate, isAllChecked, onCheckAll, checkRecords } =
-    useCheckAll({
-        records: recordsForPage,
-    });
-
-const doRefresh = async () => {
-    records.value = mergeCheck(
-        await TaskService.listByStatus("SoundGenerate", ["success"]),
-    );
-};
 
 const emit = defineEmits<{
     (e: "select", record: TaskRecord): void;
@@ -55,6 +33,8 @@ const doSelect = (record: TaskRecord) => {
 
 const show = () => {
     visible.value = true;
+    // Reopen with fresh rows: the dialog stays mounted while the page changes
+    doRefresh();
 };
 
 const load = async (id: number) => {
@@ -100,7 +80,7 @@ defineExpose({
                     <div>
                         <a-pagination
                             v-model:current="page"
-                            :total="records.length"
+                            :total="total"
                             :page-size="10"
                             show-total
                             simple

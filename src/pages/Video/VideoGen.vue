@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import AudioPlayer from "../../components/common/AudioPlayer.vue";
 import { useCheckAll } from "../../components/common/check-all";
 import TaskBizStatus from "../../components/common/TaskBizStatus.vue";
@@ -13,9 +13,7 @@ import TaskRetryAction from "../../components/Server/TaskRetryAction.vue";
 import TaskDownloadAction from "../../components/Server/TaskDownloadAction.vue";
 import TaskDuration from "../../components/Server/TaskDuration.vue";
 import TaskTitleField from "../../components/Server/TaskTitleField.vue";
-import { TaskRecord, TaskService } from "../../service/TaskService";
-import { usePaginate } from "../../hooks/paginate";
-import { useTaskChangeRefresh } from "../../hooks/task";
+import { useTaskRecords } from "../../hooks/taskRecords";
 import VideoGenCreate from "./components/VideoGenCreate.vue";
 import VideoGenFormViewBody from "./components/VideoGenFormViewBody.vue";
 import ServerNameVersion from "../../components/Server/ServerNameVersion.vue";
@@ -26,24 +24,21 @@ import PageHeader from "../../components/PageHeader.vue";
 
 const videoGenCreate = ref<InstanceType<typeof VideoGenCreate> | null>(null);
 
-const { page, records, recordsForPage } = usePaginate<TaskRecord>();
+const {
+    page,
+    recordsForPage,
+    total,
+    reload: doRefresh,
+} = useTaskRecords("VideoGen", {
+    // Keep the previous one second wait before re-reading the row
+    patchDelay: 1000,
+});
 
-const { mergeCheck, isIndeterminate, isAllChecked, onCheckAll, checkRecords } =
-    useCheckAll({
+const { isIndeterminate, isAllChecked, onCheckAll, checkRecords } = useCheckAll(
+    {
         records: recordsForPage,
-    });
-
-useTaskChangeRefresh("VideoGen", () => {
-    setTimeout(doRefresh, 1000);
-});
-
-onMounted(() => {
-    doRefresh();
-});
-
-const doRefresh = async () => {
-    records.value = mergeCheck(await TaskService.list("VideoGen"));
-};
+    },
+);
 </script>
 
 <template>
@@ -54,11 +49,7 @@ const doRefresh = async () => {
         />
         <div>
             <VideoGenCreate ref="videoGenCreate" @submitted="doRefresh" />
-            <ListerTop
-                class="mt-4"
-                :total="records.length"
-                @refresh="doRefresh"
-            >
+            <ListerTop class="mt-4" :total="total" @refresh="doRefresh">
                 <a-checkbox
                     :model-value="isAllChecked"
                     :indeterminate="isIndeterminate"
@@ -74,14 +65,14 @@ const doRefresh = async () => {
                 <template #actions>
                     <a-pagination
                         v-model:current="page"
-                        :total="records.length"
+                        :total="total"
                         :page-size="10"
                         show-total
                         simple
                     />
                 </template>
             </ListerTop>
-            <div v-if="records.length > 0">
+            <div v-if="total > 0">
                 <div v-for="r in recordsForPage" :key="r.id">
                     <div
                         class="rounded-xl shadow border p-4 mt-4 hover:shadow-lg"

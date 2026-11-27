@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import ServerNameVersion from "../../../components/Server/ServerNameVersion.vue";
 import ServerTaskResultParam from "../../../components/Server/ServerTaskResultParam.vue";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
@@ -10,9 +10,8 @@ import TaskDuration from "../../../components/Server/TaskDuration.vue";
 import TaskTitleField from "../../../components/Server/TaskTitleField.vue";
 import TaskBizStatus from "../../../components/common/TaskBizStatus.vue";
 import { useCheckAll } from "../../../components/common/check-all";
-import { usePaginate } from "../../../hooks/paginate";
-import { useTaskChangeRefresh } from "../../../hooks/task";
-import { TaskRecord, TaskService } from "../../../service/TaskService";
+import { useTaskRecords } from "../../../hooks/taskRecords";
+import { TaskService } from "../../../service/TaskService";
 import GeneralResultView from "../../../components/common/GeneralResultView.vue";
 import GeneralModelCreate from "./components/GeneralModelCreate.vue";
 import ListerTop from "../../../components/common/ListerTop.vue";
@@ -21,42 +20,37 @@ import PageHeader from "../../../components/PageHeader.vue";
 import { t } from "../../../lang";
 
 const serverFilter = ref<string>("");
-const { page, records, recordsFilterCount, recordsForPage } =
-    usePaginate<TaskRecord>({
-        filter: (item) => {
-            if (!serverFilter.value) return true;
-            return item.serverName === serverFilter.value;
-        },
-    });
-
-useTaskChangeRefresh("GeneralModel", () => {
-    doRefresh();
+const { page, recordsForPage, total, reload } = useTaskRecords("GeneralModel", {
+    serverName: () => serverFilter.value,
 });
 
-const { mergeCheck, isIndeterminate, isAllChecked, onCheckAll, checkRecords } =
-    useCheckAll({
+const { isIndeterminate, isAllChecked, onCheckAll, checkRecords } = useCheckAll(
+    {
         records: recordsForPage,
-    });
+    },
+);
 
-onMounted(async () => {
-    await doRefresh();
-});
+// Models seen in the history; the list itself is filtered in SQL, so the
+// dropdown must not be derived from the loaded page.
+const serverOptions = ref<{ name: string; title: string }[]>([]);
 
-const doRefresh = async () => {
-    const rawRecords = await TaskService.list("GeneralModel");
-    records.value = mergeCheck(rawRecords);
+const loadServerOptions = async () => {
+    serverOptions.value = await TaskService.serverNames("GeneralModel");
 };
 
-// 历史任务中出现过的模型（按 serverName 去重）
-const serverOptions = computed(() => {
-    const map = new Map<string, string>();
-    for (const r of records.value) {
-        if (r.serverName && !map.has(r.serverName)) {
-            map.set(r.serverName, r.serverTitle || r.serverName);
-        }
-    }
-    return Array.from(map.entries()).map(([name, title]) => ({ name, title }));
+const doRefresh = async () => {
+    await reload();
+    await loadServerOptions();
+};
+
+onMounted(() => {
+    loadServerOptions();
 });
+
+const onFilterChange = () => {
+    page.value = 1;
+    doRefresh();
+};
 </script>
 
 <template>
@@ -67,11 +61,7 @@ const serverOptions = computed(() => {
         />
         <div>
             <GeneralModelCreate @submitted="doRefresh" />
-            <ListerTop
-                class="mt-4"
-                :total="recordsFilterCount"
-                @refresh="doRefresh"
-            >
+            <ListerTop class="mt-4" :total="total" @refresh="doRefresh">
                 <a-checkbox
                     :model-value="isAllChecked"
                     :indeterminate="isIndeterminate"
@@ -92,7 +82,7 @@ const serverOptions = computed(() => {
                         size="small"
                         allow-clear
                         style="min-width: 140px"
-                        @change="page = 1"
+                        @change="onFilterChange"
                     >
                         <a-option value="">{{ t("general.all") }}</a-option>
                         <a-option
@@ -105,14 +95,14 @@ const serverOptions = computed(() => {
                     </a-select>
                     <a-pagination
                         v-model:current="page"
-                        :total="recordsFilterCount"
+                        :total="total"
                         :page-size="10"
                         show-total
                         simple
                     />
                 </template>
             </ListerTop>
-            <div v-if="recordsFilterCount > 0">
+            <div v-if="total > 0">
                 <div v-for="r in recordsForPage" :key="r.id">
                     <div
                         class="rounded-xl shadow border p-4 mt-4 hover:shadow-lg"

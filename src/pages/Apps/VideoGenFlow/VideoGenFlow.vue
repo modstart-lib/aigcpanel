@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import ServerNameVersion from "../../../components/Server/ServerNameVersion.vue";
 import TaskBatchDeleteAction from "../../../components/Server/TaskBatchDeleteAction.vue";
 import TaskBatchDownloadAction from "../../../components/Server/TaskBatchDownloadAction.vue";
@@ -13,9 +13,7 @@ import AudioPlayer from "../../../components/common/AudioPlayer.vue";
 import TaskBizStatus from "../../../components/common/TaskBizStatus.vue";
 import VideoPlayer from "../../../components/common/VideoPlayer.vue";
 import { useCheckAll } from "../../../components/common/check-all";
-import { usePaginate } from "../../../hooks/paginate";
-import { useTaskChangeRefresh } from "../../../hooks/task";
-import { TaskRecord, TaskService } from "../../../service/TaskService";
+import { useTaskRecords } from "../../../hooks/taskRecords";
 import SoundGenerateFormViewBody from "../../Video/components/SoundGenerateFormViewBody.vue";
 import VideoGenFormViewBody from "../../Video/components/VideoGenFormViewBody.vue";
 import VideoGenFlowCreate from "./components/VideoGenFlowCreate.vue";
@@ -27,24 +25,21 @@ const videoGenFlowCreate = ref<InstanceType<typeof VideoGenFlowCreate> | null>(
     null,
 );
 
-const { page, records, recordsForPage } = usePaginate<TaskRecord>();
+const {
+    page,
+    recordsForPage,
+    total,
+    reload: doRefresh,
+} = useTaskRecords("VideoGenFlow", {
+    // Keep the previous one second wait before re-reading the row
+    patchDelay: 1000,
+});
 
-const { mergeCheck, isIndeterminate, isAllChecked, onCheckAll, checkRecords } =
-    useCheckAll({
+const { isIndeterminate, isAllChecked, onCheckAll, checkRecords } = useCheckAll(
+    {
         records: recordsForPage,
-    });
-
-useTaskChangeRefresh("VideoGenFlow", () => {
-    setTimeout(doRefresh, 1000);
-});
-
-const doRefresh = async () => {
-    records.value = mergeCheck(await TaskService.list("VideoGenFlow"));
-};
-
-onMounted(() => {
-    doRefresh();
-});
+    },
+);
 </script>
 
 <template>
@@ -58,11 +53,7 @@ onMounted(() => {
                 ref="videoGenFlowCreate"
                 @submitted="doRefresh"
             />
-            <ListerTop
-                class="mt-4"
-                :total="records.length"
-                @refresh="doRefresh"
-            >
+            <ListerTop class="mt-4" :total="total" @refresh="doRefresh">
                 <a-checkbox
                     :model-value="isAllChecked"
                     :indeterminate="isIndeterminate"
@@ -78,14 +69,14 @@ onMounted(() => {
                 <template #actions>
                     <a-pagination
                         v-model:current="page"
-                        :total="records.length"
+                        :total="total"
                         :page-size="10"
                         show-total
                         simple
                     />
                 </template>
             </ListerTop>
-            <div v-if="records.length > 0">
+            <div v-if="total > 0">
                 <div v-for="r in recordsForPage" :key="r.id">
                     <div
                         class="rounded-xl shadow border p-4 mt-4 hover:shadow-lg"

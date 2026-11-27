@@ -5,7 +5,7 @@ import {
     IconDownload,
     IconEdit,
 } from "@arco-design/web-vue/es/icon";
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import ServerNameVersion from "../../components/Server/ServerNameVersion.vue";
 import ServerTaskResultParam from "../../components/Server/ServerTaskResultParam.vue";
 import TaskBatchDeleteAction from "../../components/Server/TaskBatchDeleteAction.vue";
@@ -18,8 +18,7 @@ import TextTruncateView from "../../components/TextTruncateView.vue";
 import TaskBizStatus from "../../components/common/TaskBizStatus.vue";
 import { useCheckAll } from "../../components/common/check-all";
 import { doCopy } from "../../components/common/util";
-import { usePaginate } from "../../hooks/paginate";
-import { useTaskChangeRefresh } from "../../hooks/task";
+import { useTaskRecords } from "../../hooks/taskRecords";
 import { t } from "../../lang";
 import { Dialog } from "../../lib/dialog";
 import { formatSRTTime } from "../../lib/srt";
@@ -41,24 +40,13 @@ const soundAsrRecordsEditDialog = ref<InstanceType<
     typeof SoundAsrRecordsEditDialog
 > | null>(null);
 
-const { page, records, recordsForPage } = usePaginate<TaskRecord>();
-
-useTaskChangeRefresh("SoundAsr", () => {
-    doRefresh();
-});
-
-const { mergeCheck, isIndeterminate, isAllChecked, onCheckAll, checkRecords } =
-    useCheckAll({
-        records: recordsForPage,
-    });
-
-onMounted(async () => {
-    await doRefresh();
-});
-
-const doRefresh = async () => {
-    const rawRecords = await TaskService.list("SoundAsr");
-    const processedRecords = rawRecords.map((record) => {
+const {
+    page,
+    recordsForPage,
+    total,
+    reload: doRefresh,
+} = useTaskRecords("SoundAsr", {
+    decorate: (record) => {
         record.runtime = {
             text: computed(() => {
                 if (
@@ -71,10 +59,14 @@ const doRefresh = async () => {
                 return "";
             }),
         };
-        return record;
-    });
-    records.value = mergeCheck(processedRecords);
-};
+    },
+});
+
+const { isIndeterminate, isAllChecked, onCheckAll, checkRecords } = useCheckAll(
+    {
+        records: recordsForPage,
+    },
+);
 
 const onDownloadResultSubtitle = (record: TaskRecord) => {
     if (record?.result?.records.length) {
@@ -107,11 +99,7 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
         />
         <div>
             <SoundAsrCreate @submitted="doRefresh" />
-            <ListerTop
-                class="mt-4"
-                :total="records.length"
-                @refresh="doRefresh"
-            >
+            <ListerTop class="mt-4" :total="total" @refresh="doRefresh">
                 <a-checkbox
                     :model-value="isAllChecked"
                     :indeterminate="isIndeterminate"
@@ -127,14 +115,14 @@ const onEditSave = async (taskId: number, records: AsrRecord[]) => {
                 <template #actions>
                     <a-pagination
                         v-model:current="page"
-                        :total="records.length"
+                        :total="total"
                         :page-size="10"
                         show-total
                         simple
                     />
                 </template>
             </ListerTop>
-            <div v-if="records.length > 0">
+            <div v-if="total > 0">
                 <div v-for="r in recordsForPage" :key="r.id">
                     <div
                         class="rounded-xl shadow border p-4 mt-4 hover:shadow-lg"
