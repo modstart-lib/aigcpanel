@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import ServerActionInfo from "../components/Server/ServerActionInfo.vue";
 import ServerActionLog from "../components/Server/ServerActionLog.vue";
 import ServerPrepareStatus from "../components/Server/ServerPrepareStatus.vue";
+import ServerPrepareBatchBar from "../components/Server/ServerPrepareBatchBar.vue";
 import ServerActionMore from "../components/Server/ServerActionMore.vue";
 import ServerOfflineAuthTag from "../components/Server/ServerOfflineAuthTag.vue";
 import ServerActionSetting from "../components/Server/ServerActionSetting.vue";
@@ -165,6 +166,31 @@ onMounted(() => {
         await serverStore.prepare(findByName(params?.name));
         return { ok: true };
     });
+    // 权重按需下载：待下载汇总与启动确认（供测试断言）
+    testActionSet("Server.prepare.pending", () => {
+        const idle = serverStore.idlePrepareRecords();
+        const prompt = serverStore.preparePrompt;
+        return {
+            count: idle.length,
+            bytes: serverStore.pendingPrepareBytes(idle),
+            names: idle.map((r) => r.name),
+            prompt: !!prompt,
+            promptCount: prompt?.count || 0,
+            promptFreeBytes: prompt?.freeBytes ?? null,
+        };
+    });
+    testActionSet("Server.prepare.confirm", async () => {
+        await serverStore.confirmPreparePrompt();
+        return { ok: true };
+    });
+    testActionSet("Server.prepare.later", async () => {
+        await serverStore.dismissPreparePrompt();
+        return { ok: true };
+    });
+    testActionSet("Server.prepare.downloadAll", async () => {
+        await serverStore.startPendingPrepare();
+        return { ok: true };
+    });
     
 });
 
@@ -178,6 +204,10 @@ onUnmounted(() => {
         "Server.comfyui.stop",
         "Server.prepare.pause",
         "Server.prepare.resume",
+        "Server.prepare.pending",
+        "Server.prepare.confirm",
+        "Server.prepare.later",
+        "Server.prepare.downloadAll",
         "Server.addLocal.show",
         "Server.addLocal.fill",
         "Server.addLocal.resolve",
@@ -194,6 +224,8 @@ onUnmounted(() => {
         class="pb-device-container bg-white dark:bg-gray-900 p-6 min-h-full relative select-none"
     >
         <PageHeader title="AI模型" />
+        <!-- 权重按需下载：待下载汇总（数量、合计体积、磁盘剩余）与「全部下载」 -->
+        <ServerPrepareBatchBar />
         <a-alert
             v-if="showLiveGuide"
             class="mb-4"

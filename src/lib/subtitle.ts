@@ -1,4 +1,5 @@
 import { AudioRecord } from "./ffmpeg";
+import { measureTextLength, splitByDelimiters } from "./text";
 
 export function subtitleGenerateSrtContent(
     records: { start: number; end: number; text: string }[],
@@ -34,22 +35,6 @@ export function subtitleGenerateRecords(
         },
         option,
     );
-
-    const calculateLength = (text: string): number => {
-        let length = 0;
-        let letterCount = 0;
-        for (const char of text) {
-            if (/[\u4e00-\u9fff]/.test(char)) {
-                // 中文字符
-                length += 1;
-            } else if (/[a-zA-Z0-9]/.test(char)) {
-                letterCount += 1;
-            }
-            // 标点和空格不算
-        }
-        length += Math.ceil(letterCount / 2);
-        return length;
-    };
 
     const calculateCharCount = (text: string): number => {
         let count = 0;
@@ -98,12 +83,12 @@ export function subtitleGenerateRecords(
         let currentLength = 0;
         for (const word of words) {
             if (!word) continue;
-            const wordLength = calculateLength(word);
+            const wordLength = measureTextLength(word);
             if (wordLength > lineLimit) {
                 // 单词本身超过，需要按字符分割单词
                 const charParts = splitWordByChar(word, lineLimit);
                 for (const charPart of charParts) {
-                    const charLength = calculateLength(charPart);
+                    const charLength = measureTextLength(charPart);
                     if (currentLength + charLength > lineLimit) {
                         if (current) {
                             subParts.push(current);
@@ -143,29 +128,23 @@ export function subtitleGenerateRecords(
 
     const subtitles: AudioRecord[] = [];
     for (const record of records) {
-        // 根据标点符号和空格分割成部分
-        const parts = record.text
-            .split(/([。！？，,\s]+)/g)
-            .filter((p) => p.length > 0);
-        const readableParts: string[] = [];
-        for (let i = 0; i < parts.length; i += 2) {
-            readableParts.push(parts[i]);
-        }
-        // console.log('parts', {parts, readableParts});
+        // 按标点和空格切分，字幕行内不保留这些分隔符
+        const readableParts = splitByDelimiters(record.text, /[。！？，,\s]+/);
+        // console.log('parts', {readableParts});
 
         // 拼接可读部分
         const subtitleTexts: string[] = [];
         let currentText = "";
         let currentLength = 0;
         for (const part of readableParts) {
-            const partLength = calculateLength(part);
+            const partLength = measureTextLength(part);
             // console.log('part', {part, partLength, currentLength, currentText});
             if (partLength > option.lineLimit) {
                 // 分割 part
                 const subParts = splitPart(part, option.lineLimit);
                 // console.log('subParts',{subParts})
                 for (const subPart of subParts) {
-                    const subLength = calculateLength(subPart);
+                    const subLength = measureTextLength(subPart);
                     if (currentLength + subLength <= option.lineLimit) {
                         if (currentText) {
                             currentText += " " + subPart;
@@ -204,12 +183,15 @@ export function subtitleGenerateRecords(
         }
         // console.log('line', {text: record.text, subtitleTexts, readableParts});
 
-        // 计算总字符数用于比例分配
+        // 计算总字符数用于比例分配；纯数字 / 假名等算不出字符数时按条数均分
         const totalChars = calculateCharCount(record.text);
         let cumulativeRatio = 0;
         for (const subtitleText of subtitleTexts) {
             const charCount = calculateCharCount(subtitleText);
-            const timeRatio = charCount / totalChars;
+            const timeRatio =
+                totalChars > 0
+                    ? charCount / totalChars
+                    : 1 / subtitleTexts.length;
             const start =
                 record.start + (record.end - record.start) * cumulativeRatio;
             const end =

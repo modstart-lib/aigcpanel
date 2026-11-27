@@ -50,7 +50,9 @@
     "test:live-e2e": "node test/e2e/live-local.mjs",
     "test:live-voice-cloud": "tsx test/unit/liveVoiceCloud.test.ts",
     "test:child-exit": "tsx test/unit/childExit.test.ts",
-    "test:ffmpeg-output": "tsx test/unit/ffmpegOutput.test.ts"
+    "test:prepare-download": "tsx test/unit/prepareDownload.test.ts",
+    "test:ffmpeg-output": "tsx test/unit/ffmpegOutput.test.ts",
+    "test:text-split": "tsx test/unit/textSplit.test.ts"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",

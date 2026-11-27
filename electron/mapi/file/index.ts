@@ -207,6 +207,43 @@ const listAll = async (path: string, option?: { isDataPath?: boolean }) => {
     return listDirectory(fp);
 };
 
+// 目录所在磁盘的剩余空间（字节）。查询失败（平台不支持、路径不存在、无权限）返回 null，
+// 调用方按「无法检查」处理，不阻断下载。
+// 注意：目标目录不存在时直接返回 null，不向上找祖先目录——否则外接盘没挂载时
+// 会查到系统盘的空间，反而掩盖「目标盘不可用」。
+const availableSpace = async (
+    path: string = "",
+    option?: { isDataPath?: boolean },
+): Promise<number | null> => {
+    option = Object.assign(
+        {
+            isDataPath: false,
+        },
+        option,
+    );
+    let fp = path;
+    try {
+        if (option.isDataPath) {
+            fp = await fullPath(path || ".");
+        }
+        if (!fp) {
+            fp = root();
+        }
+        if (!fs.existsSync(fp)) {
+            return null;
+        }
+        const stat = await fs.promises.statfs(fp);
+        const free = Number(stat.bavail) * Number(stat.bsize);
+        if (!isFinite(free) || free < 0) {
+            return null;
+        }
+        return free;
+    } catch (e) {
+        Log.error("file.availableSpace", { path: fp, error: String(e) });
+        return null;
+    }
+};
+
 const write = async (
     path: string,
     data: any,
@@ -1313,6 +1350,7 @@ export const FileIndex = {
     download,
     ext,
     stat,
+    availableSpace,
     textToName,
     pathToName,
     dataRoot,

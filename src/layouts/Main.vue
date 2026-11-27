@@ -3,6 +3,7 @@ import { onBeforeMount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import AppQuitConfirm from "../components/AppQuitConfirm.vue";
 import OfflineAuthDialog from "../components/OfflineAuthDialog.vue";
+import ServerPreparePrompt from "../components/Server/ServerPreparePrompt.vue";
 import { useDragWindow } from "../components/common/dragWindow";
 import { AppConfig } from "../config";
 import { t } from "../lang";
@@ -121,6 +122,7 @@ const doDebugToggle = () => {
     </div>
     <AppQuitConfirm ref="appQuitConfirm" />
     <OfflineAuthDialog />
+    <ServerPreparePrompt />
     <!-- 调试弹窗 -->
     <template v-if="isDev">
         <div class="fixed top-10 left-0 z-50">

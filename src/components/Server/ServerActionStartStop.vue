@@ -3,6 +3,7 @@ import { useServerStore } from "../../store/modules/server";
 import { EnumServerStatus, ServerRecord } from "../../types/Server";
 import { computed } from "vue";
 import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
 
 const serverStore = useServerStore();
 
@@ -52,7 +53,12 @@ const prepareActionText = computed(() => {
 const doPlay = async () => {
     const record = props.record;
     if (notReady.value) {
-        await serverStore.prepare(record);
+        // 下载失败（含磁盘空间不足）时就地提示原因，卡片同时保留错误状态
+        try {
+            await serverStore.prepare(record);
+        } catch (e: any) {
+            Dialog.tipError(e?.message || String(e));
+        }
         return;
     }
     await serverStore.start(record);

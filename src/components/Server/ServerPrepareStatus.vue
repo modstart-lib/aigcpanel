@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { t } from "../../lang";
+import { formatPrepareBytes } from "../../lib/prepareDownload";
 import { ServerRecord } from "../../types/Server";
 
 const props = defineProps<{
@@ -29,16 +30,7 @@ const percent = computed(() => {
     return Math.max(0, Math.min(100, Math.round(value)));
 });
 
-const formatSize = (bytes?: number) => {
-    if (!bytes || bytes <= 0) {
-        return "";
-    }
-    const gb = bytes / 1024 ** 3;
-    if (gb >= 1) {
-        return `${gb.toFixed(1)} GB`;
-    }
-    return `${(bytes / 1024 ** 2).toFixed(0)} MB`;
-};
+const formatSize = formatPrepareBytes;
 
 const sizeText = computed(() =>
     formatSize(
@@ -132,6 +124,14 @@ const tip = computed(() => {
     }
     return "";
 });
+
+// 失败原因就地展示（完整内容仍在 title 里），避免卡片只写「权重下载失败」不给原因
+const errorText = computed(() => {
+    if (state.value !== "error") {
+        return "";
+    }
+    return runtime.value?.prepare?.error || runtime.value?.prepareError || "";
+});
 </script>
 
 <template>
@@ -147,6 +147,12 @@ const tip = computed(() => {
             :class="{ 'animate-spin': state === 'downloading' }"
         />
         <span>{{ text }}</span>
+        <span
+            v-if="errorText"
+            class="inline-block align-bottom ml-1.5 max-w-[20rem] truncate"
+        >
+            {{ errorText }}
+        </span>
         <span
             v-if="state === 'downloading'"
             class="ml-1.5 w-10 h-1 shrink-0 rounded-full bg-gray-200 overflow-hidden"

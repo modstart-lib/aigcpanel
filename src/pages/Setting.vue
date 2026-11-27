@@ -56,7 +56,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="flex select-none bg-white">
+    <div class="flex select-none bg-white dark:bg-gray-900">
         <div
             ref="tabContainer"
             class="p-6 w-56 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-600"

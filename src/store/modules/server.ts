@@ -5,6 +5,15 @@ import { t } from "../../lang";
 import { serverFunctionNames } from "../../lib/aigcpanel";
 import { Dialog } from "../../lib/dialog";
 import { OfflineAuth } from "../../lib/offlineAuth";
+import {
+    formatPrepareBytes,
+    prepareDiskKey,
+    prepareRemainingBytes,
+    prepareSpaceRequired,
+    prepareSpaceShortfall,
+    sumPrepareBytes,
+    summarizePrepareDisks,
+} from "../../lib/prepareDownload";
 import { TimeUtil, wait } from "../../lib/util";
 import { StorageService } from "../../service/StorageService";
 import { TaskService, TaskRecord } from "../../service/TaskService";
@@ -22,6 +31,10 @@ import { ServerInfo } from "../../../electron/mapi/server/type";
 
 const taskStore = useTaskStore();
 const serverRuntime = ref<Map<string, ServerRuntime>>(new Map());
+// 权重按需下载：同一模型的在途下载 promise，多个入口复用同一个任务
+const prepareInflight = new Map<string, Promise<void>>();
+// 权重按需下载：批量队列，保证「一次只下一个模型」（避免并发占满带宽）
+let prepareBatchChain: Promise<void> = Promise.resolve();
 const createServerStatus = (
     record: ServerRecord,
 ): ComputedRef<EnumServerStatus> => {
@@ -273,6 +286,15 @@ export const serverStore = defineStore("server", {
         records: [] as ServerRecord[],
         // 离线授权变更版本号：保存/撤销后 +1，模型卡片上的授权标签据此刷新
         offlineAuthVersion: 0,
+        // 启动时待用户确认的批量权重下载（null 表示无需确认）
+        preparePrompt: null as null | {
+            keys: string[];
+            count: number;
+            bytes: number;
+            freeBytes: number | null;
+            diskCount: number;
+            shortfall: number;
+        },
     }),
     actions: {
         bumpOfflineAuth() {
@@ -322,21 +344,215 @@ export const serverStore = defineStore("server", {
                         });
                 }
             });
-            await this.refresh();
+            // 启动扫描阶段不自动下载：统一由下面的 startup 分支决定「先确认还是直接下」
+            await this.refresh({ autoDownload: false });
             this.isReady = true;
-            this.autoPrepare().then();
+            // 启动时不再直接下载：先同步状态，必要时先向用户确认这一批
+            this.autoPrepare({ startup: true }).then();
         },
-        // 权重按需下载：应用启动后自动补齐未就绪的模型权重（串行执行，避免并发占满带宽）
-        async autoPrepare() {
-            const records = this.records.filter(
-                (record) => !!record.config?.prepare,
+        // 配置了权重按需下载（config.json 的 prepare）的模型
+        prepareRecords(): ServerRecord[] {
+            return this.records.filter((record) => !!record.config?.prepare);
+        },
+        // 权重未就绪且未被用户暂停的模型（含正在下载的）
+        pendingPrepareRecords(): ServerRecord[] {
+            return this.prepareRecords().filter((record) => {
+                const runtime: any = record.runtime || {};
+                // prepareReady 未同步（undefined）时不当作待下载
+                if (runtime.prepareReady !== false) {
+                    return false;
+                }
+                return runtime.status !== EnumServerStatus.PAUSED;
+            });
+        },
+        // 还没开始下载的待下载模型（汇总条与启动确认用，不含正在下载的）
+        idlePrepareRecords(): ServerRecord[] {
+            return this.pendingPrepareRecords().filter((record) => {
+                const runtime: any = record.runtime || {};
+                return runtime.status !== EnumServerStatus.PREPARING;
+            });
+        },
+        // 待下载权重体积合计（按「还没下完」的体积算，续传时不虚报）
+        pendingPrepareBytes(records?: ServerRecord[]): number {
+            const list = records || this.pendingPrepareRecords();
+            return sumPrepareBytes(
+                list.map((record) => {
+                    const runtime: any = record.runtime || {};
+                    return prepareRemainingBytes(
+                        runtime.prepareTotalSize ||
+                            record.config?.prepare?.size ||
+                            0,
+                        runtime.prepare?.percent,
+                    );
+                }),
             );
+        },
+        // 已经确认过的模型（同一批权重只询问一次）
+        async prepareAckedKeys(): Promise<string[]> {
+            const keys = await $mapi.config.get("prepareAckKeys", []);
+            return Array.isArray(keys) ? (keys as string[]) : [];
+        },
+        async ackPrepareKeys(keys: string[]) {
+            const acked = await this.prepareAckedKeys();
+            // 已确认过的 key 放到末尾（最近确认的排在最后，裁剪时先丢最旧的）
+            const merged = acked
+                .filter((key) => !keys.includes(key))
+                .concat(keys);
+            await $mapi.config.set(
+                "prepareAckKeys",
+                Array.from(new Set(merged)).slice(-200),
+            );
+        },
+        // 模型权重实际写入的目录所在磁盘剩余空间；查询失败返回 null（不阻断下载）
+        async prepareFreeSpace(record?: ServerRecord): Promise<number | null> {
+            try {
+                if (typeof ($mapi.file as any).availableSpace !== "function") {
+                    return null;
+                }
+                // 导入的本地目录模型（LOCAL_DIR）权重写在用户选的绝对目录里，
+                // 与数据目录可能是不同的盘，必须按模型自己的目录检查。
+                const localPath = record?.localPath || "";
+                const isDataPath =
+                    !localPath ||
+                    !/^([a-zA-Z]:[\\/]|\/|ABS:\/\/)/.test(localPath);
+                const free = await ($mapi.file as any).availableSpace(
+                    localPath,
+                    { isDataPath },
+                );
+                return typeof free === "number" ? free : null;
+            } catch (e) {
+                console.error("server.prepareFreeSpace", e);
+                return null;
+            }
+        },
+        // 一批模型涉及哪些磁盘、各自剩余多少（同一磁盘只查一次）
+        async prepareDiskSummary(records: ServerRecord[]) {
+            const freeByDisk = new Map<string, number | null>();
+            const items: {
+                disk: string;
+                bytes: number;
+                free: number | null;
+            }[] = [];
+            for (const record of records) {
+                const runtime: any = record.runtime || {};
+                const disk = prepareDiskKey(record.localPath);
+                if (!freeByDisk.has(disk)) {
+                    freeByDisk.set(disk, await this.prepareFreeSpace(record));
+                }
+                items.push({
+                    disk,
+                    bytes: prepareRemainingBytes(
+                        runtime.prepareTotalSize ||
+                            record.config?.prepare?.size ||
+                            0,
+                        runtime.prepare?.percent,
+                    ),
+                    free: freeByDisk.get(disk) ?? null,
+                });
+            }
+            return summarizePrepareDisks(items);
+        },
+        // 同步各模型权重状态（只查询，不开始下载）
+        async syncPrepareStatuses() {
+            const records = this.prepareRecords();
             for (const record of records) {
                 try {
                     const serverInfo = await this.serverInfo(record);
                     const status: any =
                         await $mapi.server.prepareStatus(serverInfo);
                     this.applyPrepareStatus(record, status);
+                } catch (e) {
+                    console.error("server.syncPrepareStatuses", record.key, e);
+                }
+            }
+        },
+        // 按需下载入口：
+        //   startup = 应用启动（先确认再下）
+        //   keys    = 刚导入/刚发现的模型（只下这些，不碰用户选过「稍后」的整批）
+        async autoPrepare(option?: { startup?: boolean; keys?: string[] }) {
+            await this.syncPrepareStatuses();
+            if (option?.startup) {
+                const pending = this.pendingPrepareRecords();
+                if (!pending.length) {
+                    this.preparePrompt = null;
+                    return;
+                }
+                // 启动时自动下载权重（默认开启；关闭后只在列表页提示）
+                if (
+                    !(await $mapi.config.get(
+                        "autoDownloadWeightsOnStartup",
+                        true,
+                    ))
+                ) {
+                    return;
+                }
+                const idle = this.idlePrepareRecords();
+                if (!idle.length) {
+                    return;
+                }
+                const acked = await this.prepareAckedKeys();
+                const needAsk = idle.filter(
+                    (record) => !acked.includes(record.key),
+                );
+                if (needAsk.length) {
+                    const summary = await this.prepareDiskSummary(idle);
+                    this.preparePrompt = {
+                        keys: idle.map((record) => record.key),
+                        count: idle.length,
+                        bytes: this.pendingPrepareBytes(idle),
+                        freeBytes: summary.freeMin,
+                        diskCount: summary.diskCount,
+                        shortfall: summary.shortfall,
+                    };
+                    return;
+                }
+                await this.startPendingPrepare(
+                    idle.map((record) => record.key),
+                );
+                return;
+            }
+            // 导入 / 发现新模型：只下本次新增的
+            const keys = option?.keys || [];
+            if (!keys.length) {
+                return;
+            }
+            if (!(await $mapi.config.get("autoDownloadWeights", true))) {
+                return;
+            }
+            const targets = this.pendingPrepareRecords()
+                .filter((record) => keys.includes(record.key))
+                .map((record) => record.key);
+            if (!targets.length) {
+                return;
+            }
+            await this.startPendingPrepare(targets);
+        },
+        // 排队下载指定的（或全部）待下载权重，串行执行
+        startPendingPrepare(keys?: string[]): Promise<void> {
+            // 只有「整批下载」才关掉启动确认弹窗；导入单个模型时弹窗继续留着
+            if (keys === undefined) {
+                this.preparePrompt = null;
+            }
+            const run = () => this.runPrepareBatch(keys);
+            const next = prepareBatchChain.then(run, run);
+            prepareBatchChain = next.catch(() => {});
+            return next;
+        },
+        async runPrepareBatch(keys?: string[]) {
+            const records = this.pendingPrepareRecords().filter(
+                (record) => !keys || keys.includes(record.key),
+            );
+            for (const record of records) {
+                try {
+                    // 排队期间模型可能被删除/暂停：每一轮都以最新记录为准
+                    const fresh = this.findRecord(record);
+                    if (!fresh) {
+                        continue;
+                    }
+                    const serverInfo = await this.serverInfo(fresh);
+                    const status: any =
+                        await $mapi.server.prepareStatus(serverInfo);
+                    this.applyPrepareStatus(fresh, status);
                     if (!status || status.ready === true) {
                         continue;
                     }
@@ -344,23 +560,59 @@ export const serverStore = defineStore("server", {
                     if (status.paused) {
                         continue;
                     }
-                    await this.prepare(record);
+                    await this.prepare(fresh);
                 } catch (e) {
-                    console.error("server.autoPrepare", record.key, e);
+                    console.error("server.runPrepareBatch", record.key, e);
                 }
             }
         },
-        // 把主进程返回的 prepare 状态同步到界面（就绪/暂停/失败/未开始）
-        applyPrepareStatus(record: ServerRecord, status: any) {
-            if (!status || status.required === false) {
+        // 启动确认弹窗：开始下载弹窗里展示的这一批
+        async confirmPreparePrompt() {
+            const prompt = this.preparePrompt;
+            if (!prompt) {
                 return;
             }
+            await this.ackPrepareKeys(prompt.keys);
+            this.preparePrompt = null;
+            await this.startPendingPrepare(prompt.keys);
+        },
+        // 启动确认弹窗：稍后（本次不下载，并关闭「启动时自动下载」）
+        async dismissPreparePrompt() {
+            const prompt = this.preparePrompt;
+            if (prompt) {
+                await this.ackPrepareKeys(prompt.keys);
+            }
+            this.preparePrompt = null;
+            await $mapi.config.set("autoDownloadWeightsOnStartup", false);
+        },
+        // 把主进程返回的 prepare 状态同步到界面（就绪/暂停/失败/未开始）
+        applyPrepareStatus(record: ServerRecord, status: any) {
             const serverRuntime = getOrCreateServerRuntime(record);
+            if (!status) {
+                return;
+            }
+            if (status.required === false) {
+                // 查不到 prepare 信息（模块加载失败等）：当作无需下载，
+                // 避免列表永远停在「待下载」
+                serverRuntime.prepareReady = true;
+                serverRuntime.prepare = null;
+                serverRuntime.prepareError = null;
+                return;
+            }
             serverRuntime.prepareReady = !!status.ready;
             serverRuntime.prepareTotalSize = status.size || 0;
             serverRuntime.prepareError = status.error || null;
             if (status.ready) {
                 serverRuntime.prepare = null;
+                serverRuntime.prepareError = null;
+                // 就绪后清掉残留的下载态（外部续传完成时界面会卡在「下载中」）
+                if (
+                    serverRuntime.status === EnumServerStatus.PREPARING ||
+                    serverRuntime.status === EnumServerStatus.PAUSED ||
+                    serverRuntime.status === EnumServerStatus.ERROR
+                ) {
+                    serverRuntime.status = EnumServerStatus.STOPPED;
+                }
                 return;
             }
             const percent = status.percent || 0;
@@ -392,14 +644,64 @@ export const serverStore = defineStore("server", {
                     percent: 0,
                     totalSize: status.size || 0,
                 };
+                // 进程已不在跑：清掉残留的「下载中」，避免永远显示下载中
+                if (serverRuntime.status === EnumServerStatus.PREPARING) {
+                    serverRuntime.status = EnumServerStatus.STOPPED;
+                }
             }
         },
-        // 触发权重下载（已在下载中则复用主进程的同一个任务）
+        // 触发权重下载：同一模型的并发调用复用同一个在途任务
         async prepare(server: ServerRecord) {
             const record = this.findRecord(server) || server;
+            const inflight = prepareInflight.get(record.key);
+            if (inflight) {
+                return inflight;
+            }
             const serverRuntime = getOrCreateServerRuntime(record);
             if (serverRuntime.status === EnumServerStatus.PREPARING) {
                 return;
+            }
+            const task = this.doPrepare(record).finally(() => {
+                prepareInflight.delete(record.key);
+            });
+            prepareInflight.set(record.key, task);
+            return task;
+        },
+        async doPrepare(record: ServerRecord) {
+            // 排队期间模型可能已被删除
+            if (!this.findRecord(record)) {
+                return;
+            }
+            const serverRuntime = getOrCreateServerRuntime(record);
+            // 下载前检查磁盘剩余空间：不足时直接说明原因，不启动下载进程。
+            // 续传时只需要「还没下完」的体积，避免只剩一点没下完却被总量挡住。
+            const prepareSize =
+                serverRuntime.prepareTotalSize ||
+                record.config?.prepare?.size ||
+                0;
+            const remainingBytes = prepareRemainingBytes(
+                prepareSize,
+                serverRuntime.prepare?.percent,
+            );
+            const freeBytes = await this.prepareFreeSpace();
+            const shortfall = prepareSpaceShortfall(remainingBytes, freeBytes);
+            if (shortfall > 0) {
+                const msg = t("status.prepareNoSpace", {
+                    need: formatPrepareBytes(
+                        prepareSpaceRequired(remainingBytes),
+                    ),
+                    free: formatPrepareBytes(freeBytes),
+                });
+                serverRuntime.prepareReady = false;
+                serverRuntime.prepareError = msg;
+                serverRuntime.prepare = {
+                    phase: "error",
+                    percent: 0,
+                    totalSize: prepareSize,
+                    error: msg,
+                };
+                serverRuntime.status = EnumServerStatus.ERROR;
+                throw new Error(msg);
             }
             // 下载日志写入与运行日志相同的文件（客户端「查看日志」可直接查看）
             if (!serverRuntime.logFile) {
@@ -426,6 +728,7 @@ export const serverStore = defineStore("server", {
                 }
                 serverRuntime.prepareReady = true;
                 serverRuntime.prepare = null;
+                serverRuntime.prepareError = null;
                 serverRuntime.status = EnumServerStatus.STOPPED;
             } catch (e) {
                 if (serverRuntime.status !== EnumServerStatus.PAUSED) {
@@ -456,6 +759,7 @@ export const serverStore = defineStore("server", {
         // 从 storage 重新加载 server records（CLI 安装/卸载模型后由页面事件触发），
         // 不会重复注册任务取消监听。
         async reloadRecords() {
+            const before = this.records.map((record) => record.key);
             await $mapi.storage.get("server", "records", []).then((records) => {
                 records.forEach((record: ServerRecord) => {
                     // 兼容旧记录：functions 可能是 config.json 的对象格式
@@ -467,10 +771,15 @@ export const serverStore = defineStore("server", {
                     return record.type !== EnumServerType.CLOUD;
                 });
             });
-            await this.refresh();
-            this.autoPrepare().then();
+            await this.refresh({ autoDownload: false });
+            // 只自动下载这次新出现的模型，不碰用户选过「稍后」的整批
+            const added = this.records
+                .map((record) => record.key)
+                .filter((key) => !before.includes(key));
+            this.autoPrepare({ keys: added }).then();
         },
-        async refresh() {
+        // 扫描 model 目录；autoDownload=false 时（启动阶段）只同步记录不开始下载
+        async refresh(option?: { autoDownload?: boolean }) {
             const dirs = await $mapi.file.list("model", {
                 isDataPath: true,
             });
@@ -510,6 +819,7 @@ export const serverStore = defineStore("server", {
                 } as ServerRecord);
             }
             let changed = false;
+            const addedKeys: string[] = [];
             for (let lr of localRecords) {
                 const record = this.records.find(
                     (record) => record.key === lr.key,
@@ -519,6 +829,7 @@ export const serverStore = defineStore("server", {
                     lr.runtime = getServerRuntimeComputedValue(lr);
                     this.records.unshift(lr as any);
                     changed = true;
+                    addedKeys.push(lr.key);
                 } else {
                     if (!record.settings && lr.settings) {
                         record.settings = lr.settings;
@@ -552,8 +863,10 @@ export const serverStore = defineStore("server", {
             }
             if (changed) {
                 await this.sync();
-                // 新发现的本地模型同样按需补齐权重
-                this.autoPrepare().then();
+                // 新发现的本地模型同样按需补齐权重（只下新发现的这些）
+                if (option?.autoDownload !== false) {
+                    this.autoPrepare({ keys: addedKeys }).then();
+                }
             }
         },
         async prepareForTask(bizId: string, bizParam: any) {
@@ -763,8 +1076,8 @@ export const serverStore = defineStore("server", {
             server.runtime = getServerRuntimeComputedValue(server);
             this.records.unshift(server);
             await this.sync();
-            // 新增模型后按需补齐权重（配置了 prepare 且未就绪的模型自动开始下载）
-            this.autoPrepare().then();
+            // 新增模型后按需补齐权重（只下刚导入的这个模型）
+            this.autoPrepare({ keys: [server.key] }).then();
         },
         async sync() {
             const savedRecords = toRaw(cloneDeep(this.records));

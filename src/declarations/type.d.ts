@@ -326,6 +326,11 @@ type DefsMapi = {
             isDirectory: boolean;
             lastModified: number;
         }>;
+        // 目录所在磁盘的剩余空间（字节）；无法查询时为 null
+        availableSpace: (
+            path?: string,
+            option?: { isDataPath?: boolean },
+        ) => Promise<number | null>;
         textToName: (
             text: string,
             ext: string = "",

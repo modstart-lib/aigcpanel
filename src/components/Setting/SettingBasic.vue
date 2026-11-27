@@ -52,6 +52,44 @@ const onLocaleChange = (value: string) => {
                 <a-radio value="">{{ t("setting.askEveryTime") }}</a-radio>
             </a-radio-group>
         </a-form-item>
+        <a-form-item field="name" :label="t('setting.autoDownloadWeights')">
+            <div class="flex flex-col gap-1 items-start">
+                <a-switch
+                    :model-value="
+                        setting.configGet('autoDownloadWeights', true).value !==
+                        false
+                    "
+                    @change="
+                        setting.onConfigChange('autoDownloadWeights', $event)
+                    "
+                />
+                <div class="text-xs text-gray-500">
+                    {{ t("setting.autoDownloadWeightsDesc") }}
+                </div>
+            </div>
+        </a-form-item>
+        <a-form-item
+            field="name"
+            :label="t('setting.autoDownloadWeightsOnStartup')"
+        >
+            <div class="flex flex-col gap-1 items-start">
+                <a-switch
+                    :model-value="
+                        setting.configGet('autoDownloadWeightsOnStartup', true)
+                            .value !== false
+                    "
+                    @change="
+                        setting.onConfigChange(
+                            'autoDownloadWeightsOnStartup',
+                            $event,
+                        )
+                    "
+                />
+                <div class="text-xs text-gray-500">
+                    {{ t("setting.autoDownloadWeightsOnStartupDesc") }}
+                </div>
+            </div>
+        </a-form-item>
     </a-form>
 </template>
 
