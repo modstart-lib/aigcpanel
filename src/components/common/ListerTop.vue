@@ -4,6 +4,7 @@ import { computed, ref, useSlots } from "vue";
 defineProps<{
     loading?: boolean;
     total?: number;
+    hint?: string;
 }>();
 
 const emit = defineEmits<{ refresh: [] }>();
@@ -25,6 +26,7 @@ const hasFilters = computed(() => !!slots.default);
                         class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"
                     />
                     共 {{ total }} 条
+                    <span v-if="hint" class="text-gray-400">· {{ hint }}</span>
                 </div>
                 <slot />
             </div>

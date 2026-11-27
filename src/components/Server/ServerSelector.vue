@@ -88,7 +88,37 @@ const hasRecords = computed(() => {
 });
 const emit = defineEmits({
     update: (config: any) => true,
+    needModel: () => true,
 });
+// The dropdown is the only place the user looks for a model, so an empty list
+// must offer a way out instead of ending at a disabled row. Weights that are
+// not ready count as unusable too: those models can be seen but not selected.
+const popupVisible = ref(false);
+const availableLocalCount = computed(
+    () => recordsFilter.value.filter((s) => availability(s).available).length,
+);
+const showModelEntry = computed(() => {
+    let cloudCount = 0;
+    
+    // Not gated on the cloud catalog being loaded: the local list is known
+    // immediately, and the only way out must not wait on a network request.
+    return availableLocalCount.value === 0 && cloudCount === 0;
+});
+// One conditional slot only: Arco renders the footer wrapper whenever the slot
+// exists, so an always-present slot would draw an empty bordered strip.
+const footerMode = computed(() => {
+    if (showModelEntry.value) {
+        return "entry";
+    }
+    if (cloudLoadFailed.value) {
+        return "retry";
+    }
+    return "";
+});
+const doNeedModel = () => {
+    popupVisible.value = false;
+    emit("needModel");
+};
 watch(
     () => select.value?.modelValue,
     async (value) => {
@@ -121,6 +151,7 @@ watch(
 <template>
     <a-select
         ref="select"
+        v-model:popup-visible="popupVisible"
         :placeholder="$t('model.select')"
         size="small"
         class="min-w-64"
@@ -211,8 +242,31 @@ watch(
             v-if="!showCloudOptgroup"
             :label="$t('model.upgradeProForCloud')"
         ></a-optgroup>
-        <template v-if="showCloudOptgroup && cloudLoadFailed" #footer>
+        <template v-if="footerMode" #footer>
+            <div v-if="footerMode === 'entry'" class="py-1">
+                <a-button
+                    type="text"
+                    long
+                    class="!h-9 !justify-start !px-3 !text-sm !text-[var(--color-primary)]"
+                    @click="doNeedModel"
+                >
+                    <template #icon>
+                        <icon-plus />
+                    </template>
+                    {{ $t("model.selectorEntry") }}
+                </a-button>
+                <!-- Cloud catalog failing must not hide the local way out -->
+                <div
+                    v-if="cloudLoadFailed"
+                    class="px-3 pb-1 text-xs text-gray-400 cursor-pointer hover:text-gray-600"
+                    @click="doCloudRetry"
+                >
+                    <icon-refresh class="mr-1" />
+                    {{ $t("model.cloudRetry") }}
+                </div>
+            </div>
             <div
+                v-else
                 class="cursor-pointer px-3 py-2 text-xs text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                 @click="doCloudRetry"
             >

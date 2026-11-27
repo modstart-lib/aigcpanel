@@ -302,7 +302,7 @@ const emit = defineEmits({
                                 config.json
                             </a-button>
                             <a
-                                href="https://aigcpanel.com/zh/asset"
+                                :href="AppConfig.marketUrl"
                                 target="_blank"
                                 class="arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-medium arco-btn-status-normal block w-full text-center py-1"
                             >

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import ParamForm from "../../../../components/common/ParamForm.vue";
 import ServerSelector from "../../../../components/Server/ServerSelector.vue";
+import { goImportModel } from "../../../../lib/server-entry";
 import { t } from "../../../../lang";
 import { Dialog } from "../../../../lib/dialog";
 import { StorageUtil } from "../../../../lib/storage";
@@ -134,6 +135,7 @@ defineExpose({
                     v-model="formData.serverKey"
                     @update="onServerUpdate"
                     functionName="general"
+                    @need-model="goImportModel('general')"
                 />
                 <a-select
                     v-if="generalList.length > 0"

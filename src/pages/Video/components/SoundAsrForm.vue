@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import ParamForm from "../../../components/common/ParamForm.vue";
 import ServerContentInfoAction from "../../../components/Server/ServerContentInfoAction.vue";
 import ServerSelector from "../../../components/Server/ServerSelector.vue";
+import { goImportModel } from "../../../lib/server-entry";
 import { t } from "../../../lang";
 import { Dialog } from "../../../lib/dialog";
 import { StorageUtil } from "../../../lib/storage";
@@ -100,6 +101,7 @@ defineExpose({
                         v-model="formData.serverKey"
                         @update="onServerUpdate"
                         functionName="asr"
+                        @need-model="goImportModel('asr')"
                     />
                 </div>
                 <div class="">

@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import ParamForm from "../../../components/common/ParamForm.vue";
 import ServerContentInfoAction from "../../../components/Server/ServerContentInfoAction.vue";
 import ServerSelector from "../../../components/Server/ServerSelector.vue";
+import { goImportModel } from "../../../lib/server-entry";
 import ServerWorkflowSelector from "../../../components/Server/ServerWorkflowSelector.vue";
 import { t } from "../../../lang";
 import { Dialog } from "../../../lib/dialog";
@@ -128,6 +129,7 @@ defineExpose({
                         v-model="formData.serverKey"
                         @update="onServerUpdate"
                         functionName="textToVideo"
+                        @need-model="goImportModel('textToVideo')"
                     />
                 </div>
                 <div class="">

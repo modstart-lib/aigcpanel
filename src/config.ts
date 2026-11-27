@@ -18,6 +18,9 @@ export const AppConfig = {
     statisticsUrl: `${BASE_URL}/app_manager/collect`,
     guideUrl: `${BASE_URL}/app_manager/guide`,
     helpUrl: `${BASE_URL}/app_manager/help`,
+    // Fixed https on purpose: BASE_URL can be overridden by private deployments
+    // with an http origin, and Electron opens external links for https only.
+    marketUrl: "https://aigcpanel.com/zh/asset",
     serverUrl: `${BASE_URL}/aigcpanel/`,
     basic: {
         userEnable: false,

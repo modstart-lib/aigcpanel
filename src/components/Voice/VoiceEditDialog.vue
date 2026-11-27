@@ -64,6 +64,11 @@ const onServerUpdate = (config: any) => {
     paramDef.value = config?.functions?.[funcName()]?.param || [];
 };
 
+// 弹窗里跳走会丢掉已填写的音色信息，只提示去哪里添加，不改变当前页面
+const onNeedModel = () => {
+    Dialog.tipWarning(t("model.selectorTip"));
+};
+
 // 用户切换类型时重置模型与参数（编辑回填不经过此处，避免覆盖）
 const onTypeChange = () => {
     formData.value.serverKey = "";
@@ -400,6 +405,7 @@ const emit = defineEmits({
                                     v-model="formData.serverKey"
                                     :function-name="funcName()"
                                     @update="onServerUpdate"
+                                    @need-model="onNeedModel"
                                 />
                                 <ServerContentInfoAction
                                     :config="serverConfig"

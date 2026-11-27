@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import ParamForm from "../../../../components/common/ParamForm.vue";
 import ServerSelector from "../../../../components/Server/ServerSelector.vue";
+import { goImportModel } from "../../../../lib/server-entry";
 import { t } from "../../../../lang";
 import { Dialog } from "../../../../lib/dialog";
 import { StorageUtil } from "../../../../lib/storage";
@@ -129,6 +130,7 @@ defineExpose({
                     v-model="formData.serverKey"
                     @update="onServerUpdate"
                     functionName="comfyui"
+                    @need-model="goImportModel('comfyui')"
                 />
                 <a-select
                     v-if="generalWorkflows.length > 0"

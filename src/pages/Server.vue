@@ -14,7 +14,11 @@ import ServerStartTime from "../components/Server/ServerStartTime.vue";
 import ServerStatus from "../components/Server/ServerStatus.vue";
 import { AppConfig } from "../config";
 import { t } from "../lang";
-import { functionToLabels } from "../lib/aigcpanel";
+import {
+    allFunctions,
+    functionToLabel,
+    functionToLabels,
+} from "../lib/aigcpanel";
 import ModelSettingDialog from "../module/Model/ModelSettingDialog.vue";
 import Router from "../router";
 import { useServerStore } from "../store/modules/server";
@@ -60,6 +64,89 @@ const goBackToLive = () => {
     Router.push("/live").catch(() => {});
 };
 
+// 创作页模型下拉里点「去导入模型」跳过来的上下文。能力名与来源页都从
+// query 读取，来源页显式写进 query，因此不依赖浏览器历史（刷新后仍可用）。
+const fromSelector = computed(
+    () => Router.currentRoute.value.query.from === "selector",
+);
+const selectorFunc = computed(() => {
+    const func = Router.currentRoute.value.query.func;
+    if (typeof func !== "string") {
+        return "";
+    }
+    // 未知能力名不拼进文案，避免出现「为「undefined」添加模型」
+    return allFunctions.some((f) => f.value === func) ? func : "";
+});
+const selectorFuncLabel = computed(() =>
+    selectorFunc.value ? functionToLabel(selectorFunc.value) : "",
+);
+// 页面名（如「数字人合成」「通用ComfyUI」）比能力分类名更好认，宿主没给时退回能力名
+const selectorSource = computed(() => {
+    const src = Router.currentRoute.value.query.src;
+    if (typeof src !== "string") {
+        return "";
+    }
+    const clean = src.trim();
+    return clean.length > 0 && clean.length <= 30 ? clean : "";
+});
+const selectorName = computed(
+    () => selectorSource.value || selectorFuncLabel.value,
+);
+const selectorGuideDismissed = ref(false);
+watch(fromSelector, (v) => {
+    if (!v) {
+        selectorGuideDismissed.value = false;
+    }
+});
+const showSelectorGuide = computed(
+    () => fromSelector.value && !selectorGuideDismissed.value,
+);
+const selectorModel = computed(() => {
+    if (!selectorFunc.value) {
+        return null;
+    }
+    return (
+        serverStore.records.find(
+            (r) =>
+                (r.functions || []).includes(selectorFunc.value) &&
+                serverStore.serverAvailability(r).available,
+        ) || null
+    );
+});
+const selectorBack = computed(() => {
+    const back = Router.currentRoute.value.query.back;
+    if (typeof back === "string" && back.startsWith("/")) {
+        return back;
+    }
+    return "/";
+});
+const selectorTitle = computed(() => {
+    if (selectorModel.value) {
+        return selectorName.value
+            ? t("model.fromSelectorReadyTitle", { source: selectorName.value })
+            : t("model.fromSelectorTitleGeneric");
+    }
+    return selectorName.value
+        ? t("model.fromSelectorTitle", { source: selectorName.value })
+        : t("model.fromSelectorTitleGeneric");
+});
+const selectorDesc = computed(() => {
+    if (selectorModel.value) {
+        return t("model.fromSelectorReady", {
+            title: selectorModel.value.title,
+        });
+    }
+    return selectorFunc.value
+        ? t("model.fromSelectorDesc", { capability: selectorFuncLabel.value })
+        : t("model.fromSelectorDescGeneric");
+});
+const goBackFromSelector = () => {
+    Router.push(selectorBack.value).catch(() => {});
+};
+const openMarket = () => {
+    window.$mapi.app.openExternal(AppConfig.marketUrl);
+};
+
 const doHelp = () => {
     window.$mapi.app.openExternal(AppConfig.helpUrl);
 };
@@ -91,6 +178,26 @@ onMounted(() => {
     }));
     testActionSet("Server.liveGuide.back", () => {
         goBackToLive();
+        return { ok: true };
+    });
+    // 创作页模型下拉跳转引导（供 UI 测试断言）
+    testActionSet("Server.selectorGuide", () => ({
+        fromSelector: fromSelector.value,
+        visible: showSelectorGuide.value,
+        func: selectorFunc.value,
+        label: selectorFuncLabel.value,
+        source: selectorSource.value,
+        title: selectorTitle.value,
+        desc: selectorDesc.value,
+        hasModel: !!selectorModel.value,
+        back: selectorBack.value,
+    }));
+    testActionSet("Server.selectorGuide.back", () => {
+        goBackFromSelector();
+        return { ok: true };
+    });
+    testActionSet("Server.selectorGuide.market", () => {
+        openMarket();
         return { ok: true };
     });
     testActionSet("Server.modelSetting.show", () => {
@@ -199,6 +306,9 @@ onUnmounted(() => {
         "page.ready",
         "Server.liveGuide",
         "Server.liveGuide.back",
+        "Server.selectorGuide",
+        "Server.selectorGuide.back",
+        "Server.selectorGuide.market",
         "Server.modelSetting.show",
         "Server.comfyui.start",
         "Server.comfyui.stop",
@@ -271,7 +381,77 @@ onUnmounted(() => {
                 </div>
             </div>
         </a-alert>
-        <ListerTop :total="serverStore.records.length" @refresh="doRefresh">
+        <a-alert
+            v-if="showSelectorGuide"
+            class="mb-4 dark:[&_.arco-alert-content]:!text-gray-300 dark:[&_.arco-alert-title]:!text-gray-100"
+            :class="
+                selectorModel ? 'dark:!bg-green-950/40' : 'dark:!bg-blue-950/40'
+            "
+            :type="selectorModel ? 'success' : 'info'"
+            show-icon
+        >
+            <template #title>
+                <div class="flex items-start gap-2">
+                    <span class="min-w-0 flex-1 text-sm sm:text-base">{{
+                        selectorTitle
+                    }}</span>
+                    <a-tooltip :content="$t('common.close')">
+                        <a-button
+                            type="text"
+                            size="mini"
+                            :aria-label="$t('common.close')"
+                            class="-mt-1 flex-shrink-0"
+                            @click="selectorGuideDismissed = true"
+                        >
+                            <template #icon>
+                                <icon-close />
+                            </template>
+                        </a-button>
+                    </a-tooltip>
+                </div>
+            </template>
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex-grow min-w-0">
+                    {{ selectorDesc }}
+                </div>
+                <div
+                    class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center"
+                >
+                    <a-button
+                        :type="selectorModel ? 'secondary' : 'primary'"
+                        class="w-full sm:w-auto"
+                        @click="addDialog?.show()"
+                    >
+                        <template #icon>
+                            <icon-plus />
+                        </template>
+                        {{ $t("model.fromSelectorImport") }}
+                    </a-button>
+                    <a-button
+                        :type="selectorModel ? 'primary' : 'outline'"
+                        class="w-full sm:w-auto"
+                        @click="goBackFromSelector()"
+                    >
+                        {{ $t("model.fromSelectorBack") }}
+                    </a-button>
+                    <a-button
+                        type="text"
+                        class="col-span-2 w-full justify-start sm:col-span-1 sm:w-auto"
+                        @click="openMarket()"
+                    >
+                        <template #icon>
+                            <icon-cloud />
+                        </template>
+                        {{ $t("model.fromSelectorMarket") }}
+                    </a-button>
+                </div>
+            </div>
+        </a-alert>
+        <ListerTop
+            :total="serverStore.records.length"
+            :hint="showSelectorGuide ? $t('model.listAllModelsHint') : ''"
+            @refresh="doRefresh"
+        >
             <template #actions>
                 <a-button
                     v-if="serverStore.records.length > 0"
@@ -357,7 +537,16 @@ onUnmounted(() => {
                     <div
                         class="inline-block bg-gray-100 text-left rounded-lg p-6 leading-8"
                     >
-                        <div>① {{ $t("model.marketTip") }}</div>
+                        <div>
+                            ①
+                            <a
+                                href="javascript:;"
+                                class="text-link"
+                                @click="openMarket()"
+                            >
+                                {{ $t("model.marketTip") }}
+                            </a>
+                        </div>
                         <div>② {{ $t("model.unzipTip") }}</div>
                         <div class="pt-3">
                             {{ $t("msg.moreContent") }}
