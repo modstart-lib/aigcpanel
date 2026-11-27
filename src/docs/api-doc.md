@@ -95,7 +95,7 @@ Api-Token: <你的Token>
 | requirements | object | 硬件要求（minDisk / minMemory / minGpu / minGpuMemory / deviceDescription） |
 | functions | array | 功能列表，每项含 name / title / description / args / param（含详细字段定义）/ result |
 | settings | array | 模型设置项列表（GPU选择、超时等） |
-| config | object | config.json 精简信息（entry / cloudName / autoStart） |
+| config | object | config.json 精简信息（entry / assetName / autoStart） |
 
 **返回示例：**
 
@@ -145,7 +145,7 @@ Api-Token: <你的Token>
     "settings": [
       { "name": "gpu", "title": "GPU选择", "type": "gpuSelector", "default": "" }
     ],
-    "config": { "entry": "", "cloudName": "", "autoStart": true }
+    "config": { "entry": "", "assetName": "", "autoStart": true }
   }
 }
 ```

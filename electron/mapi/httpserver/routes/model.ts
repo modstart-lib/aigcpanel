@@ -201,7 +201,10 @@ router.post(
                 // 原始 config（完整引用）
                 config: {
                     entry: record.config?.entry || "",
-                    cloudName: record.config?.cloudName || "",
+                    assetName:
+                        record.config?.assetName ||
+                        record.config?.cloudName ||
+                        "",
                     autoStart: !!record.autoStart,
                 },
             },

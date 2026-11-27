@@ -95,7 +95,7 @@ Get detailed parameter information of a specific model (including field definiti
 | requirements | object | Hardware requirements (minDisk / minMemory / minGpu / minGpuMemory / deviceDescription) |
 | functions | array | Function list with name / title / description / args / param (detailed field definitions) / result |
 | settings | array | Model settings (GPU selection, timeout, etc.) |
-| config | object | Trimmed config.json (entry / cloudName / autoStart) |
+| config | object | Trimmed config.json (entry / assetName / autoStart) |
 
 **Response example:**
 
@@ -145,7 +145,7 @@ Get detailed parameter information of a specific model (including field definiti
     "settings": [
       { "name": "gpu", "title": "GPU", "type": "gpuSelector", "default": "" }
     ],
-    "config": { "entry": "", "cloudName": "", "autoStart": true }
+    "config": { "entry": "", "assetName": "", "autoStart": true }
   }
 }
 ```
