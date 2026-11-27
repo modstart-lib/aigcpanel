@@ -39,10 +39,19 @@ onUnmounted(() => {
     
 });
 
+const deleteRecord = async (record: VideoTemplateRecord) => {
+    const res = await VideoTemplateService.delete(record);
+    if (!res.deleted) {
+        Dialog.tipError(t("avatar.deleteInUse", { count: res.inUseTasks }));
+        return res;
+    }
+    await doRefresh();
+    return res;
+};
+
 const doDelete = async (record: VideoTemplateRecord) => {
     await Dialog.confirm(t("common.deleteConfirm"));
-    await VideoTemplateService.delete(record);
-    await doRefresh();
+    await deleteRecord(record);
 };
 
 const onChangeTitle = async (record: VideoTemplateRecord, value: string) => {

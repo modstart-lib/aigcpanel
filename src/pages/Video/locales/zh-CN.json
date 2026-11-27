@@ -4,6 +4,7 @@
     "avatar.avatar": "数字人形象",
     "avatar.canOpenCloseMouth": "可张口闭口",
     "avatar.config": "数字人配置",
+    "avatar.deleteInUse": "该形象仍被 {count} 个未完成的任务使用，请先在数字人合成任务中结束这些任务，再删除形象",
     "avatar.digitalHuman": "数字人",
     "avatar.example": "形象示例",
     "avatar.faceInterference": "面部有干扰",

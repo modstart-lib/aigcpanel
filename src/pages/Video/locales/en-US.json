@@ -4,6 +4,7 @@
     "avatar.avatar": "Digital Human Avatar",
     "avatar.canOpenCloseMouth": "Mouth Can Open/Close",
     "avatar.config": "Digital Human Configuration",
+    "avatar.deleteInUse": "This avatar is still used by {count} unfinished task(s). Please finish them in digital human synthesis before deleting it.",
     "avatar.digitalHuman": "Digital Human",
     "avatar.example": "Avatar Example",
     "avatar.faceInterference": "Face Interference",

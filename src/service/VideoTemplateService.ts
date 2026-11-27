@@ -1,3 +1,6 @@
+import { countUnfinishedTasksUsing, deleteAssetFile } from "../lib/assetDelete";
+import type { AssetDeleteResult } from "../lib/assetDelete";
+
 export type VideoTemplateRecord = {
     id?: number;
     name: string;
@@ -60,16 +63,17 @@ export const VideoTemplateService = {
             values,
         );
     },
-    async delete(record: VideoTemplateRecord) {
-        if (record.video) {
-            await window.$mapi.file.hubDelete(record.video);
+    async delete(record: VideoTemplateRecord): Promise<AssetDeleteResult> {
+        const inUseTasks = await countUnfinishedTasksUsing(record.video);
+        if (inUseTasks > 0) {
+            return { deleted: false, inUseTasks };
         }
         await window.$mapi.db.delete(
-            `DELETE
-             FROM ${this.tableName()}
-             WHERE id = ?`,
+            `DELETE FROM ${this.tableName()} WHERE id = ?`,
             [record.id],
         );
+        await deleteAssetFile(record.video);
+        return { deleted: true, inUseTasks: 0 };
     },
     async update(id: number, record: Partial<VideoTemplateRecord>) {
         record = this.encodeRecord(record as VideoTemplateRecord);
