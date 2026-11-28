@@ -110,6 +110,9 @@ npm run build          # 打包
 ```shell
 aigcpanel --help
 
+# 完整使用说明（与当前 CLI 版本一致，--json 可取结构化内容）
+aigcpanel skill
+
 # 有哪些模型服务
 aigcpanel serverList
 

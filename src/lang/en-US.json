@@ -39,6 +39,8 @@
     "common.docs": "Docs",
     "common.download": "Download",
     "common.downloadFailed": "Download Failed",
+    "common.downloadRenamed": "{count} file(s) with a duplicate name were saved with a number suffix: {names}",
+    "common.downloadSkipped": "{count} file(s) were skipped because a file with the same name already exists in the folder: {names}",
     "common.downloadSuccess": "Download Successful",
     "common.downloadingWait": "Downloading, please wait...",
     "common.dragHereToRelease": "Drop here to release",

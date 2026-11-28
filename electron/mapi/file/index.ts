@@ -9,6 +9,7 @@ import { AppEnv, waitAppEnvReady } from "../env";
 import { Log } from "../log";
 import electron from "electron";
 import { finished } from "stream/promises";
+import { sanitizeFileNameBase } from "../../../src/lib/fileName";
 
 const nodePath = path;
 
@@ -1208,16 +1209,8 @@ const stat = async (
 };
 
 const textToName = (text: string, ext: string = "", maxLimit: number = 100) => {
-    if (text) {
-        // 转换为合法的文件名
-        text = text.replace(/[\\\/\:\*\?\"\<\>\|]/g, "");
-        text = text.replace(/[\r\n]/g, "");
-        text = text.replace(/\s+/g, "");
-        text = text.substring(0, maxLimit);
-    }
-    if (!text) {
-        text = "EMPTY";
-    }
+    // 转换为合法的文件名（规则与渲染进程共用，见 src/lib/fileName.ts）
+    text = sanitizeFileNameBase(text, maxLimit);
     if (!ext) {
         return text;
     }

@@ -7,11 +7,15 @@ description: 通过 AIGCPanel 内置 HTTP 接口或命令行 CLI 工具调用本
 
 AIGCPanel 提供两种集成方式：**HTTP 接口**（适合外部程序集成）和 **CLI 命令行工具**（适合脚本和终端操作）。
 
+> 集成前先运行 `aigcpanel skill` 取与当前 CLI 版本一致的最新用法；本文档是同一份内容的离线版，两者冲突时以命令输出为准。
+
 ---
 
 ## 一、CLI 命令行工具
 
 CLI 工具 `aigcpanel` 提供简洁的命令行接口，适合在脚本和终端中使用。命令名统一使用**小写驼峰**（如 `serverCall`、`serverList`），参数名统一使用**小写驼峰**（如 `--comfyuiName`、`--taskId`）。
+
+> 最新用法以 `aigcpanel skill` 的输出为准；本文档随 CLI 一起打包，是同一份内容的离线版。`aigcpanel skill --json` 输出结构化内容，`aigcpanel skill --raw` 输出包含 frontmatter 的原文。
 
 ### 安装
 
@@ -22,7 +26,9 @@ CLI 工具 `aigcpanel` 提供简洁的命令行接口，适合在脚本和终端
 | 命令 | 说明 |
 |------|------|
 | `aigcpanel version` | 查看版本信息 |
+| `aigcpanel skill [--json\|--raw]` | 输出本使用说明（`--json` 为结构化内容，`--raw` 含 frontmatter） |
 | `aigcpanel serverInstall --dir <路径>` | 安装本地模型服务（目录需含 config.json） |
+| `aigcpanel serverPrepare --server <name\|version> [--status\|--pause]` | 下载/校验模型权重，或查询、暂停下载 |
 | `aigcpanel serverRemove --server <name\|version>` | 删除已安装模型服务（自动停止运行中的服务） |
 | `aigcpanel serverList` | 列出所有已安装 AI 模型服务 |
 | `aigcpanel serverComfyuiList --server <name\|version>` | 列出 ComfyUI 服务的工作流（仅 VIP 用户） |
@@ -62,6 +68,21 @@ aigcpanel serverInstall --dir /path/to/model-server-dir
 # 删除模型服务（自动停止运行中的服务，--server 可省略版本号）
 aigcpanel serverRemove --server server-ComfyUI
 ```
+
+### 下载 / 校验模型权重
+
+```bash
+# 下载并等待完成（导入模型后会自动开始，手动触发用这个）
+aigcpanel serverPrepare --server IndexTTS25
+
+# 只查询当前下载状态
+aigcpanel serverPrepare --server "server-IndexTTS25|1.0.0" --status
+
+# 暂停下载（保留已下载分片，后续可续传）
+aigcpanel serverPrepare --server IndexTTS25 --pause
+```
+
+`--cancel` 是 `--pause` 的别名。
 
 ### 调用模型服务服务（serverCall）
 

@@ -39,6 +39,8 @@
     "common.docs": "文档",
     "common.download": "下载",
     "common.downloadFailed": "下载失败",
+    "common.downloadRenamed": "{count} 个同名文件已自动加序号保存：{names}",
+    "common.downloadSkipped": "已跳过 {count} 个同名文件（目录里已有）：{names}",
     "common.downloadSuccess": "下载成功",
     "common.downloadingWait": "下载中，请耐心等待",
     "common.dragHereToRelease": "拖拽到此处松手",

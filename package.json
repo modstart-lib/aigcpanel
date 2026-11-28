@@ -52,7 +52,8 @@
     "test:child-exit": "tsx test/unit/childExit.test.ts",
     "test:prepare-download": "tsx test/unit/prepareDownload.test.ts",
     "test:ffmpeg-output": "tsx test/unit/ffmpegOutput.test.ts",
-    "test:text-split": "tsx test/unit/textSplit.test.ts"
+    "test:text-split": "tsx test/unit/textSplit.test.ts",
+    "test:download-name": "tsx test/unit/downloadName.test.ts"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",

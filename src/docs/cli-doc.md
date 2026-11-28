@@ -39,6 +39,7 @@ export PATH="$HOME/.local/bin:$PATH"
 | 命令 | 说明 |
 |------|------|
 | `version` | 查看 CLI 版本号 |
+| `skill` | 输出完整使用说明（`--json` 结构化，`--raw` 含 frontmatter） |
 | `serverList` | 列出已安装的 AI 模型服务 |
 | `serverInstall` | 从本地目录安装模型 |
 | `serverRemove` | 卸载已安装的模型 |
@@ -57,6 +58,19 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ```bash
 aigcpanel version
+```
+
+### 查看完整使用说明
+
+```bash
+# 与当前 CLI 版本一致的完整用法（命令、参数、HTTP 接口、工具列表）
+aigcpanel skill
+
+# 结构化输出，便于脚本读取
+aigcpanel skill --json
+
+# 原样输出（含 frontmatter）
+aigcpanel skill --raw > aigcpanel-skill.md
 ```
 
 ### 查看已安装模型列表
